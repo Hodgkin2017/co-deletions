@@ -2,11 +2,17 @@
 ## Co-deletion and amplification heatmaps
 ##############
 
+##Install pacakges
+source("https://bioconductor.org/biocLite.R")
+biocLite("org.Hs.eg.db")
+
 ##Load packages
 library(tidyr)
 library(dplyr)
 library(pheatmap)
 library(RColorBrewer)
+
+library(org.Hs.eg.db)
 
 
 ##Set working directory
@@ -16,12 +22,12 @@ dir()
 
 ## Read 1st CNV file
 ## Find way to autamatically load each file
-acc.ncv<- read.delim("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Data/unzipped data/ACC/all_data_by_genes.txt", stringsAsFactors = FALSE, header = FALSE)
-dim(acc.ncv)
-class(acc.ncv)
-acc.ncv<- tbl_df(acc.ncv)
-acc.ncv
-View(acc.ncv)
+acc.cnv<- read.delim("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Data/unzipped data/ACC/all_data_by_genes.txt", stringsAsFactors = FALSE, header = TRUE)
+dim(acc.cnv)
+class(acc.cnv)
+#acc.cnv<- tbl_df(acc.cnv)
+#acc.cnv
+View(acc.cnv)
 
 ## function to import all tables automatically and name object after folder name
 
@@ -157,12 +163,59 @@ pheatmap(df5,
 ## Obtain chromosomal locations of genes
 
 
+keys<- keys(org.Hs.eg.db, keytype = "ENTREZID")
+keys
+columns<- c("CHR", "CHRLOC", "CHRLOCEND")
+sel<- select(org.Hs.eg.db, keys, columns, keytype = "ENTREZID")
+View(sel)
+dim(sel)
+
+acc.locus.id<- acc.cnv$Locus.ID
+length(acc.locus.id)
+
+sel2<- sel[sel$ENTREZID %in% acc.locus.id,]
+sel2
+dim(sel2)
+
+sel3<- na.omit(sel2[!duplicated(sel2$ENTREZID), ])
+sel3
+dim(sel3)
+
+sel3$strand<- ifelse(sel3$CHRLOC <0, "-", "+")
+sel3
+sel3$start<- abs(sel3$CHRLOC)
+sel3$end<- abs(sel3$CHRLOCEND)
+head(sel3)
+dim(sel3)
+
+#################
+## Attach CHRLOCCHR and start to acc cnv file
+
+head(acc.cnv)
+
+?dplyr::rename
+sel3<- dplyr::rename(sel3, Locus.ID = ENTREZID)
+
+?dplyr::full_join
+class(acc.cnv$Locus.ID)
+class(sel3$Locus.ID)
+sel3$Locus.ID<- as.integer(sel3$Locus.ID)
+class(sel3$Locus.ID)
+
+acc.cnv.loc<- full_join(acc.cnv, sel3, by="Locus.ID")
+head(acc.cnv.loc)
+class(acc.cnv.loc$CHR)
+acc.cnv.loc$CHR<- as.integer(acc.cnv.loc$CHR)
+
+is.na(acc.cnv.loc$CHR)
+which(is.na(acc.cnv.loc), arr.ind = TRUE)
+dim(acc.cnv.loc)
+acc.cnv.loc<- dplyr::arrange(acc.cnv.loc, CHR, start)
+View(acc.cnv.loc)
+
+## comment: No Y chromosomes and a lot of NA's!!
 
 
-
-
-
-
-#########
+#################
 ##Function to convert CNV file to matrix for heatmap
 
