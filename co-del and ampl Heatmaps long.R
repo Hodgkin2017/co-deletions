@@ -2,14 +2,12 @@
 ## Co-deletion and amplification heatmaps
 ##############
 
-##Install and load packages
-install.packages("tidyr")
-install.packages("dplyr")
-install.packages("rlang")
-install.packages("pheatmap")
+##Load packages
 library(tidyr)
 library(dplyr)
 library(pheatmap)
+library(RColorBrewer)
+
 
 ##Set working directory
 getwd()
@@ -124,11 +122,15 @@ df5
 #########
 ## My heatmap so far.....
 ########
+RColorBrewer::display.brewer.all()
 
+col.pal <- RColorBrewer::brewer.pal(9, "YlGnBu")
+col.pal
 
 pheatmap(df5, 
          cluster_row = T,
          cluster_cols = F,
+         color = col.pal,
          fontsize = 6.5,
          fontsize_row=10, 
          fontsize_col = 10,
@@ -140,6 +142,7 @@ pheatmap(df5,
 pheatmap(df5, 
          cluster_row = F,
          cluster_cols = F,
+         color = col.pal,
          fontsize = 6.5,
          fontsize_row=10, 
          fontsize_col = 10,
@@ -152,6 +155,11 @@ pheatmap(df5,
 
 ##########
 ## Obtain chromosomal locations of genes
+
+
+
+
+
 
 
 
