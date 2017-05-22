@@ -17,7 +17,7 @@ library(org.Hs.eg.db)
 
 ##Set working directory
 getwd()
-setwd("/Users/Matt/Documents/co-deletions/")
+setwd("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/")
 dir()
 
 ## Read 1st CNV file
@@ -104,7 +104,7 @@ for(i in 1: nrow(df3)){
     
     value<- df3[i,]*df3[j,]
     df4[i,j]<- sum(value)/sum(df3[i,])
-        
+    
   }
 }
 df4
@@ -142,7 +142,7 @@ pheatmap(df5,
          clustering_distance_rows = "correlation",
          show_rownames = TRUE,
          show_colnames = TRUE
-         )
+)
 
 pheatmap(df5, 
          cluster_row = F,
@@ -219,45 +219,45 @@ View(acc.cnv.loc)
 #Very slow:
 #See third function "create.heatmap.matrix.ampl.del.optimised" which is faster
 create.heatmap.matrix<- function(x, column_start, threshold){
-
-##Convert CNV data to matrix:
-
-cnv.matrix<- as.matrix(x[,column_start:ncol(x)])
-
-##Threshold data such that anything with a value of the threshold or lower = TRUE
-
-cnv.matrix<- cnv.matrix <= threshold
-
-## Convert dataframe to 1 and 0:
-cnv.matrix<- cnv.matrix*1
-
-## Calculate the proportion of individuals with a deletion:
-prop.individ.with.del<- rowSums(cnv.matrix)/ncol(cnv.matrix)
-
-##loop to create a table with proportion of deletions shared between genes
-
-
-heatmap.matrix<-data.frame(matrix(NA, ncol = nrow(cnv.matrix), nrow = nrow(cnv.matrix)))
-
-for(i in 1: nrow(cnv.matrix)){
   
-  for (j in 1: nrow(cnv.matrix)) {
+  ##Convert CNV data to matrix:
+  
+  cnv.matrix<- as.matrix(x[,column_start:ncol(x)])
+  
+  ##Threshold data such that anything with a value of the threshold or lower = TRUE
+  
+  cnv.matrix<- cnv.matrix <= threshold
+  
+  ## Convert dataframe to 1 and 0:
+  cnv.matrix<- cnv.matrix*1
+  
+  ## Calculate the proportion of individuals with a deletion:
+  prop.individ.with.del<- rowSums(cnv.matrix)/ncol(cnv.matrix)
+  
+  ##loop to create a table with proportion of deletions shared between genes
+  
+  
+  heatmap.matrix<-data.frame(matrix(NA, ncol = nrow(cnv.matrix), nrow = nrow(cnv.matrix)))
+  
+  for(i in 1: nrow(cnv.matrix)){
     
-    value<- cnv.matrix[i,]*cnv.matrix[j,]
-    heatmap.matrix[i,j]<- sum(value)/sum(cnv.matrix[i,])
-    
+    for (j in 1: nrow(cnv.matrix)) {
+      
+      value<- cnv.matrix[i,]*cnv.matrix[j,]
+      heatmap.matrix[i,j]<- sum(value)/sum(cnv.matrix[i,])
+      
+    }
   }
-}
-
-for(i in 1:nrow(heatmap.matrix)) {
   
-  heatmap.matrix[i,i]<- prop.individ.with.del[i]
-}
-
-rownames(heatmap.matrix)<- rownames(x)
-colnames(heatmap.matrix)<- rownames(x)
-
-heatmap.matrix
+  for(i in 1:nrow(heatmap.matrix)) {
+    
+    heatmap.matrix[i,i]<- prop.individ.with.del[i]
+  }
+  
+  rownames(heatmap.matrix)<- rownames(x)
+  colnames(heatmap.matrix)<- rownames(x)
+  
+  heatmap.matrix
 }
 
 
@@ -270,9 +270,9 @@ create.heatmap.matrix.ampl.del<- function(x, column_start, threshold, deletion =
   cnv.matrix<- as.matrix(x[,column_start:ncol(x)])
   
   if (deletion == TRUE) {
-  ##Threshold data such that anything with a value of the threshold or lower = TRUE
-  
-  cnv.matrix<- cnv.matrix<= threshold
+    ##Threshold data such that anything with a value of the threshold or lower = TRUE
+    
+    cnv.matrix<- cnv.matrix<= threshold
   } else {
     
     cnv.matrix<- cnv.matrix >= threshold
@@ -314,7 +314,10 @@ create.heatmap.matrix.ampl.del<- function(x, column_start, threshold, deletion =
 
 ##Faster function to create matrix of proportions of co-deletions
 # and co-amplifications
-
+rownames(acc.cnv.loc)<- acc.cnv.loc$Gene.Symbol
+x<- acc.cnv.loc
+x[11:21,11:21]
+x<-x[11:21,11:21]
 create.heatmap.matrix.ampl.del.optimised<- function(x, column_start, threshold, deletion = TRUE){
   
   ##Convert CNV data to matrix:
@@ -385,7 +388,7 @@ rownames(acc.cnv.loc)<- acc.cnv.loc$Gene.Symbol
 x<- acc.cnv.loc
 
 system.time(heatmap.matrix.del<- create.heatmap.matrix.ampl.del.optimised(x, column_start = 11, threshold = -1, deletion = TRUE))
-heatmap.matrix.del
+head(heatmap.matrix.del)
 dim(heatmap.matrix.del)
 View(heatmap.matrix.del)
 
@@ -394,12 +397,21 @@ heatmap.matrix.amp
 dim(heatmap.matrix.amp)
 View(heatmap.matrix.amp)
 
+#########
+##Problem solving:
+heatmap.matrix.del[1:10,1:10]
+heatmap.matrix.del.problem<- create.heatmap.matrix.ampl.del.optimised(x[11:21,11:21], column_start = 1, threshold = -1, deletion = TRUE)
+dim(heatmap.matrix.del.problem)
+heatmap.matrix.del.problem
+                                                                      
+                                                                      
+                                                                      
+                                                                      
+                                                                      
 #############
 ## Create Heatmap of ACC co-deletions data using pHeatmap
 ##Need to look up different clustering algorithms
-##Problem with NA's?
-
-pheatmap(heatmap.matrix.del, 
+pheatmap(heatmap.matrix.del[1:100,1:100], 
          cluster_row = T,
          cluster_cols = F,
          color = col.pal,
