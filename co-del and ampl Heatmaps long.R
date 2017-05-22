@@ -17,7 +17,7 @@ library(org.Hs.eg.db)
 
 ##Set working directory
 getwd()
-setwd("/Users/Matt/Documents/co-deletions/")
+setwd("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/")
 dir()
 
 ## Read 1st CNV file
@@ -325,14 +325,15 @@ create.heatmap.matrix.ampl.del.optimised<- function(x, column_start, threshold, 
   #amplifications (deletion = FALSE) below (for deletions) or above (for amplifications) a threshold = 1 
   if (deletion == TRUE) {
     
-    cnv.matrix[cnv.matrix > threshold] = 0
-    cnv.matrix = -cnv.matrix
+    #cnv.matrix[cnv.matrix > threshold] = 0
+    #cnv.matrix = -cnv.matrix
+    cnv.matrix<- ifelse(cnv.matrix <= threshold, 1, 0)
     
   } else {
     
     #cnv.matrix<- cnv.matrix >= threshold
-    cnv.matrix[cnv.matrix < threshold] = 0
-    
+    #cnv.matrix[cnv.matrix < threshold] = 0
+    cnv.matrix<- ifelse(cnv.matrix >= threshold, 1, 0)
   }
   
   ## Calculate the proportion of individuals with a deletion:
@@ -342,6 +343,10 @@ create.heatmap.matrix.ampl.del.optimised<- function(x, column_start, threshold, 
   
   heatmap.matrix<- cnv.matrix%*%t(cnv.matrix)
   heatmap.matrix<- heatmap.matrix/rowSums(cnv.matrix)
+  
+  ##NaN caused when rowSums = 0. Replace NaN with 0
+  #cnv.matrix[cnv.matrix == NaN] = 0
+  heatmap.matrix[is.nan(heatmap.matrix)] = 0
   
   ## Complete diagonals with proportion of individuals with deletions.
   for(i in 1:nrow(heatmap.matrix)) {
@@ -368,6 +373,7 @@ create.heatmap.matrix.ampl.del.optimised<- function(x, column_start, threshold, 
 x<- df
 column_start<- 1
 threshold<- -1
+deletion = TRUE
 
 heatmap.matrix<- create.heatmap.matrix(x, column_start, threshold)
 heatmap.matrix
@@ -385,28 +391,96 @@ rownames(acc.cnv.loc)<- acc.cnv.loc$Gene.Symbol
 x<- acc.cnv.loc
 
 system.time(heatmap.matrix.del<- create.heatmap.matrix.ampl.del.optimised(x, column_start = 11, threshold = -1, deletion = TRUE))
-heatmap.matrix.del
+head(heatmap.matrix.del)
 dim(heatmap.matrix.del)
 View(heatmap.matrix.del)
 
 system.time(heatmap.matrix.amp<- create.heatmap.matrix.ampl.del.optimised(x, column_start = 11, threshold = 1, deletion = FALSE))
-heatmap.matrix.amp
+head(heatmap.matrix.amp)
 dim(heatmap.matrix.amp)
 View(heatmap.matrix.amp)
+
 
 #############
 ## Create Heatmap of ACC co-deletions data using pHeatmap
 ##Need to look up different clustering algorithms
 ##Problem with NA's?
 
-pheatmap(heatmap.matrix.del, 
+small.heatmap.matrix.del<- heatmap.matrix.del[1:1000,1:1000]
+class(small.heatmap.matrix.del)
+dim(small.heatmap.matrix.del)
+which(is.na(small.heatmap.matrix.del))
+
+which(acc.cnv.loc$CHR == 9, arr.ind = TRUE)
+chr9.heatmap.matrix.del<- heatmap.matrix.del[7809:8538,7809:8538]
+dim(chr9.heatmap.matrix.del)
+
+col.pal <- RColorBrewer::brewer.pal(9, "YlGnBu")
+col.pal
+
+pdf( "mygraph2.pdf", width = 12, height = 12 )
+pheatmap(chr9.heatmap.matrix.del,
+         cluster_row = F,
+         cluster_cols = F,
+         fontsize = 6.5,
+         fontsize_row=0.5, 
+         fontsize_col = 0.5,
+         show_rownames = TRUE,
+         show_colnames = TRUE,
+         cellwidth = 0.8,
+         cellheight = 0.8 
+         )
+dev.off()
+
+pheatmap(chr9.heatmap.matrix.del,
+         cluster_row = T,
+         cluster_cols = F,
+         fontsize = 6.5,
+         fontsize_row=0.3, 
+         fontsize_col = 0.3,
+         show_rownames = TRUE,
+         show_colnames = TRUE,
+         cellwidth = 0.3,
+         cellheight = 0.3 
+)
+
+chr9.heatmap.matrix.amp<- heatmap.matrix.amp[7809:8538,7809:8538]
+dim(chr9.heatmap.matrix.del)
+
+pheatmap(chr9.heatmap.matrix.amp,
+         cluster_row = F,
+         cluster_cols = F,
+         fontsize = 6.5,
+         fontsize_row=0.3, 
+         fontsize_col = 0.3,
+         show_rownames = TRUE,
+         show_colnames = TRUE,
+         cellwidth = 0.3,
+         cellheight = 0.3 
+)
+
+pdf( "mygraph.pdf", width = 12, height = 12 )
+pheatmap(chr9.heatmap.matrix.amp,
+         cluster_row = T,
+         cluster_cols = F,
+         fontsize = 6.5,
+         fontsize_row=0.5, 
+         fontsize_col = 0.5,
+         show_rownames = TRUE,
+         show_colnames = TRUE,
+         cellwidth = 0.8,
+         cellheight = 0.8 
+)
+dev.off()
+
+pheatmap(small.heatmap.matrix.del, 
          cluster_row = T,
          cluster_cols = F,
          color = col.pal,
          fontsize = 6.5,
-         fontsize_row=10, 
-         fontsize_col = 10,
-         clustering_distance_rows = "correlation",
+         #fontsize_row=10, 
+         #fontsize_col = 10,
+         #clustering_distance_rows = "correlation",
          show_rownames = TRUE,
          show_colnames = TRUE
 )
@@ -418,8 +492,7 @@ pheatmap(heatmap.matrix.del,
          fontsize = 6.5,
          fontsize_row=10, 
          fontsize_col = 10,
-         clustering_distance_rows = "correlation",
+         #clustering_distance_rows = "correlation",
          show_rownames = TRUE,
          show_colnames = TRUE
 )
-
