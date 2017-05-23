@@ -27,7 +27,7 @@ Aims:
 
 Collection and geneotyping of Tumours was performed by the Cancer Genome atlas (TCGA) whose aim is to.....(write more?).  Tumour genotyping raw data was processed at the Broad Institute as part of the firehose project (http://firebrowse.org). The project aims to regularly process cancer genomic data from the TCGA using standardised methods for the benefit of the scientific community and by doing so reduce processing time and human error. 
 
-To identify gene co-deletion and amplification events, GISTIC2 processed CNV data was downloaded from the broad Institutes firehose website (http://gdac.broadinstitute.org). From the [broad gdac homepage](http://gdac.broadinstitute.org) navigate to the *Analyses* drop down menu and choose *Dashboard*. This will take you to a page listing every cancer type with genotyoing data processed by the firehose project (https://confluence.broadinstitute.org/display/GDAC/Dashboard-Analyses). To visualse all openly available (not protected) data files click on *Open* for each cancer type. The new webpage lists all .tar zipped files available to download. The files containing CNV data have **Gistic2** in their name. These files were downloaded for each cancer type from the 2016_01_28 analyses Run on the 15th May 2017.
+To identify gene co-deletion and amplification events, GISTIC2 processed CNV data was downloaded from the broad Institutes firehose website (http://gdac.broadinstitute.org). From the [broad gdac homepage](http://gdac.broadinstitute.org) navigate to the *Analyses* drop down menu and choose *Dashboard*. This will take you to a page listing every cancer type with genotyping data processed by the firehose project (https://confluence.broadinstitute.org/display/GDAC/Dashboard-Analyses). To visualse all openly available (not protected) data files click on *Open* for each cancer type. The new webpage lists all .tar zipped files available to download. The files containing CNV data have **Gistic2** in their name. These files were downloaded for each cancer type from the 2016_01_28 analyses Run on the 15th May 2017.
 
 To confirm that the data was downlaoded without any error a md5 checksum was performed on the downloaded files and the checksum code was compared to the .md5 files downloaded at the same time as the data files.
 
@@ -197,7 +197,7 @@ join.cnv.datasets<- function(x, column, data.sets = "all data sets"){
 }
 
 ##O5: Create one large dataframe with all CNV data in it:
-CNV.all.table<-join.cnv.datasets(cnv.list, column)
+CNV.all.table<-join.cnv.datasets(cnv.list, column = 4)
 
 ```
 
@@ -207,7 +207,7 @@ CNV.all.table<-join.cnv.datasets(cnv.list, column)
 ## Heatmaps showing co-deletions and co-amplifications for each chromosome for all types of tumours
 Function that creates matrix and normalises data of your choice and plots heat map.
 
-Function must allow for interegation of specific genes, cytobands, chromosomes and chromosomal locations.
+Function must allow for interrogation of specific genes, cytobands, chromosomes and chromosomal locations.
 
 use ... for pHeatmap arguments
 
