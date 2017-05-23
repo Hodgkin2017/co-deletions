@@ -44,7 +44,8 @@ new.table
 
 write.csv(new.table, file = "table.csv")
 
-
+########
+## Christophe's method:
 
 library(dplyr)
 library(tidyr)
