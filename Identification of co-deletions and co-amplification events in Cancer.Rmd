@@ -1,0 +1,229 @@
+---
+title: "Identification of co-deletions and co-amplification events in Cancer"
+author: "Hodgkin2017"
+date: "23 May 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(dplyr)
+library(tidyr)
+
+```
+
+## Hypothesis and Aims
+
+Add something here.......
+
+Aims:
+
+1. Aim One
+2. Aim Two
+3. Aim Three
+
+## Data source
+
+Collection and geneotyping of Tumours was performed by the Cancer Genome atlas (TCGA) whose aim is to.....(write more?).  Tumour genotyping raw data was processed at the Broad Institute as part of the firehose project (http://firebrowse.org). The project aims to regularly process cancer genomic data from the TCGA using standardised methods for the benefit of the scientific community and by doing so reduce processing time and human error. 
+
+To identify gene co-deletion and amplification events, GISTIC2 processed CNV data was downloaded from the broad Institutes firehose website (http://gdac.broadinstitute.org). From the [broad gdac homepage](http://gdac.broadinstitute.org) navigate to the *Analyses* drop down menu and choose *Dashboard*. This will take you to a page listing every cancer type with genotyoing data processed by the firehose project (https://confluence.broadinstitute.org/display/GDAC/Dashboard-Analyses). To visualse all openly available (not protected) data files click on *Open* for each cancer type. The new webpage lists all .tar zipped files available to download. The files containing CNV data have **Gistic2** in their name. These files were downloaded for each cancer type from the 2016_01_28 analyses Run on the 15th May 2017.
+
+To confirm that the data was downlaoded without any error a md5 checksum was performed on the downloaded files and the checksum code was compared to the .md5 files downloaded at the same time as the data files.
+
+First concatenate the contents of the .md5 files into one file: 
+
+```{bash md5_cat, eval=FALSE}
+cat *Level_4*.md5 > /Users/Matt/Documents/co-deletions/md5_checksum_Level_4.txt
+less /Users/Matt/Documents/co-deletions/md5_checksum_Level_4.txt
+
+```
+
+Next perform an md5 checksum operation on the Level_4 files (these files contain the data we want) and save the output as a file:
+
+```{bash md5_checksum, eval=FALSE}
+man md5
+
+md5 -r *Level_4*.tar.gz
+md5 -r *Level_4*.tar.gz > /Users/Matt/Documents/co-deletions/md5_checksum.txt
+
+```
+
+The md5_checksum files and downloaded .md5 files were imported into R and used to confirm the md5 checksum code was identical: 
+
+```{r checksum_confirmation}
+## Import files into R
+md5.cat.files<- read.table(file = "/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/md5 checksum GISTC2 firehose/md5_cat_Level_4.txt")
+md5.checksum<- read.table(file = "/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/md5 checksum GISTC2 firehose/md5_checksum.txt")
+
+## Name columns of imported tables:
+colnames(md5.cat.files)<- c("checksum", "file_name")
+colnames(md5.checksum)<- c("checksum_download", "file_name")
+
+## Join the imported tables and create a new column that proves if the md5 checksum code of the downloaded files matches with the true checksum code:
+dplyr.checksum2<- dplyr::full_join(md5.cat.files, md5.checksum, by = "file_name") %>% 
+  dplyr::mutate(identical_checksum = checksum == checksum_download)
+
+## If sum is == 0 then all files have been corectly downloaded:
+sum(!dplyr.checksum2$identical_checksum)
+```
+
+The download was successful as the md5 checksum code of the downloaded data files was identical to the code in the .md5 files. The individual \*Gistc2.Level4\* files were then unzipped using the following command:
+
+```{bash unzip, , eval=FALSE}
+
+tar -zxvf gdac.broadinstitute.org_ACC-TP.CopyNumber_Gistic2.Level_4.2016012800.0.0.tar.gz
+
+```
+
+However, this method was very slow as all files could not be unzipped in one opperation. Therfore, it was quicker to double click each \*tar.gz file and unzip them using the MAC GUI.
+
+A new folder was manually created for each cancer type and the unzipped files for each cancer type were transfered to the appropriately named folder.
+
+## Import CNV data for each cancer type
+
+An R script was used to import the CNV data files for each cancer type from their respective folders. All CNV data files were stored as individual dataframes in a single list object where each item of the list was named after the folder (cancer type) the dataframe was imported from.
+
+```{r Import_data, eval=FALSE}
+
+##F1: Function to import multiple files from multiple folders
+
+import.files.from.directories<-function(x,file.to.import){
+  currentwd<- getwd()
+  setwd(x)
+  directory.names<-dir()
+  my.list <- vector("list", length(directory.names))
+  for (i in 1: length(directory.names)){
+    move.to.directory<-paste0(x,"/",directory.names[i])
+    setwd(move.to.directory)
+    my.list[[i]]<-read.delim(file.to.import, stringsAsFactors = FALSE, header = TRUE)
+    print(directory.names[i])
+  }
+  names(my.list)<- directory.names
+  setwd(currentwd)
+  my.list
+}
+
+
+## Choose directory and name of files to import from each directory:
+
+x<-"/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/unzipped original broad TCGA CNV data"
+file.to.import<-"all_data_by_genes.txt"
+
+##O1: Run function to obtain a list object containing all CNV dataframes
+
+cnv.list<- import.files.from.directories(x, file.to.import)
+
+
+```
+
+
+## Confirm that each cancer type CNV file has the same genes and Locus IDs
+
+Each CNV file for each cancer type was checked to ensure they each contained the same number of genes.
+
+```{r unique_data, eval=FALSE}
+
+#################
+## Check that each CNV dataset contains the same genes and Entrez IDs (Locus.ID column):
+
+##Make table of gene names
+gene.names<- sapply(cnv.list, '[[',1)
+
+##Sort gene names before checking each column is identical
+gene.names.sorted <- apply(gene.names,2,sort,decreasing=F)
+
+## A1: Check the gene names for each CNV dataset is identical
+identical.gene.names<- rep(NA, ncol(gene.names.sorted))
+for (i in 1: ncol(gene.names.sorted)){
+  
+  identical.gene.names[i]<- identical(gene.names.sorted[,1], gene.names.sorted[,i])
+}
+##O2:
+identical.gene.names
+
+
+##Make table of entrez IDs
+Locus.IDs<- sapply(cnv.list, '[[',2)
+
+##Sort entrez IDs before checking each column is identical
+Locus.IDs.sorted <- apply(Locus.IDs,2,sort,decreasing=F)
+
+## A2: Check the entrez IDs for each CNV dataset are identical
+identical.Locus.IDs<- rep(NA, ncol(Locus.IDs.sorted))
+for (i in 1: ncol(Locus.IDs.sorted)){
+  
+  identical.Locus.IDs[i]<- identical(Locus.IDs.sorted[,1], Locus.IDs.sorted[,i])
+}
+##O3:
+identical.Locus.IDs
+
+
+```
+
+
+## Select Cancer type CNV data for analysis
+
+A function was implemented in R that could create a single large dataframe from all or some of the cancer type datasets using the CNV list object above. This would allow specific cancer type CNV data sets to be interegated later if required.
+
+```{r select_data, eval=FALSE}
+
+##F2: Function to select some or all CNV datasets from CNV list object and combining data into one large dataframe.
+
+join.cnv.datasets<- function(x, column, data.sets = "all data sets"){
+  
+  if(data.sets == "all data sets"){
+    
+    index<- seq(1:length(x))
+    
+  } else {
+    names.of.tables<-names(x)
+    names.of.tables
+    index<-which(names.of.tables %in% data.sets)
+    print("DO NOT WORRY ABOUT THE FOLLOWING WARNING MESSAGE:")
+    
+  }
+  
+  df<- x[[1]] %>% dplyr::select(c(Gene.Symbol,Locus.ID,Cytoband))
+  
+  for (i in index){
+    
+    df2<-x[[i]][,c(1,column:ncol(x[[i]]))]
+    
+    df<- full_join(df, df2, by = "Gene.Symbol")
+    
+  }
+  df
+}
+
+##O5: Create one large dataframe with all CNV data in it:
+CNV.all.table<-join.cnv.datasets(cnv.list, column)
+
+```
+
+
+
+
+## Heatmaps showing co-deletions and co-amplifications for each chromosome for all types of tumours
+Function that creates matrix and normalises data of your choice and plots heat map.
+
+Function must allow for interegation of specific genes, cytobands, chromosomes and chromosomal locations.
+
+use ... for pHeatmap arguments
+
+
+
+```{r heatmap, echo=FALSE}
+
+##select data function
+
+##Create matrix function
+
+##Plot heat map
+
+```
+
+
+## Heatmaps showing number of deletions /co-deletions per cytoband/chromosomal interval
+
+
