@@ -178,13 +178,31 @@ dim(sel2)
 sel3<- na.omit(sel2[!duplicated(sel2$ENTREZID), ])
 sel3
 dim(sel3)
+    
+## Remove genes with poorly defined chromosome
+chr<-c(seq(1:22), "X", "Y")
+chr
 
-sel3$strand<- ifelse(sel3$CHRLOC <0, "-", "+")
-sel3
-sel3$start<- abs(sel3$CHRLOC)
-sel3$end<- abs(sel3$CHRLOCEND)
-head(sel3)
-dim(sel3)
+rows.of.interest<- which(sel3$CHR %in% chr)
+head(rows.of.interest)
+length(rows.of.interest)
+
+sel3.final<- sel3[rows.of.interest,]
+dim(sel3.final)
+
+
+sel3.final$strand<- ifelse(sel3.final$CHRLOC <0, "-", "+")
+sel3.final
+sel3.final$start<- abs(sel3.final$CHRLOC)
+sel3.final$end<- abs(sel3.final$CHRLOCEND)
+head(sel3.final)
+dim(sel3.final)
+
+##which genes did not have defined chromosome
+rows.not.of.interest<-which(!sel3$CHR %in% chr)
+length(which(!sel3$CHR %in% chr))
+genes.removed.from.sel3<- sel3[rows.not.of.interest,]
+head(genes.removed.from.sel3)
 
 ##Biomart method:
 
@@ -244,7 +262,7 @@ dim(sel5)
 
 
 ##Remove genes without correct chr name:
-chr<-c(seq(1:22), "x", "Y")
+chr<-c(seq(1:22), "X", "Y")
 chr
 
 rows.of.interest<- which(sel4$chromosome_name %in% chr)
@@ -258,6 +276,14 @@ head(rows.of.interest)
 
 sel7<- sel5[rows.of.interest,]
 dim(sel7)
+
+length(which(duplicated(sel7$entrezgene)))
+##Comment remove replicates of both gene ID and gene name?
+
+sel8<- na.omit(sel7[!duplicated(sel7$entrezgene), ])
+head(sel8)
+dim(sel8)
+
 
 ##Check for duplicates in my data
 length(which(duplicated(acc.cnv$Gene.Symbol)))
