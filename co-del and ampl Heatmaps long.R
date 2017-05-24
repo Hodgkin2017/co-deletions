@@ -11,9 +11,8 @@ library(tidyr)
 library(dplyr)
 library(pheatmap)
 library(RColorBrewer)
-
 library(org.Hs.eg.db)
-
+library(biomaRt)
 
 ##Set working directory
 getwd()
@@ -22,7 +21,8 @@ dir()
 
 ## Read 1st CNV file
 ## Find way to autamatically load each file
-acc.cnv<- read.delim("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Data/unzipped data/ACC/all_data_by_genes.txt", stringsAsFactors = FALSE, header = TRUE)
+acc.cnv<- read.delim("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/unzipped original broad TCGA CNV data/ACC/all_data_by_genes.txt", stringsAsFactors = FALSE, header = TRUE)
+
 dim(acc.cnv)
 class(acc.cnv)
 #acc.cnv<- tbl_df(acc.cnv)
@@ -164,7 +164,7 @@ pheatmap(df5,
 keys<- keys(org.Hs.eg.db, keytype = "ENTREZID")
 keys
 columns<- c("CHR", "CHRLOC", "CHRLOCEND")
-sel<- select(org.Hs.eg.db, keys, columns, keytype = "ENTREZID")
+sel<- AnnotationDbi::select(org.Hs.eg.db, keys, columns, keytype = "ENTREZID")
 View(sel)
 dim(sel)
 
@@ -185,6 +185,90 @@ sel3$start<- abs(sel3$CHRLOC)
 sel3$end<- abs(sel3$CHRLOCEND)
 head(sel3)
 dim(sel3)
+
+##Biomart method:
+
+myattributes <- c("ensembl_gene_id",
+                  "entrezgene",
+                  "external_gene_name",
+                  "chromosome_name",
+                  "start_position",
+                  "end_position",
+                  "strand",
+                  "gene_biotype",
+                  "description")
+
+# Human
+grch38 <- useMart("ensembl") %>% 
+  useDataset(mart=., dataset="hsapiens_gene_ensembl") %>% 
+  getBM(mart=., attributes=myattributes) #%>% 
+#fix_genes
+View(grch38)
+
+
+## find rows in downloaded human database whose entrez IDs match those from the CNV files
+rows.of.interest<- which(grch38$entrezgene %in% acc.locus.id)
+head(rows.of.interest)
+
+genes.in.cnv.file<- grch38[rows.of.interest,]
+dim(genes.in.cnv.file)
+rownames(genes.in.cnv.file)<- seq(1:nrow(genes.in.cnv.file))
+
+##Remove duplicate genes
+sel4<- na.omit(genes.in.cnv.file[!duplicated(genes.in.cnv.file$entrezgene), ])
+head(sel4)
+dim(sel4)
+## Comment: not as good as org.Hs.eg.db method
+
+length(which(duplicated(genes.in.cnv.file$entrezgene)))
+
+##Use gene names:
+
+rows.of.interest<- which(grch38$external_gene_name %in% acc.cnv$Gene.Symbol)
+head(rows.of.interest)
+
+genes.in.cnv.file<- grch38[rows.of.interest,]
+dim(genes.in.cnv.file)
+#rownames(genes.in.cnv.file)<- seq(1:nrow(genes.in.cnv.file))
+#genes.in.cnv.file<- arrange(genes.in.cnv.file, chromosome_name)
+
+
+##Remove duplicate genes
+sel4<- na.omit(genes.in.cnv.file[!duplicated(genes.in.cnv.file$entrezgene), ])
+head(sel4)
+dim(sel4)
+sel5<- na.omit(genes.in.cnv.file[!duplicated(genes.in.cnv.file$external_gene_name), ])
+head(sel5)
+dim(sel5)
+## Comment: Better than org.Hs.eg.db method but is it accurate?Number of genes that dont have correct chromosome annotation
+
+
+##Remove genes without correct chr name:
+chr<-c(seq(1:22), "x", "Y")
+chr
+
+rows.of.interest<- which(sel4$chromosome_name %in% chr)
+head(rows.of.interest)
+
+sel6<- sel4[rows.of.interest,]
+dim(sel6)
+
+rows.of.interest<- which(sel5$chromosome_name %in% chr)
+head(rows.of.interest)
+
+sel7<- sel5[rows.of.interest,]
+dim(sel7)
+
+##Check for duplicates in my data
+length(which(duplicated(acc.cnv$Gene.Symbol)))
+length(which(duplicated(acc.cnv$Locus.ID)))
+
+
+################
+## What are the genes that do not have unique entrex IDs (using org.Hs.eg.db)?
+
+## Can not do it automatically if they are not in the database!!!!
+#Look manually...
 
 #################
 ## Attach CHRLOCCHR and start to acc cnv file
