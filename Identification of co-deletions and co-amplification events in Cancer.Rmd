@@ -75,7 +75,7 @@ sum(!dplyr.checksum2$identical_checksum)
 
 The download was successful as the md5 checksum code of the downloaded data files was identical to the code in the .md5 files. The individual \*Gistc2.Level4\* files were then unzipped using the following command:
 
-```{bash unzip, , eval=FALSE}
+```{bash unzip, eval=FALSE}
 
 tar -zxvf gdac.broadinstitute.org_ACC-TP.CopyNumber_Gistic2.Level_4.2016012800.0.0.tar.gz
 
@@ -320,6 +320,8 @@ create.heatmap.matrix.ampl.del.optimised<- function(x, column_start, threshold, 
   ## Calculate total number of co-deletions of amplifications
   
   heatmap.matrix<- cnv.matrix%*%t(cnv.matrix)
+  
+  ##How to normalise?
   #heatmap.matrix<- heatmap.matrix/rowSums(cnv.matrix)
   heatmap.matrix<- heatmap.matrix/ncol(cnv.matrix)
   
@@ -371,8 +373,8 @@ pheatmap(chr9.heatmap.matrix.del,
          #fontsize = 6.5,
          #fontsize_row=0.5, 
          #fontsize_col = 0.5,
-         #show_rownames = TRUE,
-         #show_colnames = TRUE,
+         show_rownames = FALSE,
+         show_colnames = FALSE,
          #cellwidth = 0.8,
          #cellheight = 0.8 
          )
@@ -384,8 +386,8 @@ pheatmap(chr9.heatmap.matrix.del,
          #fontsize = 6.5,
          #fontsize_row=0.3, 
          #fontsize_col = 0.3,
-         #show_rownames = TRUE,
-         #show_colnames = TRUE,
+         show_rownames = FALSE,
+         show_colnames = FALSE,
          #cellwidth = 0.3,
          #cellheight = 0.3 
 )
@@ -399,8 +401,8 @@ pheatmap(chr9.heatmap.matrix.amp,
          #fontsize = 6.5,
          #fontsize_row=0.3, 
          #fontsize_col = 0.3,
-         #show_rownames = TRUE,
-         #show_colnames = TRUE,
+         show_rownames = FALSE,
+         show_colnames = FALSE
          #cellwidth = 0.3,
          #cellheight = 0.3 
 )
@@ -411,8 +413,8 @@ pheatmap(chr9.heatmap.matrix.amp,
          #fontsize = 6.5,
          #fontsize_row=0.5, 
          #fontsize_col = 0.5,
-         #show_rownames = TRUE,
-         #show_colnames = TRUE,
+         show_rownames = FALSE,
+         show_colnames = FALSE
          #cellwidth = 0.8,
          #cellheight = 0.8 
 )
@@ -565,7 +567,7 @@ events.per.cytoband<- function(x, threshold, cytoband_column, column_data_start,
 Heatmaps showing proportion of deletions within each cytoband. Unclustered or clustered on Tumour type.
 Annotation side bar = chromosome.
 
-```{r deletion_cytobands eval=FALSE}
+```{r deletion_cytobands, eval=FALSE}
 
 #################
 ###Deletion heatmap:
@@ -634,7 +636,7 @@ pheatmap(heatmap.matrix.cytoband.del[,1:37],
 
 
 
-```{r amplifications_cytobands eval=FALSE}
+```{r amplifications_cytobands, eval=FALSE}
 
 #################
 ###Amplification heatmap:
@@ -704,7 +706,7 @@ pheatmap(heatmap.matrix.cytoband.ampl[,1:37],
 
 Cut function to split chromosome into segments need some work as not very accuarate:
 
-```{r deletion_chromosome_interval eval=FALSE}
+```{r deletion_chromosome_interval, eval=FALSE}
 ################
 #### Heatmaps of proportion of deletions/amplifications per MB for each chromosome and plot heatmap.
 ##################
