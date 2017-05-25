@@ -431,33 +431,74 @@ pheatmap(heatmap.matrix.cytoband.ampl[,1:37],
 ### Sum of deletions for all tumour types together:
 ##Comment: Could make an array to store all chromosomes for each tumour.
 
-chromosome_interval<- 250
+chromosome_interval_0.1MB<- ceiling(cytoband.list[[3]]$intervals_for_100kb)
 
 ##Create one large dataframe with all CNV data in it:
 #x<-join.cnv.datasets(cnv.list, 4)
 dim(x)
 
 ##Matrix to store results per chromosome:
-heatmap.matrix.chr.interval250<- matrix(NA, ncol = 23, nrow = chromosome_interval)
+heatmap.matrix.chr.interval250<- data.frame(matrix(NA, ncol = 1, nrow = chromosome_interval))
 dim(heatmap.matrix.chr.interval250)
+heatmap.matrix.chr.interval250[,1]<-seq(1:chromosome_interval)
+colnames(heatmap.matrix.chr.interval250)<-c("intervals")
+colnames(heatmap.matrix.chr.interval250)
 
 ##Calculate proportion of deletions per cytoband and add to matrix
-i=1
-cytoband.list<- events.per.cytoband(x, threshold = -1, cytoband_column = 3, column_data_start = 4, select_chromosome = i , chromosome_interval = chromosome_interval,  deletion = TRUE)
-heatmap.matrix.chr.interval250[,i]<- cytoband.list[[4]]$
+for (i in 1:23) {
+  chr<-c(seq(1:22), "X")
+  j<-chr[i]
+  chromosome_interval<-chromosome_interval_1MB[i]
+cytoband.list<- events.per.cytoband(x, threshold = -1, cytoband_column = 3, column_data_start = 4, select_chromosome = j , chromosome_interval = chromosome_interval,  deletion = TRUE)
+y<-data.frame(intervals = seq(1:length(cytoband.list[[4]]$proportion.of.deletions)), chr = cytoband.list[[4]]$proportion.of.deletions)
+# glimpse(cytoband.list[[1]])
+# glimpse(cytoband.list[[2]])
+# glimpse(cytoband.list[[3]])
+# glimpse(cytoband.list[[4]])
+heatmap.matrix.chr.interval250<- full_join(heatmap.matrix.chr.interval250, y, by = "intervals")
+# heatmap.matrix.chr.interval250[,i]<- cytoband.list[[4]][,5]
 print(i)
+print(length(cytoband.list[[4]]$proportion.of.deletions))
+}
 
+colnames(heatmap.matrix.chr.interval250)<- c("Interval", paste0("Chromosome ", seq(1:22)), "Chromosome X")
 
-
+head(heatmap.matrix.chr.interval250)
+ncol(heatmap.matrix.chr.interval250)
 
 ##############
-###
+### Plot heatmaps
 
 
+#my.matrix<- as.matrix(heatmap.matrix.chr.interval250[,2:24])
+#is.na(heatmap.matrix.chr.interval250$chr.x)
 
 
+col.pal<- colorRampPalette(c( "white","navy", "firebrick3"))(1000)
 
+pheatmap(heatmap.matrix.chr.interval250[1:205,2:24],
+         cluster_row = F,
+         cluster_cols = F,
+         show_rownames = FALSE,
+         show_colnames = TRUE,
+         color = col.pal,
+         fontsize_row=1
+         #cellwidth = 10,
+         #annotation_row = annotation_row,
+         #annotation_legend = FALSE
+)
 
+pheatmap(heatmap.matrix.chr.interval250[1:205,2:24],
+         cluster_row = F,
+         cluster_cols = T,
+         show_rownames = FALSE,
+         show_colnames = TRUE,
+         color = col.pal,
+         fontsize_row=1
+         #cellwidth = 10,
+         #annotation_row = annotation_row,
+         #annotation_legend = FALSE
+)
 
 
 
