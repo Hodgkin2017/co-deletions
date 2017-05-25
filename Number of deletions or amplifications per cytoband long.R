@@ -14,6 +14,7 @@ head(dummy.data)
 
 ##Parameters
 x<- dummy.data
+x<- acc.cnv
 threshold<- -1
 #column_gene_ID<- 2
 column_data_start<- 4
@@ -22,10 +23,10 @@ cytoband_column<-3
 #gene_location_column<-5
 deletion<- TRUE
 chromosome_interval<- 0
-chromosome_interval<- 242
-select_chromosome<- 2
+chromosome_interval<- 10
+select_chromosome<- 1
 
-events.per.cytoband<- function(x, threshold, cytoband_column, column_data_start, chromosome_interval = 0,  deletion = TRUE){
+events.per.cytoband<- function(x, threshold, cytoband_column, column_data_start, chromosome_interval = 0, select_chromosome, deletion = TRUE){
 ##########
 ## Obtain chromosomal locations of genes
 
@@ -78,26 +79,40 @@ if (deletion == TRUE) {
   cnv.matrix<- ifelse(cnv.matrix >= threshold, 1, 0)
 }
 
+##Create list to store data:
+if (chromosome_interval == 0){
 results <- vector("list", 2)
+} else {
+  results <- vector("list", 4)
+}
 
+##Create matrix with raw deletions/amplification values and number of 
+#deletions/amplifications per gene
 results[[1]]<- cnv.matrix %>% 
   as.data.frame() %>% 
   dplyr::mutate(sum.of.deletions = rowSums(.)) %>%
   dplyr::mutate(number.of.tumours = ncol(.)-1) %>%
-  cbind(cytoband=genes.of.interest[,cytoband_column], chromosome = as.integer(genes.of.interest$CHR) , start = genes.of.interest$start, .) 
+  cbind(cytoband=genes.of.interest[,cytoband_column], 
+        chromosome = genes.of.interest$CHR, 
+        start = genes.of.interest$start, .) 
 
+##Create dataframe with number of deletions per gene, number of genes and number of 
+#potenatial deletion events that could occur
 results[[2]]<- results[[1]]%>%
   group_by(cytoband) %>%
   dplyr::summarise(sum.of.genes.deleted = sum(sum.of.deletions),
                    total.number.of.genes=n(),
                    total.number.of.events = sum(number.of.tumours)) %>%
   dplyr::mutate(proportion.of.deletions = sum.of.genes.deleted/total.number.of.events) %>%
-  tidyr::separate(cytoband, c("chromosome", "band"), sep = "[p:q]", remove = FALSE, convert = TRUE) 
-  #dplyr::select(-band) %>%
+  tidyr::separate(cytoband, c("chromosome", "band"), sep = "[p:q]", remove = FALSE, convert = TRUE)
+#dplyr::select(-band) %>%
+
+results[[2]]$chromosome<-sub("X", "23", results[[2]]$chromosome)
+results[[2]]$chromosome<-sub("Y", "24", results[[2]]$chromosome)
 results[[2]]$chromosome<- as.integer(results[[2]]$chromosome)
 results[[2]]<- dplyr::arrange(results[[2]], chromosome, cytoband)
-
-results
+results[[2]]$chromosome<-sub("23", "X", results[[2]]$chromosome)
+results[[2]]$chromosome<-sub("24", "Y", results[[2]]$chromosome)
 
 ## Find row with highest value:
 #test3 %>%
@@ -115,10 +130,12 @@ results
 #############
 #### Code to get proportion of deletions per unit size of chromosome:
 
-seq.test<- seq(1:10000)
+#seq.test<- seq(1:100)
 
-table(cut(seq.test, 10, labels = seq(1:10)))
-table(cut(seq.test, chromosome_interval, labels = seq(1:chromosome_interval)))
+#table(cut(seq.test, 10, labels = seq(1:10)))
+#table(cut(seq.test, chromosome_interval, labels = seq(1:chromosome_interval)))
+#dplyr::ntile(seq.test, 10)
+
 
 ## Remove rows with no known start site:?
 
@@ -126,10 +143,9 @@ table(cut(seq.test, chromosome_interval, labels = seq(1:chromosome_interval)))
 #genes.of.interest<- genes.of.interest[!is.na(genes.of.interest$CHRLOC)]
 #which(is.na(genes.of.interest), arr.ind = TRUE)
 
-
+if (chromosome_interval > 0){
 ## Very rough estimate of lengths of chromosomes:
-#results[[3]]<-
-  test2[[1]] %>%
+results[[3]]<- results[[1]] %>%
   group_by(chromosome) %>%
   summarise(chromosome_start = min(start),
             chromosome_end = max(start)) %>%
@@ -137,13 +153,13 @@ table(cut(seq.test, chromosome_interval, labels = seq(1:chromosome_interval)))
          intervals_for_kb = estimated_chromosome_length/1000,
          intervals_for_10kb = estimated_chromosome_length/10000,
          intervals_for_100kb = estimated_chromosome_length/100000,
-         intervals_for_Mb = estimated_chromosome_length/1000000, 
+         intervals_for_Mb = estimated_chromosome_length/1000000,
          intervals_for_10Mb = estimated_chromosome_length/10000000)
-  
-  filter.table<- test2[[1]] %>%
-    dplyr::filter(chromosome == select_chromosome) 
-  
-  cut.table<- filter.table$start %>%
+
+  filter.table<- results[[1]] %>%
+    dplyr::filter(chromosome == select_chromosome)
+
+  results[[4]]<- filter.table$start %>%
     cut(chromosome_interval, labels = seq(1:chromosome_interval)) %>%
     cbind(Intervals = ., filter.table) %>%
     dplyr::group_by(Intervals) %>%
@@ -151,16 +167,26 @@ table(cut(seq.test, chromosome_interval, labels = seq(1:chromosome_interval)))
                      total.number.of.genes=n(),
                      total.number.of.potential.events = sum(number.of.tumours)) %>%
     dplyr::mutate(proportion.of.deletions = sum.of.genes.deleted/total.number.of.potential.events)
-    
-}##Move this once I have finished the second part 
+}
+
+results
+}
     
 ## Test function:
 
 test<- events.per.cytoband(x, threshold, cytoband_column, column_data_start, chromosome_interval = 0,  deletion = TRUE)
+glimpse(test[[1]])
+glimpse(test[[2]])
 
-test2<- events.per.cytoband(acc.cnv, threshold, cytoband_column, column_data_start, chromosome_interval = 0,  deletion = TRUE)
+test1<- events.per.cytoband(acc.cnv, threshold = -1, cytoband_column = 3, column_data_start = 4, chromosome_interval = 0,  deletion = TRUE)
+glimpse(test1[[1]])
+glimpse(test1[[2]])
+glimpse(test1[[3]])
+glimpse(test1[[4]])
 
-test3<- test2[[2]]
-test3
-class(test3$chromosome)
-  
+test2<- events.per.cytoband(acc.cnv, threshold = -1, cytoband_column = 3, column_data_start = 4 , select_chromosome = 1, chromosome_interval = 10,  deletion = TRUE)
+glimpse(test2[[1]])
+glimpse(test2[[2]])
+glimpse(test2[[3]])
+glimpse(test2[[4]])
+
