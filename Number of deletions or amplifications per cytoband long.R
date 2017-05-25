@@ -431,22 +431,22 @@ pheatmap(heatmap.matrix.cytoband.ampl[,1:37],
 ### Sum of deletions for all tumour types together:
 ##Comment: Could make an array to store all chromosomes for each tumour.
 
-chromosome_interval_0.1MB<- ceiling(cytoband.list[[3]]$intervals_for_100kb)
+chromosome_interval_1MB<- ceiling(cytoband.list[[3]]$intervals_for_Mb)
 
 ##Create one large dataframe with all CNV data in it:
 #x<-join.cnv.datasets(cnv.list, 4)
 dim(x)
 
 ##Matrix to store results per chromosome:
-heatmap.matrix.chr.interval250<- data.frame(matrix(NA, ncol = 1, nrow = chromosome_interval))
+heatmap.matrix.chr.interval250<- data.frame(matrix(NA, ncol = 1, nrow = 2500))
 dim(heatmap.matrix.chr.interval250)
-heatmap.matrix.chr.interval250[,1]<-seq(1:chromosome_interval)
+heatmap.matrix.chr.interval250[,1]<-seq(1:2500)
 colnames(heatmap.matrix.chr.interval250)<-c("intervals")
 colnames(heatmap.matrix.chr.interval250)
+chr<-c(seq(1:22), "X")
 
 ##Calculate proportion of deletions per cytoband and add to matrix
 for (i in 1:23) {
-  chr<-c(seq(1:22), "X")
   j<-chr[i]
   chromosome_interval<-chromosome_interval_1MB[i]
 cytoband.list<- events.per.cytoband(x, threshold = -1, cytoband_column = 3, column_data_start = 4, select_chromosome = j , chromosome_interval = chromosome_interval,  deletion = TRUE)
