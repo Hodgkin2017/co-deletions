@@ -89,7 +89,7 @@ A new folder was manually created for each cancer type and the unzipped files fo
 
 An R script was used to import the CNV data files for each cancer type from their respective folders. All CNV data files were stored as individual dataframes in a single list object where each item of the list was named after the folder (cancer type) the dataframe was imported from.
 
-```{r Import_data, eval=FALSE}
+```{r Import_data}
 
 ##F1: Function to import multiple files from multiple folders
 
@@ -127,7 +127,7 @@ cnv.list<- import.files.from.directories(x, file.to.import)
 
 Each CNV file for each cancer type was checked to ensure they each contained the same number of genes.
 
-```{r unique_data, eval=FALSE}
+```{r unique_data}
 
 #################
 ## Check that each CNV dataset contains the same genes and Entrez IDs (Locus.ID column):
@@ -171,7 +171,7 @@ identical.Locus.IDs
 
 A function was implemented in R that could create a single large dataframe from all or some of the cancer type datasets using the CNV list object above. This would allow specific cancer type CNV data sets to be interegated later if required.
 
-```{r select_data, eval=FALSE}
+```{r select_data}
 
 ##F2: Function to select some or all CNV datasets from CNV list object and combining data into one large dataframe.
 
@@ -219,7 +219,7 @@ use ... for pHeatmap arguments?
 **This is definatley still a work in progress!!!!!!:
 I will clean this up and modify to accept different inputs such as gene names, gene IDs and chromosomal locations.**
 
-```{r co-deletions_heatmap, eval=FALSE}
+```{r co-deletions_heatmap}
 
 ##########
 ## Obtain chromosomal locations of genes
@@ -356,7 +356,7 @@ system.time(heatmap.matrix.amp<- create.heatmap.matrix.ampl.del.optimised(x, col
 
 ```
 
-```{r cytobands_deletion_heatmap2, eval=FALSE}
+```{r cytobands_deletion_heatmap2}
 
 ####################
 ### PLot heatmaps: 
@@ -427,7 +427,7 @@ pheatmap(chr9.heatmap.matrix.amp,
 Function to calculate the number of deletions or duplications per cytoband or 
 
 
-```{r cytobands_deletion_heatmap, eval=FALSE}
+```{r cytobands_deletion_heatmap}
 
 #############
 ### F1: Function: events.per.cytoband
@@ -567,7 +567,7 @@ events.per.cytoband<- function(x, threshold, cytoband_column, column_data_start,
 Heatmaps showing proportion of deletions within each cytoband. Unclustered or clustered on Tumour type.
 Annotation side bar = chromosome.
 
-```{r deletion_cytobands, eval=FALSE}
+```{r deletion_cytobands}
 
 #################
 ###Deletion heatmap:
@@ -636,7 +636,7 @@ pheatmap(heatmap.matrix.cytoband.del[,1:37],
 
 
 
-```{r amplifications_cytobands, eval=FALSE}
+```{r amplifications_cytobands}
 
 #################
 ###Amplification heatmap:
@@ -706,7 +706,7 @@ pheatmap(heatmap.matrix.cytoband.ampl[,1:37],
 
 Cut function to split chromosome into segments need some work as not very accuarate:
 
-```{r deletion_chromosome_interval, eval=FALSE}
+```{r deletion_chromosome_interval}
 ################
 #### Heatmaps of proportion of deletions/amplifications per MB for each chromosome and plot heatmap.
 ##################
