@@ -1,5 +1,5 @@
 #############
-## Measure the number of deletions or amplifications per cytoband or chromosome interval
+## Function to obtain chromosomal locations of genes and append to table
 ##############
 
 ###Contents:
