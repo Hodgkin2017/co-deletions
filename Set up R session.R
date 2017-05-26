@@ -43,7 +43,7 @@ import.files.from.directories<-function(x,file.to.import){
   my.list
 }
 
-
+##########
 ##F2: Function to select some or all CNV datasets from CNV list object 
 #and combining data into one large dataframe.
 join.cnv.datasets<- function(x, column, data.sets = "all data sets"){
@@ -73,7 +73,7 @@ join.cnv.datasets<- function(x, column, data.sets = "all data sets"){
 }
 
 ##########
-### F1: Obtain chromosomal locations of genes
+### F3: Obtain chromosomal locations of genes
 
 chromosomal_location<- function(object_name){
   
