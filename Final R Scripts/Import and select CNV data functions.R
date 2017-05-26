@@ -131,7 +131,7 @@ dim(CNV.ACC.BRCA.STAD.table)
 which(is.na(CNV.ACC.BRCA.STAD.table), arr.ind = T)
 
 ##O5: Create one large dataframe with all CNV data in it:
-CNV.all.table<-join.cnv.datasets(cnv.list, column)
+CNV.all.table<-join.cnv.datasets(cnv.list, column = 4)
 dim(CNV.all.table)
 which(is.na(CNV.all.table), arr.ind = T)
 
