@@ -10,16 +10,16 @@ library(RColorBrewer)
 
 ##dummy data
 
-dummy.data<- acc.cnv[1:100,]
-head(dummy.data)
+# dummy.data<- acc.cnv[1:100,]
+# head(dummy.data)
 
 ##Parameters
-x<- dummy.data
-x<- acc.cnv
+# object_name<- dummy.data
+# object_name<- acc.cnv
 threshold<- -1
 #column_gene_ID<- 2
-column_data_start<- 4
-cytoband_column<-3
+column_data_start<- 11
+cytoband_column<-10
 #chromosome_column<- 4
 #gene_location_column<-5
 deletion<- TRUE
@@ -27,49 +27,53 @@ chromosome_interval<- 0
 chromosome_interval<- 10
 select_chromosome<- 1
 
-events.per.cytoband<- function(x, threshold, cytoband_column, column_data_start, chromosome_interval = 0, select_chromosome, deletion = TRUE){
+
+acc.cnv.chr.location<- chromosomal_location(acc.cnv)
+object_name<- acc.cnv.chr.location
+
+events.per.cytoband<- function(object_name, threshold, cytoband_column, column_data_start, chromosome_interval = 0, select_chromosome, deletion = TRUE){
 ##########
 ## Obtain chromosomal locations of genes
 
-keys<- keys(org.Hs.eg.db, keytype = "ENTREZID")
-columns<- c("CHR", "CHRLOC", "CHRLOCEND")
-all.gene.locations<- AnnotationDbi::select(org.Hs.eg.db, keys, columns, keytype = "ENTREZID")
-
-locus.id<- x$Locus.ID
-
-genes.of.interest<- all.gene.locations[all.gene.locations$ENTREZID %in% locus.id,]
-
-genes.of.interest<- na.omit(genes.of.interest[!duplicated(genes.of.interest$ENTREZID), ])
-
-## Remove genes with poorly defined chromosome
-chr<-c(seq(1:22), "X", "Y")
-
-rows.of.interest<- which(genes.of.interest$CHR %in% chr)
-
-genes.of.interest<- genes.of.interest[rows.of.interest,]
-
-genes.of.interest$strand<- ifelse(genes.of.interest$CHRLOC <0, "-", "+")
-genes.of.interest$start<- abs(genes.of.interest$CHRLOC)
-genes.of.interest$end<- abs(genes.of.interest$CHRLOCEND)
-
-
-
-##Join gene location dataframe to original CNV data table
-
-genes.of.interest<- dplyr::rename(genes.of.interest, Locus.ID = ENTREZID)
-
-genes.of.interest$Locus.ID<- as.integer(genes.of.interest$Locus.ID)
-
-genes.of.interest<- full_join(genes.of.interest,x, by="Locus.ID")
-
-##Order genes by chromosome and location:
-genes.of.interest<- dplyr::arrange(genes.of.interest, CHR, start)
-
-column_data_start<- column_data_start + 7
-cytoband_column<- cytoband_column + 7
+# keys<- keys(org.Hs.eg.db, keytype = "ENTREZID")
+# columns<- c("CHR", "CHRLOC", "CHRLOCEND")
+# all.gene.locations<- AnnotationDbi::select(org.Hs.eg.db, keys, columns, keytype = "ENTREZID")
+# 
+# locus.id<- object_name$Locus.ID
+# 
+# genes.of.interest<- all.gene.locations[all.gene.locations$ENTREZID %in% locus.id,]
+# 
+# genes.of.interest<- na.omit(genes.of.interest[!duplicated(genes.of.interest$ENTREZID), ])
+# 
+# ## Remove genes with poorly defined chromosome
+# chr<-c(seq(1:22), "X", "Y")
+# 
+# rows.of.interest<- which(genes.of.interest$CHR %in% chr)
+# 
+# genes.of.interest<- genes.of.interest[rows.of.interest,]
+# 
+# genes.of.interest$strand<- ifelse(genes.of.interest$CHRLOC <0, "-", "+")
+# genes.of.interest$start<- abs(genes.of.interest$CHRLOC)
+# genes.of.interest$end<- abs(genes.of.interest$CHRLOCEND)
+# 
+# 
+# 
+# ##Join gene location dataframe to original CNV data table
+# 
+# genes.of.interest<- dplyr::rename(genes.of.interest, Locus.ID = ENTREZID)
+# 
+# genes.of.interest$Locus.ID<- as.integer(genes.of.interest$Locus.ID)
+# 
+# genes.of.interest<- full_join(genes.of.interest,object_name, by="Locus.ID")
+# 
+# ##Order genes by chromosome and location:
+# genes.of.interest<- dplyr::arrange(genes.of.interest, CHR, start)
+# 
+# column_data_start<- column_data_start + 7
+# cytoband_column<- cytoband_column + 7
 
 ## Code to get proportion of deletions per cytoband
-cnv.matrix<- as.matrix(genes.of.interest[,column_data_start:ncol(genes.of.interest)])
+cnv.matrix<- as.matrix(object_name[,column_data_start:ncol(object_name)])
 
 if (deletion == TRUE) {
   
@@ -93,9 +97,9 @@ results[[1]]<- cnv.matrix %>%
   as.data.frame() %>% 
   dplyr::mutate(sum.of.deletions = rowSums(.)) %>%
   dplyr::mutate(number.of.tumours = ncol(.)-1) %>%
-  cbind(cytoband=genes.of.interest[,cytoband_column], 
-        chromosome = genes.of.interest$CHR, 
-        start = genes.of.interest$start, .) 
+  cbind(cytoband=object_name[,cytoband_column], 
+        chromosome = object_name$CHR, 
+        start = object_name$start, .) 
 
 ##Create dataframe with number of deletions per gene, number of genes and number of 
 #potenatial deletion events that could occur
@@ -170,22 +174,22 @@ results[[3]]<- results[[1]] %>%
     dplyr::mutate(proportion.of.deletions = sum.of.genes.deleted/total.number.of.potential.events)
 }
 
-results
+return(results)
 }
     
 ## Test function:
 
-test<- events.per.cytoband(x, threshold, cytoband_column, column_data_start, chromosome_interval = 0,  deletion = TRUE)
-glimpse(test[[1]])
-glimpse(test[[2]])
+# test<- events.per.cytoband(object_name, threshold, cytoband_column, column_data_start, chromosome_interval = 0,  deletion = TRUE)
+# glimpse(test[[1]])
+# glimpse(test[[2]])
 
-test1<- events.per.cytoband(acc.cnv, threshold = -1, cytoband_column = 3, column_data_start = 4, chromosome_interval = 0,  deletion = TRUE)
+test1<- events.per.cytoband(acc.cnv.chr.location, threshold = -1, cytoband_column = 10, column_data_start = 11, chromosome_interval = 0,  deletion = TRUE)
 glimpse(test1[[1]])
 glimpse(test1[[2]])
 glimpse(test1[[3]])
 glimpse(test1[[4]])
 
-test2<- events.per.cytoband(acc.cnv, threshold = -1, cytoband_column = 3, column_data_start = 4 , select_chromosome = 1, chromosome_interval = 10,  deletion = TRUE)
+test2<- events.per.cytoband(acc.cnv.chr.location, threshold = -1, cytoband_column = 10, column_data_start = 11 , select_chromosome = 1, chromosome_interval = 10,  deletion = TRUE)
 glimpse(test2[[1]])
 glimpse(test2[[2]])
 glimpse(test2[[3]])
@@ -228,15 +232,29 @@ pheatmap(my.matrix,
 
 ## Choose directory and name of files to import from each directory:
 
-x<-"/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/unzipped original broad TCGA CNV data"
-file.to.import<-"all_data_by_genes.txt"
+# x<-"/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/unzipped original broad TCGA CNV data"
+# file.to.import<-"all_data_by_genes.txt"
 
 ##O1: Run function to obtain a list object containing all CNV dataframes
 
-cnv.list<- import.files.from.directories(x, file.to.import)
+# cnv.list<- import.files.from.directories(x, file.to.import)
 
 #################
 ###Deletion heatmap:
+
+##apply that creates matrix
+
+CNV.data<-cnv.list
+
+CNV.data[[38]]<- CNV.all.table
+
+lapply(1:3, function(x) c(x, x^2, x^3))
+
+new.function<- function(x){
+  x %>% +1 %>% *2
+}
+
+lapply(1:3, function(x) new.function(x))
 
 ###########
 ##Loop that creates matrix
@@ -250,7 +268,8 @@ dim(heatmap.matrix.cytoband.del)
 for (i in 1:length(cancer.type)){
   
   x<-cnv.list[[i]]
-  cytoband.list<- events.per.cytoband(x, threshold = -1, cytoband_column = 3, column_data_start = 4, chromosome_interval = 0,  deletion = TRUE)
+  x<- dplyr::full_join(acc.cnv.chr.location[,1:8],x, by = "Locus.ID")
+  cytoband.list<- events.per.cytoband(x, threshold = -1, cytoband_column = 10, column_data_start = 11, chromosome_interval = 0,  deletion = TRUE)
   heatmap.matrix.cytoband.del[,i]<- cytoband.list[[2]]$proportion.of.deletions
   print(cancer.type[i])
 }
@@ -260,10 +279,11 @@ head(heatmap.matrix.cytoband.del)
 ##Final column contains all cancer types:
 
 ##Create one large dataframe with all CNV data in it:
-x<-join.cnv.datasets(cnv.list, 4)
+#x<-join.cnv.datasets(cnv.list, 4)
 
 ##Calculate proportion of deletions per cytoband and add to matrix
-cytoband.list<- events.per.cytoband(x, threshold = -1, cytoband_column = 3, column_data_start = 4, chromosome_interval = 0,  deletion = TRUE)
+x<- dplyr::full_join(acc.cnv.chr.location[,1:8],CNV.all.table, by = "Locus.ID")
+cytoband.list<- events.per.cytoband(x, threshold = -1, cytoband_column = 10, column_data_start = 11, chromosome_interval = 0,  deletion = TRUE)
 heatmap.matrix.cytoband.del[,38]<- cytoband.list[[2]]$proportion.of.deletions
 
 head(heatmap.matrix.cytoband.del)
