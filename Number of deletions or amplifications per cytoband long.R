@@ -27,6 +27,7 @@ chromosome_interval<- 0
 chromosome_interval<- 10
 select_chromosome<- 1
 
+acc.cnv<- cnv.list[[1]]
 
 acc.cnv.chr.location<- chromosomal_location(acc.cnv)
 object_name<- acc.cnv.chr.location
@@ -196,7 +197,9 @@ glimpse(test2[[3]])
 glimpse(test2[[4]])
 
 ####################
-### Heatmap of the number of deletions per cytoband per chromosome
+### Heatmap of the number of deletions per cytoband per tumour type:
+####################
+##For ACC cancer type
 
 test1[[2]]$proportion.of.deletions
 
@@ -248,49 +251,175 @@ CNV.data<-cnv.list
 
 CNV.data[[38]]<- CNV.all.table
 
-lapply(1:3, function(x) c(x, x^2, x^3))
+length(CNV.data)
 
-new.function<- function(x){
-  x %>% +1 %>% *2
+cytoband.del.matrix<- function(x,y){
+  
+  z<- dplyr::full_join(y[,1:8],x, by = "Locus.ID")
+  cytoband.list<- events.per.cytoband(z, threshold = -1, cytoband_column = 10, column_data_start = 11, chromosome_interval = 0,  deletion = TRUE)
+  return(cytoband.list[[2]]$proportion.of.deletions)
+  
 }
 
-lapply(1:3, function(x) new.function(x))
+system.time(test3<- lapply(CNV.data, function(x) {cytoband.del.matrix(x, acc.cnv.chr.location)}))
+test4<- do.call(cbind, test3) %>%as.matrix
+
+##Add row and column names
+rownames(test4)<- test1[[2]]$cytoband
+colnames(test4)<- c(names(cnv.list), "ALL")
+
+##Make annotation row dataframe
+annotation_row<- data.frame(chromosome = test1[[2]]$chromosome)
+rownames(annotation_row)<- test1[[2]]$cytoband
+dim(annotation_row)
+head(annotation_row)
+
+##Make heat map
+
+col.pal<- colorRampPalette(c( "white","navy", "firebrick3"))(1000)
+
+pheatmap(test4,
+         cluster_row = F,
+         cluster_cols = F,
+         show_rownames = TRUE,
+         show_colnames = TRUE,
+         color = col.pal,
+         fontsize_row=1,
+         #cellwidth = 10,
+         annotation_row = annotation_row,
+         annotation_legend = FALSE
+)
+
+##Testing apply function:
+# lapply(1:3, function(x) c(x, x^2, x^3))
+# 
+# new.function<- function(x){
+#   x %>% +1 %>% *2
+# }
+# 
+# lapply(1:3, function(x) new.function(x))
+
+##########
+## Try multiple cores:
+##Comment not faster! Takes ages to add CNV.Data to parLapply environment and only uses multiple cores for a short period of time.
+
+cytoband.del.matrix.mc<- function(x,y){
+  
+  z<- x %>% dplyr::full_join(y[,1:8],., by = "Locus.ID") %>%
+    events.per.cytoband(., threshold = -1, cytoband_column = 10, column_data_start = 11, chromosome_interval = 0,  deletion = TRUE)
+  return(z[[2]]$proportion.of.deletions)
+}
+
+
+# Calculate the number of cores
+no_cores <- detectCores() - 1
+no_cores
+
+# Initiate cluster
+cl <- makeCluster(no_cores)
+cl
+
+clusterExport(cl, "acc.cnv.chr.location")
+clusterExport(cl, "CNV.data")
+clusterExport(cl, "cytoband.del.matrix.mc")
+clusterExport(cl, "events.per.cytoband")
+clusterEvalQ(cl, library(dplyr))
+
+test5<- vector(length=38)
+system.time(test5<- parLapply(cl, CNV.data, function(x) {cytoband.del.matrix.mc(x, acc.cnv.chr.location)}))
+
+stopCluster(cl)
+
+length(test5)
+head(test5[[1]])
+
+test6<- do.call(cbind, test5) %>%as.matrix
+
+##Add row and column names
+rownames(test6)<- test1[[2]]$cytoband
+colnames(test6)<- c(names(cnv.list), "ALL")
+
+
+pheatmap(test6,
+         cluster_row = F,
+         cluster_cols = F,
+         show_rownames = TRUE,
+         show_colnames = TRUE,
+         color = col.pal,
+         fontsize_row=1,
+         #cellwidth = 10,
+         annotation_row = annotation_row,
+         annotation_legend = FALSE
+)
+
+
+
+
+
+
+################
+##Multicore with mclapply
+#Does not work for some reason:
+options(cores = 7)
+system.time(test7 <- mclapply(X=CNV.data, FUN = cytoband.del.matrix.mc(x, acc.cnv.chr.location), mc.cores = 7))
+
+cytoband.del.matrix.mc2<- function(x,y){
+  
+  z<- dplyr::full_join(y[,1:8],x, by = "Locus.ID")
+  q<- events.per.cytoband(z, threshold = -1, cytoband_column = 10, column_data_start = 11, chromosome_interval = 0,  deletion = TRUE)
+  return(q[[2]]$proportion.of.deletions)
+}
+
+system.time(test7 <- mclapply(X=CNV.data, FUN = cytoband.del.matrix.mc2(x, acc.cnv.chr.location), mc.cores = 7))
+
+######
+##Testing....do not work
+
+test8<- mclapply(X=CNV.data, FUN=function(x) dplyr::full_join(acc.cnv[,1:8],x, by = "Locus.ID"), mc.cores=7)
+test8<- mclapply(X=1:38, FUN=function(x) dplyr::full_join(acc.cnv[,1:8],CNV.data[[x]], by = "Locus.ID"), mc.cores=7)
+
+test9<- mclapply(X=test8, FUN=events.per.cytoband(x, threshold = -1, cytoband_column = 10, column_data_start = 11, chromosome_interval = 0,  deletion = TRUE), mc.cores=4)
+new.function4<-function(x) {dplyr::full_join(acc.cnv[,1:8],x, by = "Locus.ID")}
+test8<- mclapply(CNV.data, new.function4, mc.cores=4)
+new.function5<-function(x) {}
+
+
 
 ###########
 ##Loop that creates matrix
 
-cancer.type<- names(cnv.list)
-cancer.type
-
-heatmap.matrix.cytoband.del<- matrix(NA, ncol = length(cancer.type)+1, nrow = 806)
-dim(heatmap.matrix.cytoband.del)
-
-for (i in 1:length(cancer.type)){
-  
-  x<-cnv.list[[i]]
-  x<- dplyr::full_join(acc.cnv.chr.location[,1:8],x, by = "Locus.ID")
-  cytoband.list<- events.per.cytoband(x, threshold = -1, cytoband_column = 10, column_data_start = 11, chromosome_interval = 0,  deletion = TRUE)
-  heatmap.matrix.cytoband.del[,i]<- cytoband.list[[2]]$proportion.of.deletions
-  print(cancer.type[i])
-}
-
-head(heatmap.matrix.cytoband.del)
+# cancer.type<- names(cnv.list)
+# cancer.type
+# 
+# heatmap.matrix.cytoband.del<- matrix(NA, ncol = length(cancer.type)+1, nrow = 806)
+# dim(heatmap.matrix.cytoband.del)
+# 
+# for (i in 1:length(cancer.type)){
+#   
+#   x<-cnv.list[[i]]
+#   x<- dplyr::full_join(acc.cnv.chr.location[,1:8],x, by = "Locus.ID")
+#   cytoband.list<- events.per.cytoband(x, threshold = -1, cytoband_column = 10, column_data_start = 11, chromosome_interval = 0,  deletion = TRUE)
+#   heatmap.matrix.cytoband.del[,i]<- cytoband.list[[2]]$proportion.of.deletions
+#   print(cancer.type[i])
+# }
+# 
+# head(heatmap.matrix.cytoband.del)
 
 ##Final column contains all cancer types:
 
 ##Create one large dataframe with all CNV data in it:
 #x<-join.cnv.datasets(cnv.list, 4)
 
-##Calculate proportion of deletions per cytoband and add to matrix
-x<- dplyr::full_join(acc.cnv.chr.location[,1:8],CNV.all.table, by = "Locus.ID")
-cytoband.list<- events.per.cytoband(x, threshold = -1, cytoband_column = 10, column_data_start = 11, chromosome_interval = 0,  deletion = TRUE)
-heatmap.matrix.cytoband.del[,38]<- cytoband.list[[2]]$proportion.of.deletions
-
-head(heatmap.matrix.cytoband.del)
-class(heatmap.matrix.cytoband.del)
-dim(x)
-
-heatmap.matrix.cytoband.del[200:250,4:5]
+##Calculate proportion of deletions per cytoband for all tumour type table and add to matrix
+# x<- dplyr::full_join(acc.cnv.chr.location[,1:8],CNV.all.table, by = "Locus.ID")
+# cytoband.list<- events.per.cytoband(x, threshold = -1, cytoband_column = 10, column_data_start = 11, chromosome_interval = 0,  deletion = TRUE)
+# heatmap.matrix.cytoband.del[,38]<- cytoband.list[[2]]$proportion.of.deletions
+# 
+# head(heatmap.matrix.cytoband.del)
+# class(heatmap.matrix.cytoband.del)
+# dim(x)
+# 
+# heatmap.matrix.cytoband.del[200:250,4:5]
 
 ##Add row and column names
 

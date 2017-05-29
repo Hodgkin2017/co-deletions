@@ -12,6 +12,7 @@ library(pheatmap)
 library(RColorBrewer)
 library(org.Hs.eg.db)
 library(biomaRt)
+library(parallel)
 
 ###################
 ###Set working directory
