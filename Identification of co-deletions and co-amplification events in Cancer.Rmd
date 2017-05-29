@@ -97,13 +97,13 @@ An R script was used to import the CNV data files for each cancer type from thei
 
 ##F1: Function to import multiple files from multiple folders
 
-import.files.from.directories<-function(x,file.to.import){
+import.files.from.directories<-function(path.to.dir,file.to.import){
   currentwd<- getwd()
-  setwd(x)
+  setwd(path.to.dir)
   directory.names<-dir()
   my.list <- vector("list", length(directory.names))
   for (i in 1: length(directory.names)){
-    move.to.directory<-paste0(x,"/",directory.names[i])
+    move.to.directory<-paste0(path.to.dir,"/",directory.names[i])
     setwd(move.to.directory)
     my.list[[i]]<-read.delim(file.to.import, stringsAsFactors = FALSE, header = TRUE)
     print(directory.names[i])
@@ -112,6 +112,7 @@ import.files.from.directories<-function(x,file.to.import){
   setwd(currentwd)
   my.list
 }
+
 
 
 ## Choose directory and name of files to import from each directory:
@@ -179,25 +180,24 @@ A function was implemented in R that could create a single large dataframe from 
 
 ##F2: Function to select some or all CNV datasets from CNV list object and combining data into one large dataframe.
 
-join.cnv.datasets<- function(x, column, data.sets = "all data sets"){
+join.cnv.datasets<- function(object_name, column = 4, data.sets = "ALL"){
   
-  if(data.sets == "all data sets"){
+  if(data.sets == "ALL"){
     
-    index<- seq(1:length(x))
+    index<- seq(1:length(object_name))
     
   } else {
-    names.of.tables<-names(x)
-    names.of.tables
+    names.of.tables<-names(object_name)
     index<-which(names.of.tables %in% data.sets)
     print("DO NOT WORRY ABOUT THE FOLLOWING WARNING MESSAGE:")
     
   }
   
-  df<- x[[1]] %>% dplyr::select(c(Gene.Symbol,Locus.ID,Cytoband))
+  df<- object_name[[1]] %>% dplyr::select(c(Gene.Symbol,Locus.ID,Cytoband))
   
   for (i in index){
     
-    df2<-x[[i]][,c(1,column:ncol(x[[i]]))]
+    df2<-object_name[[i]][,c(1,column:ncol(object_name[[i]]))]
     
     df<- full_join(df, df2, by = "Gene.Symbol")
     

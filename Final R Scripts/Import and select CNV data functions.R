@@ -29,13 +29,13 @@
 
 ##F1: Function to import multiple files from multiple folders
 
-import.files.from.directories<-function(x,file.to.import){
+import.files.from.directories<-function(path.to.dir,file.to.import){
   currentwd<- getwd()
-  setwd(x)
+  setwd(path.to.dir)
   directory.names<-dir()
   my.list <- vector("list", length(directory.names))
   for (i in 1: length(directory.names)){
-    move.to.directory<-paste0(x,"/",directory.names[i])
+    move.to.directory<-paste0(path.to.dir,"/",directory.names[i])
     setwd(move.to.directory)
     my.list[[i]]<-read.delim(file.to.import, stringsAsFactors = FALSE, header = TRUE)
     print(directory.names[i])
@@ -98,25 +98,24 @@ identical.Locus.IDs
 
 ##F2: Function to select some or all CNV datasets from CNV list object and combining data into one large dataframe.
 
-join.cnv.datasets<- function(x, column, data.sets = "all data sets"){
+join.cnv.datasets<- function(object_name, column = 4, data.sets = "ALL"){
   
-  if(data.sets == "all data sets"){
+  if(data.sets == "ALL"){
     
-    index<- seq(1:length(x))
+    index<- seq(1:length(object_name))
     
   } else {
-    names.of.tables<-names(x)
-    names.of.tables
+    names.of.tables<-names(object_name)
     index<-which(names.of.tables %in% data.sets)
     print("DO NOT WORRY ABOUT THE FOLLOWING WARNING MESSAGE:")
     
   }
   
-  df<- x[[1]] %>% dplyr::select(c(Gene.Symbol,Locus.ID,Cytoband))
+  df<- object_name[[1]] %>% dplyr::select(c(Gene.Symbol,Locus.ID,Cytoband))
   
   for (i in index){
     
-    df2<-x[[i]][,c(1,column:ncol(x[[i]]))]
+    df2<-object_name[[i]][,c(1,column:ncol(object_name[[i]]))]
     
     df<- full_join(df, df2, by = "Gene.Symbol")
     
@@ -126,7 +125,7 @@ join.cnv.datasets<- function(x, column, data.sets = "all data sets"){
 
 
 ##O4: Create dataframe containing ACC, BRCA and STAD CNV data:
-CNV.ACC.BRCA.STAD.table<-join.cnv.datasets(cnv.list, column, data.sets = c("ACC", "BRCA", "STAD"))
+CNV.ACC.BRCA.STAD.table<-join.cnv.datasets(cnv.list, column = 4, data.sets = c("ACC", "BRCA", "STAD"))
 dim(CNV.ACC.BRCA.STAD.table)
 which(is.na(CNV.ACC.BRCA.STAD.table), arr.ind = T)
 
