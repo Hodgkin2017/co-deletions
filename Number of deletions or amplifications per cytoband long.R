@@ -32,7 +32,9 @@ acc.cnv<- cnv.list[[1]]
 acc.cnv.chr.location<- chromosomal_location(acc.cnv)
 object_name<- acc.cnv.chr.location
 
-events.per.cytoband<- function(object_name, threshold, cytoband_column, column_data_start, chromosome_interval = 0, select_chromosome, deletion = TRUE){
+events.per.cytoband<- function(object_name, threshold = -1, cytoband_column = 10,
+                               column_data_start = 11, chromosome_interval = 0, 
+                               select_chromosome = 1, deletion = TRUE){
 ##########
 ## Obtain chromosomal locations of genes
 
@@ -320,13 +322,13 @@ cl <- makeCluster(no_cores)
 cl
 
 clusterExport(cl, "acc.cnv.chr.location")
-clusterExport(cl, "CNV.data")
+clusterExport(cl, "CNV.data2")
 clusterExport(cl, "cytoband.del.matrix.mc")
 clusterExport(cl, "events.per.cytoband")
 clusterEvalQ(cl, library(dplyr))
 
 test5<- vector(length=38)
-system.time(test5<- parLapply(cl, CNV.data, function(x) {cytoband.del.matrix.mc(x, acc.cnv.chr.location)}))
+system.time(test5<- parLapply(cl, CNV.data2, function(x) {cytoband.del.matrix.mc(x, acc.cnv.chr.location)}))
 
 stopCluster(cl)
 
@@ -351,6 +353,24 @@ pheatmap(test6,
          annotation_row = annotation_row,
          annotation_legend = FALSE
 )
+
+CNV.data2 <- vector("list", 38)
+CNV.data2[2:37]<-cnv.list
+
+CNV.all.table.list<- list(CNV.all.table)
+class(CNV.all.table.list)
+head(CNV.all.table.list[[1]])
+length(CNV.all.table.list)
+
+CNV.data2<-c(CNV.all.table.list, cnv.list)
+length(CNV.data2)
+dim(CNV.data2[[1]])
+dim(CNV.data2[[2]])
+dim(cnv.list[[1]])
+
+
+
+
 
 
 

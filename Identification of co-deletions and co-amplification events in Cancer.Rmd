@@ -413,10 +413,10 @@ system.time(heatmap.matrix.amp<- create.heatmap.matrix.ampl.del.optimised(x, col
 
 ```
 
-```{r cytobands_deletion_heatmap2}
+```{r chromosome9_heatmaps}
 
 ####################
-### PLot heatmaps: 
+### Plot heatmaps: 
 ##deletion:
 
 which(acc.cnv.loc$CHR == 9, arr.ind = TRUE)
@@ -484,7 +484,7 @@ pheatmap(chr9.heatmap.matrix.amp,
 Function to calculate the number of deletions or amplifications per cytoband or chromosomal interval
 
 
-```{r cytobands_deletion_heatmap, eval= FALSE}
+```{r cytobands_chromosomal_interval_function, eval= FALSE}
 
 #############
 ### F1: Function: events.per.cytoband
