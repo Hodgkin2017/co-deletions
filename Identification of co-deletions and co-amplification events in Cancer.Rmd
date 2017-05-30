@@ -18,7 +18,7 @@ library(RColorBrewer)
 setwd("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/")
 
 ### Load data
-load("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/R workspaces/co-deletions workspace.RData")
+load("./R workspaces/co-deletions workspace.RData")
 
 ```
 

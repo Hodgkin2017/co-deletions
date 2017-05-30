@@ -21,7 +21,8 @@ setwd("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletion
 
 #################
 ### Load data
-load("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/R workspaces/co-deletions workspace.RData")
+#load("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/R workspaces/co-deletions workspace.RData")
+load("./R workspaces/co-deletions workspace.RData")
 
 ################
 ### Load Functions.
@@ -116,3 +117,91 @@ chromosomal_location<- function(object_name){
   
   return(genes.of.interest)
 }
+
+
+#################
+### Events per cytoband or chromosomal interval
+events.per.cytoband<- function(object_name, threshold = -1, cytoband_column = 10,
+                               column_data_start = 11, chromosome_interval = 0, 
+                               select_chromosome = 1, deletion = TRUE){
+  
+  ## Code to get proportion of deletions per cytoband
+  cnv.matrix<- as.matrix(object_name[,column_data_start:ncol(object_name)])
+  
+  if (deletion == TRUE) {
+    
+    cnv.matrix<- ifelse(cnv.matrix <= threshold, 1, 0)
+    
+  } else {
+    
+    cnv.matrix<- ifelse(cnv.matrix >= threshold, 1, 0)
+  }
+  
+  ##Create list to store data:
+  if (chromosome_interval == 0){
+    results <- vector("list", 2)
+  } else {
+    results <- vector("list", 4)
+  }
+  
+  ##Create matrix with raw deletions/amplification values and number of 
+  #deletions/amplifications per gene:
+  results[[1]]<- cnv.matrix %>% 
+    as.data.frame() %>% 
+    dplyr::mutate(sum.of.deletions = rowSums(.)) %>%
+    dplyr::mutate(number.of.tumours = ncol(.)-1) %>%
+    cbind(cytoband=object_name[,cytoband_column], 
+          chromosome = object_name$CHR, 
+          start = object_name$start, .) 
+  
+  ##Create dataframe with number of deletions/amplifications per gene, number of genes and number of 
+  #potential deletion/amplification events that could occur:
+  results[[2]]<- results[[1]]%>%
+    group_by(cytoband) %>%
+    dplyr::summarise(sum.of.genes.deleted = sum(sum.of.deletions),
+                     total.number.of.genes=n(),
+                     total.number.of.events = sum(number.of.tumours)) %>%
+    dplyr::mutate(proportion.of.deletions = sum.of.genes.deleted/total.number.of.events) %>%
+    tidyr::separate(cytoband, c("chromosome", "band"), sep = "[p:q]", remove = FALSE, convert = TRUE)
+  
+  results[[2]]$chromosome<-sub("X", "23", results[[2]]$chromosome)
+  results[[2]]$chromosome<-sub("Y", "24", results[[2]]$chromosome)
+  results[[2]]$chromosome<- as.integer(results[[2]]$chromosome)
+  results[[2]]<- dplyr::arrange(results[[2]], chromosome, cytoband)
+  results[[2]]$chromosome<-sub("23", "X", results[[2]]$chromosome)
+  results[[2]]$chromosome<-sub("24", "Y", results[[2]]$chromosome)
+  
+  #############
+  #### Code to get proportion of deletions per unit size of chromosome:
+  
+  if (chromosome_interval > 0){
+    ## Very rough estimate of lengths of chromosomes:
+    results[[3]]<- results[[1]] %>%
+      group_by(chromosome) %>%
+      summarise(chromosome_start = min(start),
+                chromosome_end = max(start)) %>%
+      mutate(estimated_chromosome_length = chromosome_end - chromosome_start,
+             intervals_for_kb = estimated_chromosome_length/1000,
+             intervals_for_10kb = estimated_chromosome_length/10000,
+             intervals_for_100kb = estimated_chromosome_length/100000,
+             intervals_for_Mb = estimated_chromosome_length/1000000,
+             intervals_for_10Mb = estimated_chromosome_length/10000000)
+    
+    ## Select chromosome to investigate:
+    filter.table<- results[[1]] %>%
+      dplyr::filter(chromosome == select_chromosome)
+    
+    ## Create data table with proportion of deletion/amplification events that have occured:
+    results[[4]]<- filter.table$start %>%
+      cut(chromosome_interval, labels = seq(1:chromosome_interval)) %>%
+      cbind(Intervals = ., filter.table) %>%
+      dplyr::group_by(Intervals) %>%
+      dplyr::summarise(sum.of.genes.deleted = sum(sum.of.deletions),
+                       total.number.of.genes=n(),
+                       total.number.of.potential.events = sum(number.of.tumours)) %>%
+      dplyr::mutate(proportion.of.deletions = sum.of.genes.deleted/total.number.of.potential.events)
+  }
+  
+  return(results)
+}
+
