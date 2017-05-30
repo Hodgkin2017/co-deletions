@@ -489,55 +489,13 @@ Function to calculate the number of deletions or amplifications per cytoband or 
 #############
 ### F1: Function: events.per.cytoband
 
-events.per.cytoband<- function(x, threshold, cytoband_column, column_data_start, chromosome_interval = 0, select_chromosome, deletion = TRUE){
+events.per.cytoband<- function(object_name, threshold = -1, cytoband_column = 10,
+                               column_data_start = 11, chromosome_interval = 0, 
+                               select_chromosome = 1, deletion = TRUE){
   
-  ##########
-  ### Obtain chromosomal locations of genes
+  ## Code to get proportion of deletions per cytoband
+  cnv.matrix<- as.matrix(object_name[,column_data_start:ncol(object_name)])
   
-  keys<- keys(org.Hs.eg.db, keytype = "ENTREZID")
-  columns<- c("CHR", "CHRLOC", "CHRLOCEND")
-  all.gene.locations<- AnnotationDbi::select(org.Hs.eg.db, keys, columns, keytype = "ENTREZID")
-  
-  locus.id<- x$Locus.ID
-  
-  genes.of.interest<- all.gene.locations[all.gene.locations$ENTREZID %in% locus.id,]
-  
-  genes.of.interest<- na.omit(genes.of.interest[!duplicated(genes.of.interest$ENTREZID), ])
-  
-  ## Remove genes with poorly defined chromosome
-  chr<-c(seq(1:22), "X", "Y")
-  
-  rows.of.interest<- which(genes.of.interest$CHR %in% chr)
-  
-  genes.of.interest<- genes.of.interest[rows.of.interest,]
-  
-  genes.of.interest$strand<- ifelse(genes.of.interest$CHRLOC <0, "-", "+")
-  genes.of.interest$start<- abs(genes.of.interest$CHRLOC)
-  genes.of.interest$end<- abs(genes.of.interest$CHRLOCEND)
-  
-  ##########
-  ###Join gene location dataframe to original CNV data table
-  
-  genes.of.interest<- dplyr::rename(genes.of.interest, Locus.ID = ENTREZID)
-  
-  genes.of.interest$Locus.ID<- as.integer(genes.of.interest$Locus.ID)
-  
-  genes.of.interest<- full_join(genes.of.interest,x, by="Locus.ID")
-  
-  ##########
-  ## Order genes by chromosome and location:
-  genes.of.interest<- dplyr::arrange(genes.of.interest, CHR, start)
-  
-  column_data_start<- column_data_start + 7
-  cytoband_column<- cytoband_column + 7
-  
-  #############
-  ## Create matrix containing CNV data only:
-  cnv.matrix<- as.matrix(genes.of.interest[,column_data_start:ncol(genes.of.interest)])
-  
-  ##############
-  ## Convert CNV data into binary object with 1 representing a deletion or amplification
-  #event has occurred:
   if (deletion == TRUE) {
     
     cnv.matrix<- ifelse(cnv.matrix <= threshold, 1, 0)
@@ -555,17 +513,17 @@ events.per.cytoband<- function(x, threshold, cytoband_column, column_data_start,
   }
   
   ##Create matrix with raw deletions/amplification values and number of 
-  #deletions/amplifications per gene
+  #deletions/amplifications per gene:
   results[[1]]<- cnv.matrix %>% 
     as.data.frame() %>% 
     dplyr::mutate(sum.of.deletions = rowSums(.)) %>%
     dplyr::mutate(number.of.tumours = ncol(.)-1) %>%
-    cbind(cytoband=genes.of.interest[,cytoband_column], 
-          chromosome = genes.of.interest$CHR, 
-          start = genes.of.interest$start, .) 
+    cbind(cytoband=object_name[,cytoband_column], 
+          chromosome = object_name$CHR, 
+          start = object_name$start, .) 
   
-  ##Create dataframe with number of deletions per gene, number of genes and number of 
-  #potenatial deletion events that could occur
+  ##Create dataframe with number of deletions/amplifications per gene, number of genes and number of 
+  #potential deletion/amplification events that could occur:
   results[[2]]<- results[[1]]%>%
     group_by(cytoband) %>%
     dplyr::summarise(sum.of.genes.deleted = sum(sum.of.deletions),
@@ -573,9 +531,7 @@ events.per.cytoband<- function(x, threshold, cytoband_column, column_data_start,
                      total.number.of.events = sum(number.of.tumours)) %>%
     dplyr::mutate(proportion.of.deletions = sum.of.genes.deleted/total.number.of.events) %>%
     tidyr::separate(cytoband, c("chromosome", "band"), sep = "[p:q]", remove = FALSE, convert = TRUE)
-  #dplyr::select(-band) %>%
   
-  ## Arrange dataframe by chromosome and cytoband:
   results[[2]]$chromosome<-sub("X", "23", results[[2]]$chromosome)
   results[[2]]$chromosome<-sub("Y", "24", results[[2]]$chromosome)
   results[[2]]$chromosome<- as.integer(results[[2]]$chromosome)
@@ -583,9 +539,9 @@ events.per.cytoband<- function(x, threshold, cytoband_column, column_data_start,
   results[[2]]$chromosome<-sub("23", "X", results[[2]]$chromosome)
   results[[2]]$chromosome<-sub("24", "Y", results[[2]]$chromosome)
   
-  ##############
-  ### Create tables with the number of deletions/amplifications per chromosome interval:
-  ## Table of chromosome intervals:
+  #############
+  #### Code to get proportion of deletions per unit size of chromosome:
+  
   if (chromosome_interval > 0){
     ## Very rough estimate of lengths of chromosomes:
     results[[3]]<- results[[1]] %>%
@@ -599,10 +555,11 @@ events.per.cytoband<- function(x, threshold, cytoband_column, column_data_start,
              intervals_for_Mb = estimated_chromosome_length/1000000,
              intervals_for_10Mb = estimated_chromosome_length/10000000)
     
-    ## Table with the number of deletions/amplifications per chromosome interval:
+    ## Select chromosome to investigate:
     filter.table<- results[[1]] %>%
       dplyr::filter(chromosome == select_chromosome)
     
+    ## Create data table with proportion of deletion/amplification events that have occured:
     results[[4]]<- filter.table$start %>%
       cut(chromosome_interval, labels = seq(1:chromosome_interval)) %>%
       cbind(Intervals = ., filter.table) %>%
@@ -613,7 +570,7 @@ events.per.cytoband<- function(x, threshold, cytoband_column, column_data_start,
       dplyr::mutate(proportion.of.deletions = sum.of.genes.deleted/total.number.of.potential.events)
   }
   
-  results
+  return(results)
 }
 
 
