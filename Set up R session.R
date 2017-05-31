@@ -42,7 +42,7 @@ import.files.from.directories<-function(x,file.to.import){
   }
   names(my.list)<- directory.names
   setwd(currentwd)
-  my.list
+  return(my.list)
 }
 
 ##########
@@ -71,7 +71,7 @@ join.cnv.datasets<- function(x, column, data.sets = "all data sets"){
     df<- full_join(df, df2, by = "Gene.Symbol")
     
   }
-  df
+  return(df)
 }
 
 ##########

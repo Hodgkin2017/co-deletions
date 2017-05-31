@@ -759,7 +759,7 @@ for (i in 1:23) {
 cytoband.list<- events.per.cytoband(x, threshold = 1, cytoband_column = 10, column_data_start = 11, select_chromosome = j , chromosome_interval = chromosome_interval,  deletion = FALSE)
 y<-data.frame(intervals = seq(1:length(cytoband.list[[4]]$proportion.of.deletions)), chr = cytoband.list[[4]]$proportion.of.deletions)
 
-heatmap.matrix.chr.interval250.amp<- full_join(heatmap.matrix.chr.interval250, y, by = "intervals")
+heatmap.matrix.chr.interval250.amp<- full_join(heatmap.matrix.chr.interval250.amp, y, by = "intervals")
 }
 
 

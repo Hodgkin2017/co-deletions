@@ -425,11 +425,11 @@ create.heatmap.matrix.ampl.del<- function(x, column_start, threshold, deletion =
 ##Faster function to create matrix of proportions of co-deletions
 # and co-amplifications
 
-create.heatmap.matrix.ampl.del.optimised<- function(x, column_start, threshold, deletion = TRUE){
+create.heatmap.matrix.ampl.del.optimised<- function(object_name, column_start = 11, threshold = -1, deletion = TRUE){
   
   ##Convert CNV data to matrix:
   
-  cnv.matrix<- as.matrix(x[,column_start:ncol(x)])
+  cnv.matrix<- as.matrix(object_name[,column_start:ncol(object_name)])
   
   ##Create a binary matrix of CNV data such that deletions (deletion = TRUE) or 
   #amplifications (deletion = FALSE) below (for deletions) or above (for amplifications) a threshold = 1 
@@ -465,10 +465,10 @@ create.heatmap.matrix.ampl.del.optimised<- function(x, column_start, threshold, 
   }
   
   ## Add row and column names
-  rownames(heatmap.matrix)<- rownames(x)
-  colnames(heatmap.matrix)<- rownames(x)
+  rownames(heatmap.matrix)<- rownames(object_name)
+  colnames(heatmap.matrix)<- rownames(object_name)
   
-  heatmap.matrix
+  return(heatmap.matrix)
 }
 
 
