@@ -247,7 +247,7 @@ pheatmap(my.matrix,
 #################
 ###Deletion heatmap:
 
-##apply that creates matrix
+##Use apply function to creates matrix where each row is a cytoband and each column is a canter type:
 
 CNV.data<-cnv.list
 
@@ -443,16 +443,16 @@ new.function5<-function(x) {}
 
 ##Add row and column names
 
-rownames(heatmap.matrix.cytoband.del)<- cytoband.list[[2]]$cytoband
-colnames(heatmap.matrix.cytoband.del)<- c(cancer.type, "ALL")
-  
-  
+# rownames(heatmap.matrix.cytoband.del)<- cytoband.list[[2]]$cytoband
+# colnames(heatmap.matrix.cytoband.del)<- c(cancer.type, "ALL")
+#   
+#   
 ##Make annotation row dataframe
 
-annotation_row<- data.frame(chromosome = cytoband.list[[2]]$chromosome)
-rownames(annotation_row)<- cytoband.list[[2]]$cytoband
-dim(annotation_row)
-head(annotation_row)
+# annotation_row<- data.frame(chromosome = cytoband.list[[2]]$chromosome)
+# rownames(annotation_row)<- cytoband.list[[2]]$cytoband
+# dim(annotation_row)
+# head(annotation_row)
 
 
 
@@ -476,7 +476,7 @@ head(annotation_row)
 # col.pal<-topo.colors(9)
 # col.pal<-cm.colors(9)
 
-col.pal<- colorRampPalette(c("white", "navy", "firebrick3"))(1000)
+# col.pal<- colorRampPalette(c("white", "navy", "firebrick3"))(1000)
 
 
 # col.pal<- rev(col.pal)
@@ -484,88 +484,68 @@ col.pal<- colorRampPalette(c("white", "navy", "firebrick3"))(1000)
 # col.pal <- RColorBrewer::brewer.pal(9, "YlGnBu")
 # col.pal
 
-pheatmap(heatmap.matrix.cytoband.del[,1:38],
-         cluster_row = F,
-         cluster_cols = F,
-         show_rownames = TRUE,
-         show_colnames = TRUE,
-         color = col.pal,
-         fontsize_row=1,
-         #cellwidth = 10,
-         annotation_row = annotation_row,
-         annotation_legend = FALSE
-)
-
-pheatmap(heatmap.matrix.cytoband.del[,1:37],
-         cluster_row = F,
-         cluster_cols = T,
-         show_rownames = TRUE,
-         show_colnames = TRUE,
-         color = col.pal,
-         fontsize_row=1,
-         #cellwidth = 10,
-         annotation_row = annotation_row,
-         annotation_legend = FALSE
-)
+# pheatmap(heatmap.matrix.cytoband.del[,1:38],
+#          cluster_row = F,
+#          cluster_cols = F,
+#          show_rownames = TRUE,
+#          show_colnames = TRUE,
+#          color = col.pal,
+#          fontsize_row=1,
+#          #cellwidth = 10,
+#          annotation_row = annotation_row,
+#          annotation_legend = FALSE
+# )
+# 
+# pheatmap(heatmap.matrix.cytoband.del[,1:37],
+#          cluster_row = F,
+#          cluster_cols = T,
+#          show_rownames = TRUE,
+#          show_colnames = TRUE,
+#          color = col.pal,
+#          fontsize_row=1,
+#          #cellwidth = 10,
+#          annotation_row = annotation_row,
+#          annotation_legend = FALSE
+# )
 
 
 #################
 ###Amplification heatmap:
 
-###########
-##Loop that creates matrix
+##Use apply function to creates matrix where each row is a cytoband and each column is a canter type:
 
-cancer.type<- names(cnv.list)
-cancer.type
+# CNV.data<-cnv.list
+# 
+# CNV.data[[38]]<- CNV.all.table
+# 
 
-heatmap.matrix.cytoband.ampl<- matrix(NA, ncol = length(cancer.type)+1, nrow = 806)
-dim(heatmap.matrix.cytoband.ampl)
 
-for (i in 1:length(cancer.type)){
+cytoband.amp.matrix<- function(x,y){
   
-  x<-cnv.list[[i]]
-  cytoband.list<- events.per.cytoband(x, threshold = 1, cytoband_column = 3, column_data_start = 4, chromosome_interval = 0,  deletion = FALSE)
-  heatmap.matrix.cytoband.ampl[,i]<- cytoband.list[[2]]$proportion.of.deletions
-  print(cancer.type[i])
+  z<- dplyr::full_join(y[,1:8],x, by = "Locus.ID")
+  cytoband.list<- events.per.cytoband(z, threshold = 1, cytoband_column = 10, column_data_start = 11, chromosome_interval = 0,  deletion = FALSE)
+  return(cytoband.list[[2]]$proportion.of.deletions)
+  
 }
 
-head(heatmap.matrix.cytoband.ampl)
-
-##Final column contains all cancer types:
-
-##Create one large dataframe with all CNV data in it:
-x<-join.cnv.datasets(cnv.list, 4)
-
-##Calculate proportion of deletions per cytoband and add to matrix
-cytoband.list<- events.per.cytoband(x, threshold = 1, cytoband_column = 3, column_data_start = 4, chromosome_interval = 0,  deletion = FALSE)
-heatmap.matrix.cytoband.ampl[,38]<- cytoband.list[[2]]$proportion.of.deletions
-
-head(heatmap.matrix.cytoband.ampl)
-class(heatmap.matrix.cytoband.ampl)
-dim(x)
-
-heatmap.matrix.cytoband.ampl[250:350,37]
+system.time(test5<- lapply(CNV.data, function(x) {cytoband.amp.matrix(x, acc.cnv.chr.location)}))
+test6<- do.call(cbind, test5) %>%as.matrix
 
 ##Add row and column names
-
-rownames(heatmap.matrix.cytoband.ampl)<- cytoband.list[[2]]$cytoband
-colnames(heatmap.matrix.cytoband.ampl)<- c(cancer.type, "ALL")
-
+rownames(test6)<- test1[[2]]$cytoband
+colnames(test6)<- c(names(cnv.list), "ALL")
 
 ##Make annotation row dataframe
-
-annotation_row<- data.frame(chromosome = cytoband.list[[2]]$chromosome)
-rownames(annotation_row)<- cytoband.list[[2]]$cytoband
-dim(annotation_row)
-head(annotation_row)
-
-
+# annotation_row<- data.frame(chromosome = test1[[2]]$chromosome)
+# rownames(annotation_row)<- test1[[2]]$cytoband
+# dim(annotation_row)
+# head(annotation_row)
 
 ##Make heat map
 
-col.pal<- colorRampPalette(c( "white","navy", "firebrick3"))(1000)
+# col.pal<- colorRampPalette(c( "white","navy", "firebrick3"))(1000)
 
-pheatmap(heatmap.matrix.cytoband.ampl[,1:38],
+pheatmap(test6,
          cluster_row = F,
          cluster_cols = F,
          show_rownames = TRUE,
@@ -577,17 +557,87 @@ pheatmap(heatmap.matrix.cytoband.ampl[,1:38],
          annotation_legend = FALSE
 )
 
-pheatmap(heatmap.matrix.cytoband.ampl[,1:37],
-         cluster_row = F,
-         cluster_cols = T,
-         show_rownames = TRUE,
-         show_colnames = TRUE,
-         color = col.pal,
-         fontsize_row=1,
-         #cellwidth = 10,
-         annotation_row = annotation_row,
-         annotation_legend = FALSE
-)
+
+
+
+
+
+###########
+##Loop that creates matrix
+
+# cancer.type<- names(cnv.list)
+# cancer.type
+# 
+# heatmap.matrix.cytoband.ampl<- matrix(NA, ncol = length(cancer.type)+1, nrow = 806)
+# dim(heatmap.matrix.cytoband.ampl)
+# 
+# for (i in 1:length(cancer.type)){
+#   
+#   x<-cnv.list[[i]]
+#   cytoband.list<- events.per.cytoband(x, threshold = 1, cytoband_column = 3, column_data_start = 4, chromosome_interval = 0,  deletion = FALSE)
+#   heatmap.matrix.cytoband.ampl[,i]<- cytoband.list[[2]]$proportion.of.deletions
+#   print(cancer.type[i])
+# }
+# 
+# head(heatmap.matrix.cytoband.ampl)
+# 
+# ##Final column contains all cancer types:
+# 
+# ##Create one large dataframe with all CNV data in it:
+# x<-join.cnv.datasets(cnv.list, 4)
+# 
+# ##Calculate proportion of deletions per cytoband and add to matrix
+# cytoband.list<- events.per.cytoband(x, threshold = 1, cytoband_column = 3, column_data_start = 4, chromosome_interval = 0,  deletion = FALSE)
+# heatmap.matrix.cytoband.ampl[,38]<- cytoband.list[[2]]$proportion.of.deletions
+# 
+# head(heatmap.matrix.cytoband.ampl)
+# class(heatmap.matrix.cytoband.ampl)
+# dim(x)
+# 
+# heatmap.matrix.cytoband.ampl[250:350,37]
+# 
+# ##Add row and column names
+# 
+# rownames(heatmap.matrix.cytoband.ampl)<- cytoband.list[[2]]$cytoband
+# colnames(heatmap.matrix.cytoband.ampl)<- c(cancer.type, "ALL")
+# 
+# 
+# ##Make annotation row dataframe
+# 
+# annotation_row<- data.frame(chromosome = cytoband.list[[2]]$chromosome)
+# rownames(annotation_row)<- cytoband.list[[2]]$cytoband
+# dim(annotation_row)
+# head(annotation_row)
+# 
+# 
+# 
+# ##Make heat map
+# 
+# col.pal<- colorRampPalette(c( "white","navy", "firebrick3"))(1000)
+# 
+# pheatmap(heatmap.matrix.cytoband.ampl[,1:38],
+#          cluster_row = F,
+#          cluster_cols = F,
+#          show_rownames = TRUE,
+#          show_colnames = TRUE,
+#          color = col.pal,
+#          fontsize_row=1,
+#          #cellwidth = 10,
+#          annotation_row = annotation_row,
+#          annotation_legend = FALSE
+# )
+# 
+# pheatmap(heatmap.matrix.cytoband.ampl[,1:37],
+#          cluster_row = F,
+#          cluster_cols = T,
+#          show_rownames = TRUE,
+#          show_colnames = TRUE,
+#          color = col.pal,
+#          fontsize_row=1,
+#          #cellwidth = 10,
+#          annotation_row = annotation_row,
+#          annotation_legend = FALSE
+# )
 
 
 
@@ -600,10 +650,11 @@ pheatmap(heatmap.matrix.cytoband.ampl[,1:37],
 ### Sum of deletions for all tumour types together:
 ##Comment: Could make an array to store all chromosomes for each tumour.
 
-chromosome_interval_1MB<- ceiling(cytoband.list[[3]]$intervals_for_Mb)
-
+chromosome_interval_1MB<- ceiling(test2[[3]]$intervals_for_Mb)
+chromosome_interval_1MB
 ##Create one large dataframe with all CNV data in it:
 #x<-join.cnv.datasets(cnv.list, 4)
+x<- chromosomal_location(CNV.all.table)
 dim(x)
 
 ##Matrix to store results per chromosome:
@@ -613,12 +664,13 @@ heatmap.matrix.chr.interval250[,1]<-seq(1:2500)
 colnames(heatmap.matrix.chr.interval250)<-c("intervals")
 colnames(heatmap.matrix.chr.interval250)
 chr<-c(seq(1:22), "X")
+chr
 
 ##Calculate proportion of deletions per cytoband and add to matrix
 for (i in 1:23) {
   j<-chr[i]
   chromosome_interval<-chromosome_interval_1MB[i]
-cytoband.list<- events.per.cytoband(x, threshold = -1, cytoband_column = 3, column_data_start = 4, select_chromosome = j , chromosome_interval = chromosome_interval,  deletion = TRUE)
+cytoband.list<- events.per.cytoband(x, threshold = -1, cytoband_column = 10, column_data_start = 11, select_chromosome = j , chromosome_interval = chromosome_interval,  deletion = TRUE)
 y<-data.frame(intervals = seq(1:length(cytoband.list[[4]]$proportion.of.deletions)), chr = cytoband.list[[4]]$proportion.of.deletions)
 # glimpse(cytoband.list[[1]])
 # glimpse(cytoband.list[[2]])
@@ -628,6 +680,12 @@ heatmap.matrix.chr.interval250<- full_join(heatmap.matrix.chr.interval250, y, by
 # heatmap.matrix.chr.interval250[,i]<- cytoband.list[[4]][,5]
 print(i)
 print(length(cytoband.list[[4]]$proportion.of.deletions))
+}
+
+
+a.function<- function(object_name, ){
+  
+###.........make above loop into function...
 }
 
 colnames(heatmap.matrix.chr.interval250)<- c("Interval", paste0("Chromosome ", seq(1:22)), "Chromosome X")
@@ -675,3 +733,12 @@ pheatmap(heatmap.matrix.chr.interval250[1:205,2:24],
 ################
 #### Create matrix of ratio of deletions to amplifications per cytoband and plot heatmap.
 ##################
+
+
+
+
+
+
+
+
+
