@@ -47,31 +47,33 @@ create.heatmap.matrix.ampl.del.optimised<- function(object_name, column_start = 
     cnv.matrix<- as.matrix(matrix[,column_start:ncol(matrix)])
     rownames(cnv.matrix)<- matrix$Gene.Symbol
     
-  } else if (Chromosome[1] > 0){
+  } else if (Chromosome[1] > 0 & start == FALSE){
     
     matrix<- object_name %>% dplyr::filter(CHR %in% Chromosome) 
     cnv.matrix<- as.matrix(matrix[,column_start:ncol(matrix)])
     rownames(cnv.matrix)<- matrix$Gene.Symbol
     
   } else if (start == TRUE & Chromosome[1] == 0){
-    ##filter by chromosome 1st?
-    
-    # matrix<- matrix$start %>%
-    #   dplyr::between(selection_criteria[1], selection_criteria[2]) %>%
-    #   object_name[.,]
-    
+
     matrix<- object_name$start %>%
       dplyr::between(selection_criteria[1], selection_criteria[2]) %>%
       object_name[.,]
+    
+    matrix <- matrix %>% filter(!is.na(start))
     
     cnv.matrix<- as.matrix(matrix[,column_start:ncol(matrix)])
     rownames(cnv.matrix)<- matrix$Gene.Symbol
     
   }  else if (start == TRUE & Chromosome[1] > 0){
   
+    #object_name %>% filter(CHR == 9) %>% dplyr::select(start)
+    
+    
+    matrix<- object_name %>% dplyr::filter(CHR %in% Chromosome) 
+    
     matrix<- matrix$start %>%
       dplyr::between(selection_criteria[1], selection_criteria[2]) %>%
-      object_name[.,]
+      matrix[.,]
     
     cnv.matrix<- as.matrix(matrix[,column_start:ncol(matrix)])
     rownames(cnv.matrix)<- matrix$Gene.Symbol
@@ -138,12 +140,26 @@ create.heatmap.matrix.ampl.del.optimised(df2, column_start = 5, threshold = -1, 
 ##co-deletions ... no filtering
 test1<- create.heatmap.matrix.ampl.del.optimised(acc.cnv.chr.location, column_start = 11, threshold = -1, deletion = TRUE)
 
-test2<- create.heatmap.matrix.ampl.del.optimised(acc.cnv.chr.location, column_start = 11, threshold = -1, Gene.Symbol = TRUE, selection_criteria = c("A", "B"), deletion = TRUE)
+test2<- create.heatmap.matrix.ampl.del.optimised(acc.cnv.chr.location, column_start = 11, threshold = -1, Gene.Symbol = TRUE, selection_criteria = c("MET", "CDKN2A", "RB1", "WWOX", 
+                                                                                                                                                     "LRP1B", "PDE4D", "CCNE1", "TP53",
+                                                                                                                                                     "FGFR1", "MYC", "EGFR","WHSC1L1",
+                                                                                                                                                     "ERBB2", "MCL1", "MDM2", "CCND1", "ATM",
+                                                                                                                                                     "NOTCH1", "PPP2R2A", "BRD4", "ARID1A",
+                                                                                                                                                     "STK11", "PARK2"), deletion = TRUE)
+test2a<- create.heatmap.matrix.ampl.del.optimised(acc.cnv.chr.location, column_start = 11, threshold = 1, Gene.Symbol = TRUE, selection_criteria = c("MET", "CDKN2A", "RB1", "WWOX", 
+                                                                                                                                                     "LRP1B", "PDE4D", "CCNE1", "TP53",
+                                                                                                                                                     "FGFR1", "MYC", "EGFR","WHSC1L1",
+                                                                                                                                                     "ERBB2", "MCL1", "MDM2", "CCND1", "ATM",
+                                                                                                                                                     "NOTCH1", "PPP2R2A", "BRD4", "ARID1A",
+                                                                                                                                                     "STK11", "PARK2"), deletion = FALSE)                                                                                                                                                     
 test3<- create.heatmap.matrix.ampl.del.optimised(acc.cnv.chr.location, column_start = 11, threshold = -1, Chromosome = 9, deletion = TRUE)
 test4<- create.heatmap.matrix.ampl.del.optimised(acc.cnv.chr.location, column_start = 11, threshold = -1, Cytoband = TRUE, selection_criteria = c("9p21.2", "9p21.3"), deletion = TRUE)
-test5<- create.heatmap.matrix.ampl.del.optimised(acc.cnv.chr.location, column_start = 11, threshold = -1, start = TRUE, selection_criteria = c(4000,100000), deletion = TRUE)
-test6<-create.heatmap.matrix.ampl.del.optimised(acc.cnv.chr.location, column_start = 11, threshold = -1, Chromosome = 9, start = TRUE, selection_criteria = c(4000,100000), deletion = TRUE)
-dim(test6)
+test5<- create.heatmap.matrix.ampl.del.optimised(acc.cnv.chr.location, column_start = 11, threshold = -1, start = TRUE, selection_criteria = c(100000, 250000), deletion = TRUE)
+
+test6<-create.heatmap.matrix.ampl.del.optimised(acc.cnv.chr.location, column_start = 11, threshold = -1, Chromosome = 9, start = TRUE, selection_criteria = c(100000, 250000), deletion = TRUE)
+test7<-create.heatmap.matrix.ampl.del.optimised(acc.cnv.chr.location, column_start = 11, threshold = -1, Chromosome = 9, start = TRUE, selection_criteria = c(100000, 50000000), deletion = TRUE)
+object_name %>% filter(CHR == 9) %>% dplyr::select(start) %>% range()
+dim(test2)
 
 pheatmap(test1[1:100,1:100],
          cluster_row = F,
@@ -151,9 +167,16 @@ pheatmap(test1[1:100,1:100],
          show_rownames = FALSE,
          show_colnames = FALSE
 )
-pheatmap(test6,
+pheatmap(test4,
          cluster_row = F,
          cluster_cols = F,
          show_rownames = FALSE,
          show_colnames = FALSE
+)
+dim(test2)
+pheatmap(test2a,
+         cluster_row = F,
+         cluster_cols = F,
+         show_rownames = TRUE,
+         show_colnames = TRUE
 )
