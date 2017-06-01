@@ -28,6 +28,7 @@ deletion = TRUE
 
 
 #########
+acc.cnv.chr.location<- chromosomal_location(cnv.list[[1]])
 object_name<- acc.cnv.chr.location
 head(object_name)
 column_start = 11
@@ -161,7 +162,7 @@ test7<-create.heatmap.matrix.ampl.del.optimised(acc.cnv.chr.location, column_sta
 object_name %>% filter(CHR == 9) %>% dplyr::select(start) %>% range()
 dim(test2)
 
-pheatmap(test1[1:100,1:100],
+pheatmap(test1[16000:16100,16000:16100],
          cluster_row = F,
          cluster_cols = F,
          show_rownames = FALSE,

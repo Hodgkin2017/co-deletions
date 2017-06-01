@@ -268,221 +268,177 @@ acc.cnv.chr.location<-chromosomal_location(cnv.list[[1]])
 
 
 
-## Heatmaps showing co-deletions and co-amplifications for each chromosome for all types of tumours
-Function that creates matrix and normalises data of your choice and plots heat map.
+### Investigation of co-deletion and co-amplification events
 
-Function must allow for interrogation of specific genes, cytobands, chromosomes and chromosomal locations.......
+Function that creates matrix of the proportion of co-deletion and co-amplification events per gene.
 
-use ... for pHeatmap arguments?
-
-**This is definatley still a work in progress!!!!!!:
-I will clean this up and modify to accept different inputs such as gene names, gene IDs and chromosomal locations.**
-
-```{r co-deletions_heatmap}
-
-##########
-## Obtain chromosomal locations of genes
-
-##Temporary 
-acc.cnv<- cnv.list[[1]]
-
-keys<- keys(org.Hs.eg.db, keytype = "ENTREZID")
-
-columns<- c("CHR", "CHRLOC", "CHRLOCEND")
-sel<- AnnotationDbi::select(org.Hs.eg.db, keys, columns, keytype = "ENTREZID")
+Function can: interogate all genes, specific genes, specific chromosomal regions, specific chromosomes, specific chromsome and chromosomal regions and specific cytobands.
 
 
-acc.locus.id<- acc.cnv$Locus.ID
 
+```{r co.deletion_co.amplification_matrix, eval= FALSE}
 
-sel2<- sel[sel$ENTREZID %in% acc.locus.id,]
+####################
+###F1: Function to create matrix containing proportions of co-deletions or amplifications 
+#normalised by the total number of tumours compared
 
-
-sel3<- na.omit(sel2[!duplicated(sel2$ENTREZID), ])
-
+co.deletion_co.amplification_matrix<- function(object_name, column_start = 11, threshold = -1, 
+                                                    selection_criteria, Gene.Symbol = FALSE, 
+                                               start = FALSE, Chromosome = 0, Cytoband = FALSE,
+                                               deletion = TRUE){
+  if (Gene.Symbol == TRUE){
     
-## Remove genes with poorly defined chromosome
-chr<-c(seq(1:22), "X", "Y")
-
-
-rows.of.interest<- which(sel3$CHR %in% chr)
-
-
-sel3.final<- sel3[rows.of.interest,]
-
-
-
-sel3.final$strand<- ifelse(sel3.final$CHRLOC <0, "-", "+")
-
-sel3.final$start<- abs(sel3.final$CHRLOC)
-sel3.final$end<- abs(sel3.final$CHRLOCEND)
-
-
-##which genes did not have defined chromosome
-# rows.not.of.interest<-which(!sel3$CHR %in% chr)
-# length(which(!sel3$CHR %in% chr))
-# genes.removed.from.sel3<- sel3[rows.not.of.interest,]
-# head(genes.removed.from.sel3)
-
-#################
-## Attach CHRLOCCHR and start to acc cnv file
-
-sel3.final<- dplyr::rename(sel3.final, Locus.ID = ENTREZID)
-
-#class(acc.cnv$Locus.ID)
-#class(sel3$Locus.ID)
-sel3.final$Locus.ID<- as.integer(sel3.final$Locus.ID)
-#class(sel3$Locus.ID)
-
-acc.cnv.loc<- full_join(sel3.final,acc.cnv, by="Locus.ID")
-#head(acc.cnv.loc)
-#class(acc.cnv.loc$CHR)
-acc.cnv.loc$CHR<- as.integer(acc.cnv.loc$CHR)
-
-#is.na(acc.cnv.loc$CHR)
-#which(is.na(acc.cnv.loc), arr.ind = TRUE)
-#dim(acc.cnv.loc)
-acc.cnv.loc<- dplyr::arrange(acc.cnv.loc, CHR, start)
-#View(acc.cnv.loc)
-
-## comment: No Y chromosome...check intersection of genes on both X and Y and a lot of NA's!!
-
-
-################
-##Faster function to create matrix of proportions of co-deletions
-# and co-amplifications
-
-create.heatmap.matrix.ampl.del.optimised<- function(x, column_start, threshold, deletion = TRUE){
-  
-  ##Convert CNV data to matrix:
-  
-  cnv.matrix<- as.matrix(x[,column_start:ncol(x)])
+    ##Select Genes of interest by Gene Symbol and convert CNV data to matrix:
+    matrix<- object_name %>% dplyr::filter(Gene.Symbol %in% selection_criteria) 
+    cnv.matrix<- as.matrix(matrix[,column_start:ncol(matrix)])
+    rownames(cnv.matrix)<- matrix$Gene.Symbol
+    
+  } else if (Chromosome[1] > 0 & start == FALSE){
+    
+    ##Select Chromosome of interest and convert CNV data to matrix:
+    matrix<- object_name %>% dplyr::filter(CHR %in% Chromosome) 
+    cnv.matrix<- as.matrix(matrix[,column_start:ncol(matrix)])
+    rownames(cnv.matrix)<- matrix$Gene.Symbol
+    
+  } else if (start == TRUE & Chromosome[1] == 0){
+    
+    ##Select Chromosomal region of interest and convert CNV data to matrix:
+    matrix<- object_name$start %>%
+      dplyr::between(selection_criteria[1], selection_criteria[2]) %>%
+      object_name[.,]
+    
+    ## Remove NAs which are maintained by dplyr::between function
+    matrix <- matrix %>% filter(!is.na(start))
+    
+    cnv.matrix<- as.matrix(matrix[,column_start:ncol(matrix)])
+    rownames(cnv.matrix)<- matrix$Gene.Symbol
+    
+  }  else if (start == TRUE & Chromosome[1] > 0){
+    
+    ##Select Chromosome of interest and convert CNV data to matrix:
+    matrix<- object_name %>% dplyr::filter(CHR %in% Chromosome) 
+    
+    ##Select Chromosomal region of interest and convert CNV data to matrix:
+    matrix<- matrix$start %>%
+      dplyr::between(selection_criteria[1], selection_criteria[2]) %>%
+      matrix[.,]
+    
+    ##Convert Chromosome and region of interest into matrix:
+    cnv.matrix<- as.matrix(matrix[,column_start:ncol(matrix)])
+    rownames(cnv.matrix)<- matrix$Gene.Symbol
+    
+  } else if (Cytoband == TRUE){
+    ##Select Cytobands of interest and convert CNV data to matrix:
+    matrix<- object_name %>% dplyr::filter(Cytoband %in% selection_criteria) 
+    cnv.matrix<- as.matrix(matrix[,column_start:ncol(matrix)])
+    rownames(cnv.matrix)<- matrix$Gene.Symbol
+    
+  } else {
+    ##Convert ALL CNV data to matrix:
+    cnv.matrix<- as.matrix(object_name[,column_start:ncol(object_name)])
+    rownames(cnv.matrix)<- object_name$Gene.Symbol
+  }
   
   ##Create a binary matrix of CNV data such that deletions (deletion = TRUE) or 
   #amplifications (deletion = FALSE) below (for deletions) or above (for amplifications) a threshold = 1 
   if (deletion == TRUE) {
     
-    #cnv.matrix[cnv.matrix > threshold] = 0
-    #cnv.matrix = -cnv.matrix
     cnv.matrix<- ifelse(cnv.matrix <= threshold, 1, 0)
     
   } else {
     
-    #cnv.matrix<- cnv.matrix >= threshold
-    #cnv.matrix[cnv.matrix < threshold] = 0
     cnv.matrix<- ifelse(cnv.matrix >= threshold, 1, 0)
   }
   
-  ## Calculate the proportion of individuals with a deletion:
-  prop.individ.with.del<- rowSums(cnv.matrix)/ncol(cnv.matrix)
-  
-  ## Calculate total number of co-deletions of amplifications
-  
+  ## Calculate total number of co-deletions or amplifications
   heatmap.matrix<- cnv.matrix%*%t(cnv.matrix)
-  
-  ##How to normalise?
-  #heatmap.matrix<- heatmap.matrix/rowSums(cnv.matrix)
   heatmap.matrix<- heatmap.matrix/ncol(cnv.matrix)
   
-  ##NaN caused when rowSums = 0. Replace NaN with 0
-  #cnv.matrix[cnv.matrix == NaN] = 0
+  ## Remove NAs caused by divideing by 0.
   heatmap.matrix[is.nan(heatmap.matrix)] = 0
   
-  ## Complete diagonals with proportion of individuals with deletions.
-  for(i in 1:nrow(heatmap.matrix)) {
-    
-    heatmap.matrix[i,i]<- prop.individ.with.del[i]
-  }
-  
-  ## Add row and column names
-  rownames(heatmap.matrix)<- rownames(x)
-  colnames(heatmap.matrix)<- rownames(x)
-  
-  heatmap.matrix
+  return(heatmap.matrix)
 }
 
 
-
-
-##New optimised function
-rownames(acc.cnv.loc)<- acc.cnv.loc$Gene.Symbol
-x<- acc.cnv.loc
-
-system.time(heatmap.matrix.del<- create.heatmap.matrix.ampl.del.optimised(x, column_start = 11, threshold = -1, deletion = TRUE))
-
-
-system.time(heatmap.matrix.amp<- create.heatmap.matrix.ampl.del.optimised(x, column_start = 11, threshold = 1, deletion = FALSE))
-
 ```
 
-```{r chromosome9_heatmaps}
+##Heatmaps showing co-deletions and co-amplifications for each chromosome for all tumour types combined.
+
+```{r co-deletion_co-amplification_heatmaps, eval = FALSE}
 
 ####################
 ### Plot heatmaps: 
 ##deletion:
 
-which(acc.cnv.loc$CHR == 9, arr.ind = TRUE)
-chr9.heatmap.matrix.del<- heatmap.matrix.del[7809:8538,7809:8538]
-
-col.pal <- RColorBrewer::brewer.pal(9, "YlGnBu")
-
-pheatmap(chr9.heatmap.matrix.del,
-         cluster_row = F,
-         cluster_cols = F,
-         #fontsize = 6.5,
-         #fontsize_row=0.5, 
-         #fontsize_col = 0.5,
-         show_rownames = FALSE,
-         show_colnames = FALSE
-         #cellwidth = 0.8,
-         #cellheight = 0.8 
-         )
-
-
-pheatmap(chr9.heatmap.matrix.del,
-         cluster_row = T,
-         cluster_cols = F,
-         #fontsize = 6.5,
-         #fontsize_row=0.3, 
-         #fontsize_col = 0.3,
-         show_rownames = FALSE,
-         show_colnames = FALSE
-         #cellwidth = 0.3,
-         #cellheight = 0.3 
-)
-
-##Amplification:
-chr9.heatmap.matrix.amp<- heatmap.matrix.amp[7809:8538,7809:8538]
-
-pheatmap(chr9.heatmap.matrix.amp,
-         cluster_row = F,
-         cluster_cols = F,
-         #fontsize = 6.5,
-         #fontsize_row=0.3, 
-         #fontsize_col = 0.3,
-         show_rownames = FALSE,
-         show_colnames = FALSE
-         #cellwidth = 0.3,
-         #cellheight = 0.3 
-)
-
-pheatmap(chr9.heatmap.matrix.amp,
-         cluster_row = T,
-         cluster_cols = F,
-         #fontsize = 6.5,
-         #fontsize_row=0.5, 
-         #fontsize_col = 0.5,
-         show_rownames = FALSE,
-         show_colnames = FALSE
-         #cellwidth = 0.8,
-         #cellheight = 0.8 
-)
 
 
 
 ```
 
-### Heatmaps showing number of deletions per cytoband/chromosomal interval
+
+##Co-deletion and co-amplification of target genes
+
+Gene list from Christophe
+
+```{r Christophe_gene_list}
+
+```
+
+
+```{r Christophe_gene_list_heatmaps, eval = FALSE}
+
+####################
+### Plot heatmaps: 
+##co-deletion:
+
+
+####################
+### Plot heatmaps: 
+##co-amplification:
+
+```
+
+##Identification of top co-deletion and co-amplification genes.
+
+Do for all v's all and all v's all but filter for different chromosomes to prevent chromosomal and local bias
+Ratio of deletions and amplifications per region?
+look for anti-correlated regions ie co-deleted and co-amplified regions frequently found together?
+
+```{r chromosome9_heatmaps, eval = FALSE}
+
+####################
+### Plot heatmaps: 
+##deletion:
+
+
+
+
+```
+
+
+## Co-deletions and amplifications per cytoband......heatmaps
+
+annotate heatmaps with distance of genes from cytoband boundaries.
+
+Cytoband data from......
+
+
+```{r cytoband, eval = FALSE}
+
+####################
+### Plot heatmaps: 
+##deletion:
+
+
+
+
+```
+
+
+
+
+### Frequency of deletions per cytoband/chromosomal interval
 
 ##Function to calculate the number of deletions or amplifications per cytoband or chromosomal interval
 

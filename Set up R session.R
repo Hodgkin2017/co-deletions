@@ -205,3 +205,83 @@ events.per.cytoband<- function(object_name, threshold = -1, cytoband_column = 10
   return(results)
 }
 
+####################
+## Function to create matrix containing proportions of co-deletions or amplifications 
+#normalised by the total number of tumours compared
+
+co.deletion_co.amplification_matrix<- function(object_name, column_start = 11, threshold = -1, 
+                                               selection_criteria, Gene.Symbol = FALSE, start = FALSE, 
+                                               Chromosome = 0, Cytoband = FALSE, deletion = TRUE){
+  if (Gene.Symbol == TRUE){
+    
+    ##Select Genes of interest by Gene Symbol and convert CNV data to matrix:
+    matrix<- object_name %>% dplyr::filter(Gene.Symbol %in% selection_criteria) 
+    cnv.matrix<- as.matrix(matrix[,column_start:ncol(matrix)])
+    rownames(cnv.matrix)<- matrix$Gene.Symbol
+    
+  } else if (Chromosome[1] > 0 & start == FALSE){
+    
+    ##Select Chromosome of interest and convert CNV data to matrix:
+    matrix<- object_name %>% dplyr::filter(CHR %in% Chromosome) 
+    cnv.matrix<- as.matrix(matrix[,column_start:ncol(matrix)])
+    rownames(cnv.matrix)<- matrix$Gene.Symbol
+    
+  } else if (start == TRUE & Chromosome[1] == 0){
+    
+    ##Select Chromosomal region of interest and convert CNV data to matrix:
+    matrix<- object_name$start %>%
+      dplyr::between(selection_criteria[1], selection_criteria[2]) %>%
+      object_name[.,]
+    
+    ## Remove NAs which are maintained by dplyr::between function
+    matrix <- matrix %>% filter(!is.na(start))
+    
+    cnv.matrix<- as.matrix(matrix[,column_start:ncol(matrix)])
+    rownames(cnv.matrix)<- matrix$Gene.Symbol
+    
+  }  else if (start == TRUE & Chromosome[1] > 0){
+    
+    ##Select Chromosome of interest and convert CNV data to matrix:
+    matrix<- object_name %>% dplyr::filter(CHR %in% Chromosome) 
+    
+    ##Select Chromosomal region of interest and convert CNV data to matrix:
+    matrix<- matrix$start %>%
+      dplyr::between(selection_criteria[1], selection_criteria[2]) %>%
+      matrix[.,]
+    
+    ##Convert Chromosome and region of interest into matrix:
+    cnv.matrix<- as.matrix(matrix[,column_start:ncol(matrix)])
+    rownames(cnv.matrix)<- matrix$Gene.Symbol
+    
+  } else if (Cytoband == TRUE){
+    ##Select Cytobands of interest and convert CNV data to matrix:
+    matrix<- object_name %>% dplyr::filter(Cytoband %in% selection_criteria) 
+    cnv.matrix<- as.matrix(matrix[,column_start:ncol(matrix)])
+    rownames(cnv.matrix)<- matrix$Gene.Symbol
+    
+  } else {
+    ##Convert ALL CNV data to matrix:
+    cnv.matrix<- as.matrix(object_name[,column_start:ncol(object_name)])
+    rownames(cnv.matrix)<- object_name$Gene.Symbol
+  }
+  
+  ##Create a binary matrix of CNV data such that deletions (deletion = TRUE) or 
+  #amplifications (deletion = FALSE) below (for deletions) or above (for amplifications) a threshold = 1 
+  if (deletion == TRUE) {
+    
+    cnv.matrix<- ifelse(cnv.matrix <= threshold, 1, 0)
+    
+  } else {
+    
+    cnv.matrix<- ifelse(cnv.matrix >= threshold, 1, 0)
+  }
+  
+  ## Calculate total number of co-deletions or amplifications
+  heatmap.matrix<- cnv.matrix%*%t(cnv.matrix)
+  heatmap.matrix<- heatmap.matrix/ncol(cnv.matrix)
+  
+  ## Remove NAs caused by divideing by 0.
+  heatmap.matrix[is.nan(heatmap.matrix)] = 0
+  
+  return(heatmap.matrix)
+}
