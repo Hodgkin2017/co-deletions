@@ -181,3 +181,228 @@ pheatmap(test2a,
          show_rownames = TRUE,
          show_colnames = TRUE
 )
+
+
+##############
+##Heatmaps showing co-deletions and co-amplifications for each chromosome for all tumour types combined.
+
+CNV.all.table.chr.location<- chromosomal_location(CNV.all.table)
+
+# CNV.all.table.co.del<- co.deletion_co.amplification_matrix(CNV.all.table.chr.location, column_start = 11, threshold = -1, 
+#                                                            deletion = TRUE)
+# 
+# CNV.all.table.co.amp<- co.deletion_co.amplification_matrix(CNV.all.table.chr.location, column_start = 11, threshold = 1, 
+#                                                            deletion = FALSE)
+
+
+list.CNV.all.table.co.del<-lapply(c(seq(1:23), "X"), function(x) co.deletion_co.amplification_matrix(CNV.all.table.chr.location, column_start = 11, threshold = -1,Chromosome = x, 
+                                                                                                     deletion = TRUE))
+
+# test10<-lapply(c(seq(1:23), "X"), function(x) co.deletion_co.amplification_matrix(acc.cnv.chr.location, column_start = 11, threshold = 1, Chromosome = x, 
+#                                                                                                      deletion = FALSE))
+# names(test10)<- paste("chromosome", c(seq(1:23), "X"),  sep = " ")
+# test11<-test10[9:10]
+# names(test11)
+# #lapply(test11, function(x) head(x))
+# 
+# lapply(test11, function(x) plot_heatmap(x))
+# lapply(test11, function(x) plot_heatmap.dev(x))
+
+plot_heatmap<-function(x){
+
+  pheatmap(x,
+           cluster_row = F,
+           cluster_cols = F,
+           show_rownames = FALSE,
+           show_colnames = FALSE
+  )
+
+
+}
+lapply(list.CNV.all.table.co.del, function(x) plot_heatmap(x))
+
+list.CNV.all.table.co.amp<-lapply(c(seq(1:23), "X"), function(x) co.deletion_co.amplification_matrix(CNV.all.table.chr.location, column_start = 11, threshold = 1,Chromosome = x, 
+                                                                                                     deletion = FALSE))
+lapply(list.CNV.all.table.co.amp, function(x) plot_heatmap(x))
+
+
+
+
+##Does not work:
+plot_heatmap.dev<-function(x){
+  
+  pdf(filename=paste(names(x),".pdf",sep=""), width=6, height=6)
+  pheatmap(x,
+           cluster_row = F,
+           cluster_cols = F,
+           show_rownames = FALSE,
+           show_colnames = FALSE
+  )
+  dev.off()
+  
+}
+
+##Try?:
+plot_heatmap.dev<-function(x){
+  
+  tiff(file=paste(names(x),".pdf",sep=""), width=6, height=6)
+  pheatmap(x,
+           cluster_row = F,
+           cluster_cols = F,
+           show_rownames = FALSE,
+           show_colnames = FALSE
+  )
+  dev.off()
+  
+}
+
+
+
+# plot_heatmap.dev<-function(x){
+#   
+#   pdf(filename=paste(names(x),".pdf",sep=""), width=6, height=6)
+#   pheatmap(x,
+#            cluster_row = F,
+#            cluster_cols = F,
+#            show_rownames = FALSE,
+#            show_colnames = FALSE
+#   )
+#   dev.off()
+#   
+# }
+
+#list.CNV.all.table.co.del<-lapply(c(seq(1:23), "X"), function(x) dplyr::filter(CNV.all.table.co.del, CHR == x))
+# 
+# test11<-test10[1:2]
+# lapply(test11, plot_heatmap(x))
+# 
+# plot_heatmap<-function(x){
+#   
+#   pheatmap(x,
+#            cluster_row = F,
+#            cluster_cols = F,
+#            show_rownames = FALSE,
+#            show_colnames = FALSE
+#   )
+#   
+#   
+# }
+###############
+##Co-deletion and co-amplification of target genes
+
+head(colnames(CNV.all.table.chr.location),15)
+
+christophe.genes.del<- co.deletion_co.amplification_matrix(CNV.all.table.chr.location, column_start = 11, threshold = -1, Gene.Symbol = TRUE, selection_criteria = c("MET", "CDKN2A", "RB1", "WWOX", 
+                                                                                                                                                                     "LRP1B", "PDE4D", "CCNE1", "TP53",
+                                                                                                                                                                     "FGFR1", "MYC", "EGFR","WHSC1L1",
+                                                                                                                                                                     "ERBB2", "MCL1", "MDM2", "CCND1", "ATM",
+                                                                                                                                                                     "NOTCH1", "PPP2R2A", "BRD4", "ARID1A",
+                                                                                                                                                                     "STK11", "PARK2"), deletion = TRUE)
+christophe.genes.amp<- co.deletion_co.amplification_matrix(CNV.all.table.chr.location, column_start = 11, threshold = 1, Gene.Symbol = TRUE, selection_criteria = c("MET", "CDKN2A", "RB1", "WWOX", 
+                                                                                                                                                                    "LRP1B", "PDE4D", "CCNE1", "TP53",
+                                                                                                                                                                    "FGFR1", "MYC", "EGFR","WHSC1L1",
+                                                                                                                                                                    "ERBB2", "MCL1", "MDM2", "CCND1", "ATM",
+                                                                                                                                                                    "NOTCH1", "PPP2R2A", "BRD4", "ARID1A",
+                                                                                                                                                                    "STK11", "PARK2"), deletion = FALSE)
+
+pdf(file="christophe.genes.del.pdf")
+pheatmap(christophe.genes.del,
+         cluster_row = F,
+         cluster_cols = F,
+         show_rownames = TRUE,
+         show_colnames = TRUE
+)
+dev.off()
+
+pdf(file="christophe.genes.amp.pdf")
+pheatmap(christophe.genes.amp,
+         cluster_row = F,
+         cluster_cols = F,
+         show_rownames = TRUE,
+         show_colnames = TRUE
+)
+dev.off()
+
+
+
+
+
+
+
+############
+##Identification of top co-deletion and co-amplification genes.
+
+
+CNV.all.table.co.del<- co.deletion_co.amplification_matrix(CNV.all.table.chr.location, column_start = 11, threshold = -1, deletion = TRUE)
+CNV.all.table.co.amp<- co.deletion_co.amplification_matrix(CNV.all.table.chr.location, column_start = 11, threshold = 1, deletion = FALSE)
+
+dim(CNV.all.table.co.del)
+CNV.all.table.co.del2<-cbind(Gene.Symbol = rownames(CNV.all.table.co.del), CNV.all.table.co.del)
+dim(CNV.all.table.co.del2)
+head(colnames(CNV.all.table.co.del2),12)
+# CNV.all.table.co.del.names<- rownames(CNV.all.table.co.del)
+# CNV.all.table.co.del3<-dplyr::bind_cols(CNV.all.table.co.del.names, CNV.all.table.co.del)
+# dim(CNV.all.table.co.del3)
+CNV.all.table.co.del2<- as.data.frame(CNV.all.table.co.del2)
+dim(CNV.all.table.co.del2)
+CNV.all.table.co.del.long<- tidyr::gather(CNV.all.table.co.del2, key = Gene.Symbol )
+dim(CNV.all.table.co.del.long)
+head(CNV.all.table.co.del.long)
+colnames(CNV.all.table.co.del.long)<- c("Gene.Symbol1", "Gene.Symbol2", "value")
+head(CNV.all.table.co.del.long, 20)
+CNV.all.table.co.del.long.sort<- dplyr::arrange(CNV.all.table.co.del.long, desc(value))
+CNV.all.table.co.del.long.sort2<- dplyr::arrange(CNV.all.table.co.del.long, value)
+head(CNV.all.table.co.del.long.sort, 20)
+head(CNV.all.table.co.del.long.sort2, 20)
+
+CNV.all.table.co.del.long.ungroup<- dplyr::ungroup(CNV.all.table.co.del.long)
+CNV.all.table.co.del.long.sort3<- dplyr::arrange(CNV.all.table.co.del.long.ungroup, desc(value))
+head(CNV.all.table.co.del.long.sort3, 20)
+max(CNV.all.table.co.del.long.sort3$value)
+tail(CNV.all.table.co.del.long.sort3, 20)
+head(CNV.all.table.co.del.long.sort3, 100)
+tail(CNV.all.table.co.del.long.sort3, 20)
+
+top1000.co.deletions<- head(CNV.all.table.co.del.long.sort3, 1000)
+write.csv(top1000.co.deletions, file = "top1000.co.deletions.csv", quote = FALSE)
+
+CNV.all.table.co.del.long.sort3.CDKN2A<- dplyr::filter(CNV.all.table.co.del.long.sort3, Gene.Symbol2 == "CDKN2A")
+
+pheatmap(CNV.all.table.co.del[1:100,1:100],
+         cluster_row = F,
+         cluster_cols = F,
+         show_rownames = TRUE,
+         show_colnames = TRUE
+)
+
+
+# d1<- c(2,3,4)
+# d2<- c(1,2,3)
+# d3<- c(10,11,12)
+# 
+# dummy<- data.frame(A=d1, B=d2, C=d3)
+# rownames(dummy)<- c("A", "B", "C")
+# 
+# tidyr::gather(dummy)
+# 
+# dummy2<-cbind(name = c("A", "B", "C"), dummy)
+# dummy2
+# 
+# df2<- tidyr::gather(dummy2, key = name )
+# df2
+# colnames(df2)<- c("Gene.Symbol1", "Gene.Symbol2", "value")
+# df2
+# dplyr::arrange(df2, desc(value))
+
+
+
+
+
+
+
+
+
+
+
+
+
