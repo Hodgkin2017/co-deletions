@@ -11,11 +11,13 @@ acc.cnv.chr.location %>%
 
 #################
 ##Obtain genes of interest (in Cytoband 9p21.3) with known start and end sites
-##Maybe modify function to remove NAs
-acc.cnv.chr.location.filt<- acc.cnv.chr.location %>%
-  dplyr::filter(!is.na(start))
+##Comment: Maybe modify function to remove NAs
+##Comment: Now default in function to remove genes with no start:
 
-dim(acc.cnv.chr.location.filt)
+# acc.cnv.chr.location.filt<- acc.cnv.chr.location %>%
+#   dplyr::filter(!is.na(start))
+# 
+# dim(acc.cnv.chr.location.filt)
 
 #############
 ###Get co-deletions for CDKN2A locus (9p21.3)
