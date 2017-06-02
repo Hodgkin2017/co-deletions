@@ -8,7 +8,7 @@
 #F1. co.deletion_co.amplification_matrix    #Function to obtain the proportion of co-deletions or co-amplifications
                                             #Returns a matrix containing proportion of co-deletions or co-amplifications.
                                             #Function arguments:
-                                            #object_name          # CNV file
+                                            #cnv.table          # CNV file
                                             #column_start         # First column in file containing tumour CNV data
                                             #threshold            # Value above (deletion = FALSE) or below 
                                                                   #(deletion = TRUE) which CNVs will be included in analysis
@@ -23,6 +23,7 @@
                                                                   #If Chromosome = 0 then no chromosome is selected.
                                             #Cytoband             # If Cytoband = TRUE: Select for Cytobands matching selection_criteria
                                                                   # If deletion = FALSE: Do not select for Cytobands
+                                            #remove_NA = TRUE     # If remove_NA = TRUE: Remove all genes without a start position.
                                             #deletion = TRUE      # If deletion = TRUE: Count number of deletion events
                                                                   # If deletion = FALSE: Count number of amplification events
 
@@ -46,29 +47,35 @@ library(dplyr)
 ###F1: Function to create matrix containing proportions of co-deletions or amplifications 
 #normalised by the total number of tumours compared
 
-co.deletion_co.amplification_matrix<- function(object_name, column_start = 11, threshold = -1, 
+co.deletion_co.amplification_matrix<- function(cnv.table, column_start = 11, threshold = -1, 
                                                     selection_criteria, Gene.Symbol = FALSE, start = FALSE, 
-                                                    Chromosome = 0, Cytoband = FALSE, deletion = TRUE){
+                                                    Chromosome = 0, Cytoband = FALSE, remove_NA = TRUE, deletion = TRUE){
+  if (remove_NA == TRUE){
+    
+    cnv.table<- cnv.table %>%
+      dplyr::filter(!is.na(start))
+  }
+  
   if (Gene.Symbol == TRUE){
     
     ##Select Genes of interest by Gene Symbol and convert CNV data to matrix:
-    matrix<- object_name %>% dplyr::filter(Gene.Symbol %in% selection_criteria) 
+    matrix<- cnv.table %>% dplyr::filter(Gene.Symbol %in% selection_criteria) 
     cnv.matrix<- as.matrix(matrix[,column_start:ncol(matrix)])
     rownames(cnv.matrix)<- matrix$Gene.Symbol
     
   } else if (Chromosome[1] > 0 & start == FALSE){
     
     ##Select Chromosome of interest and convert CNV data to matrix:
-    matrix<- object_name %>% dplyr::filter(CHR %in% Chromosome) 
+    matrix<- cnv.table %>% dplyr::filter(CHR %in% Chromosome) 
     cnv.matrix<- as.matrix(matrix[,column_start:ncol(matrix)])
     rownames(cnv.matrix)<- matrix$Gene.Symbol
     
   } else if (start == TRUE & Chromosome[1] == 0){
     
     ##Select Chromosomal region of interest and convert CNV data to matrix:
-    matrix<- object_name$start %>%
+    matrix<- cnv.table$start %>%
       dplyr::between(selection_criteria[1], selection_criteria[2]) %>%
-      object_name[.,]
+      cnv.table[.,]
     
     ## Remove NAs which are maintained by dplyr::between function
     matrix <- matrix %>% filter(!is.na(start))
@@ -79,7 +86,7 @@ co.deletion_co.amplification_matrix<- function(object_name, column_start = 11, t
   }  else if (start == TRUE & Chromosome[1] > 0){
     
     ##Select Chromosome of interest and convert CNV data to matrix:
-    matrix<- object_name %>% dplyr::filter(CHR %in% Chromosome) 
+    matrix<- cnv.table %>% dplyr::filter(CHR %in% Chromosome) 
     
     ##Select Chromosomal region of interest and convert CNV data to matrix:
     matrix<- matrix$start %>%
@@ -92,14 +99,14 @@ co.deletion_co.amplification_matrix<- function(object_name, column_start = 11, t
     
   } else if (Cytoband == TRUE){
     ##Select Cytobands of interest and convert CNV data to matrix:
-    matrix<- object_name %>% dplyr::filter(Cytoband %in% selection_criteria) 
+    matrix<- cnv.table %>% dplyr::filter(Cytoband %in% selection_criteria) 
     cnv.matrix<- as.matrix(matrix[,column_start:ncol(matrix)])
     rownames(cnv.matrix)<- matrix$Gene.Symbol
     
   } else {
     ##Convert ALL CNV data to matrix:
-    cnv.matrix<- as.matrix(object_name[,column_start:ncol(object_name)])
-    rownames(cnv.matrix)<- object_name$Gene.Symbol
+    cnv.matrix<- as.matrix(cnv.table[,column_start:ncol(cnv.table)])
+    rownames(cnv.matrix)<- cnv.table$Gene.Symbol
   }
   
   ##Create a binary matrix of CNV data such that deletions (deletion = TRUE) or 
