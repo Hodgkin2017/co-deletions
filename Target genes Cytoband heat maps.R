@@ -254,21 +254,18 @@ colnames(annotation.table)<- c("strand", "Distance")
 
 ##colour scheme for heat map and annotation table?
 
-
-
-
-
+#create object to plot correct fontsize?
 
 ##Plot heatmap:
-tiff(paste(target.gene,"_deletion = ", deletion, ".tiff", sep =""), width = 5, height = 5, units = 'in', res = 300)
+tiff(paste(target.gene,"_deletion = ", deletion, ".tiff", sep =""), width = 7, height = 5, units = 'in', res = 300)
 pheatmap(matrix,
-         cluster_row = F,
-         cluster_cols = F,
+         cluster_row = TRUE,
+         cluster_cols = FALSE,
          breaks = NA,
          show_rownames = TRUE,
          show_colnames = TRUE,
-         fontsize_row = 2,
-         fontsize_col = 2,
+         #fontsize_row = 2,
+         #fontsize_col = 2,
          annotation_col = annotation.table,
          annotation_colors = ann_colors
 )
@@ -284,14 +281,14 @@ print(target.gene)
 ###Test function
 
 Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table, target.gene = "TP53", cytoband.cordinates = cytoband.cordinates,threshold = -1, deletion = TRUE)
-Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table, target.gene = "CDKN2A", cytoband.cordinates = cytoband.cordinates,threshold = -1, deletion = TRUE)
+Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table, target.gene = "PDE4D", cytoband.cordinates = cytoband.cordinates,threshold = -1, deletion = TRUE)
 Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table, target.gene = "MET", cytoband.cordinates = cytoband.cordinates,threshold = -1, deletion = TRUE)
 Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table, target.gene = "ARID1A", cytoband.cordinates = cytoband.cordinates,threshold = -1, deletion = TRUE)
 
 ##Comment: Normalise by number of individulas with deletions in cytoband?
 
 ##########################
-###Run apply on fuction to plot heat maps automatically
+###Run apply on fuction created above to plot heat maps automatically
 ########################
 
 x<- c("MET", "CDKN2A", "RB1", "WWOX", 
@@ -322,12 +319,29 @@ lapply(x, function(x) Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table,
                                                          threshold = 1, 
                                                          deletion = FALSE))
 
+#################
+## Perform co-amplification and co-deletion analysis for specific cancer types
+###############
+names(cnv.list)
 
 
+##Breast:
+cnv.table<- chromosomal_location(cnv.list$BRCA)
+
+setwd("../../Output/plots/170607 co-amp co-del (BRCA)/")
 
 
+lapply(x, function(x) Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table, 
+                                                         target.gene = x, 
+                                                         cytoband.cordinates = cytoband.cordinates,
+                                                         threshold = -1, 
+                                                         deletion = TRUE))
 
-
+lapply(x, function(x) Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table, 
+                                                         target.gene = x, 
+                                                         cytoband.cordinates = cytoband.cordinates,
+                                                         threshold = 1, 
+                                                         deletion = FALSE))
 
 
 
