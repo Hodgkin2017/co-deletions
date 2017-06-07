@@ -183,6 +183,7 @@ cnv.table<- chromosomal_location(cnv.list[[1]])
 deletion = TRUE
 target.gene = "TP53"
 target.gene = "CDKN2A"
+target.gene = "ARID1A"
 threshold = -1
 
 
@@ -202,15 +203,26 @@ cytoband<- cytoband[1,1]
 ###Get co-deletions for cytoband
 matrix<- co.deletion_co.amplification_matrix(cnv.table, column_start =  11, threshold = threshold, selection_criteria = cytoband, Cytoband = TRUE, deletion = TRUE)
 
+#############
+##Check matrix contains co-deletions otherwise pheatmap wont plot heatmap
+
+#if (sum(matrix) == 0) {
+ 
+if (ncol(unique(matrix, MARGIN = 2)) ==1){ 
+  
+  print (paste("No heatmap was plotted for ", target.gene, "as all values in matrix were the same:", matrix[1,1]), sep = " ")
+  
+}else{
+
 ################
 ###Make annotation bar for cytoband heatmap
 
-## get cytoband coordinates for 9p21.3
+## get cytoband coordinates for cytoband
 cytoband.start.end<- cytoband.cordinates %>% 
   dplyr::filter(cytoband_name %in% cytoband) %>%
   dplyr::select(chromStart, chromEnd)
 
-## Get start and end coordinates for genes in 9p21.3
+## Get start and end coordinates for genes in cytoband
 ## Remove samples with NA
 matrix.gene.names<- colnames(matrix)
 
@@ -224,7 +236,6 @@ matrix.gene.names.loc<- matrix.gene.names.loc %>% mutate(distance_from_start = s
                                                               distance_from_end = cytoband.start.end[1,2] - end,
                                                               minimum_distance = pmin(distance_from_start, distance_from_end) 
 )
-
 
 ##################
 ## Create annotation table for strand
@@ -249,9 +260,11 @@ colnames(annotation.table)<- c("strand", "Distance")
 
 
 ##Plot heatmap:
+tiff(paste(target.gene,"_deletion = ", deletion, ".tiff", sep =""), width = 5, height = 5, units = 'in', res = 300)
 pheatmap(matrix,
-         cluster_row = T,
+         cluster_row = F,
          cluster_cols = F,
+         breaks = NA,
          show_rownames = TRUE,
          show_colnames = TRUE,
          fontsize_row = 2,
@@ -259,14 +272,63 @@ pheatmap(matrix,
          annotation_col = annotation.table,
          annotation_colors = ann_colors
 )
+dev.off()
+
+print(target.gene)
+
 }
+}
+
 
 #########
 ###Test function
 
-Plot.target.genes.cytoband.heatmap(cnv.table = acc.cnv.chr.location, target.gene = "TP53", cytoband.cordinates = cytoband.cordinates,threshold = -1, deletion = TRUE)
+Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table, target.gene = "TP53", cytoband.cordinates = cytoband.cordinates,threshold = -1, deletion = TRUE)
+Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table, target.gene = "CDKN2A", cytoband.cordinates = cytoband.cordinates,threshold = -1, deletion = TRUE)
+Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table, target.gene = "MET", cytoband.cordinates = cytoband.cordinates,threshold = -1, deletion = TRUE)
+Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table, target.gene = "ARID1A", cytoband.cordinates = cytoband.cordinates,threshold = -1, deletion = TRUE)
 
 ##Comment: Normalise by number of individulas with deletions in cytoband?
+
+##########################
+###Run apply on fuction to plot heat maps automatically
+########################
+
+x<- c("MET", "CDKN2A", "RB1", "WWOX", 
+      "LRP1B", "PDE4D", "CCNE1", "TP53",
+      "FGFR1", "MYC", "EGFR","WHSC1L1",
+      "ERBB2", "MCL1", "MDM2", "CCND1", "ATM",
+      "NOTCH1", "PPP2R2A", "BRD4", "ARID1A",
+      "STK11", "PARK2")
+
+# #x<- c("CDKN2A", "RB1", "WWOX", 
+#       "LRP1B", "PDE4D", "CCNE1", "TP53",
+#       "FGFR1", "MYC", "EGFR","WHSC1L1",
+#       "ERBB2", "MCL1", "MDM2", "CCND1", "ATM",
+#       "NOTCH1", "PPP2R2A", "BRD4", "ARID1A",
+#       "STK11", "PARK2")
+# 
+# #x<- c("MET")
+
+lapply(x, function(x) Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table, 
+                                                         target.gene = x, 
+                                                         cytoband.cordinates = cytoband.cordinates,
+                                                         threshold = -1, 
+                                                         deletion = TRUE))
+
+lapply(x, function(x) Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table, 
+                                                         target.gene = x, 
+                                                         cytoband.cordinates = cytoband.cordinates,
+                                                         threshold = 1, 
+                                                         deletion = FALSE))
+
+
+
+
+
+
+
+
 
 
 
@@ -290,7 +352,7 @@ Plot.target.genes.cytoband.heatmap(cnv.table = acc.cnv.chr.location, target.gene
 # co.deletion_co.amplification_matrix(df, column_start =  1, threshold = -1, deletion = TRUE)
 
 ##########################
-###Run apply on fuction to plot heat maps automatically
+###Test saving plots
 ########################
 
 
@@ -300,7 +362,25 @@ plot(x, y) # Make plot
 dev.off()
 
 
+##Plot heatmap:
+x<- "CDKN2A"
 
+tiff("CDKN2A.tiff", width = 5, height = 5, units = 'in', res = 300)
+
+
+tiff(paste(x, ".tiff", sep =""), width = 5, height = 5, units = 'in', res = 300)
+pheatmap(matrix,
+         cluster_row = T,
+         cluster_cols = F,
+         show_rownames = TRUE,
+         show_colnames = TRUE,
+         fontsize_row = 2,
+         fontsize_col = 2,
+         annotation_col = annotation.table,
+         annotation_colors = ann_colors,
+         
+)
+dev.off()
 
 
 
