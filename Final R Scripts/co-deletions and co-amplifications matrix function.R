@@ -26,6 +26,10 @@
                                             #remove_NA = TRUE     # If remove_NA = TRUE: Remove all genes without a start position.
                                             #deletion = TRUE      # If deletion = TRUE: Count number of deletion events
                                                                   # If deletion = FALSE: Count number of amplification events
+                                            #normalisation        #If normalisation = "total.tumour.number" then normalise by total number of tumours
+                                                                  #If normalisation = "tumours.with.event" then normalise by 
+                                                                  # number of tumours with deletion or amplification event. e.g. if only 7 out of 90 
+                                                                  # individuals had a deletion in a cytoband then divide number of co-deletions by 7
 
 ##Actions and or Loops outside of functions:
 #None
@@ -48,8 +52,8 @@ library(dplyr)
 #normalised by the total number of tumours compared
 
 co.deletion_co.amplification_matrix<- function(cnv.table, column_start = 11, threshold = -1, 
-                                                    selection_criteria, Gene.Symbol = FALSE, start = FALSE, 
-                                                    Chromosome = 0, Cytoband = FALSE, remove_NA = TRUE, deletion = TRUE){
+                                               selection_criteria, Gene.Symbol = FALSE, start = FALSE, 
+                                               Chromosome = 0, Cytoband = FALSE, remove_NA = TRUE, deletion = TRUE, normalisation = "total.tumour.number"){
   if (remove_NA == TRUE){
     
     cnv.table<- cnv.table %>%
@@ -120,9 +124,20 @@ co.deletion_co.amplification_matrix<- function(cnv.table, column_start = 11, thr
     cnv.matrix<- ifelse(cnv.matrix >= threshold, 1, 0)
   }
   
+  
   ## Calculate total number of co-deletions or amplifications
   heatmap.matrix<- cnv.matrix%*%t(cnv.matrix)
-  heatmap.matrix<- heatmap.matrix/ncol(cnv.matrix)
+  
+  if (normalisation == "total.tumour.number") {
+    
+    heatmap.matrix<- heatmap.matrix/ncol(cnv.matrix)
+    
+  } else if (normalisation == "tumours.with.event") {
+    tumours.with.del.or.amp<- colSums(cnv.matrix)
+    tumours.with.del.or.amp<-sum(tumours.with.del.or.amp >0)
+    heatmap.matrix<- heatmap.matrix/tumours.with.del.or.amp
+    
+  }
   
   ## Remove NAs caused by divideing by 0.
   heatmap.matrix[is.nan(heatmap.matrix)] = 0
@@ -143,18 +158,18 @@ test1<- co.deletion_co.amplification_matrix(acc.cnv.chr.location, column_start =
 ##O2: Output co-deletions for some genes only
 test2<- co.deletion_co.amplification_matrix(acc.cnv.chr.location, column_start = 11, threshold = -1, 
                                             Gene.Symbol = TRUE, selection_criteria = c("MET", "CDKN2A", 
-                                             "RB1", "WWOX", "LRP1B", "PDE4D", "CCNE1", "TP53","FGFR1", 
-                                             "MYC", "EGFR","WHSC1L1", "ERBB2", "MCL1", "MDM2", "CCND1",
-                                             "ATM","NOTCH1","PPP2R2A", "BRD4", "ARID1A", "STK11", 
-                                             "PARK2"), deletion = TRUE)
+                                                                                       "RB1", "WWOX", "LRP1B", "PDE4D", "CCNE1", "TP53","FGFR1", 
+                                                                                       "MYC", "EGFR","WHSC1L1", "ERBB2", "MCL1", "MDM2", "CCND1",
+                                                                                       "ATM","NOTCH1","PPP2R2A", "BRD4", "ARID1A", "STK11", 
+                                                                                       "PARK2"), deletion = TRUE)
 
 ##O3: Output co-amplifications for some genes only
 test2a<- co.deletion_co.amplification_matrix(acc.cnv.chr.location, column_start = 11, threshold = 1, 
                                              Gene.Symbol = TRUE, selection_criteria = c("MET", "CDKN2A",
-                                             "RB1", "WWOX", "LRP1B", "PDE4D", "CCNE1", "TP53","FGFR1", 
-                                             "MYC", "EGFR","WHSC1L1", "ERBB2", "MCL1", "MDM2", "CCND1", 
-                                             "ATM","NOTCH1", "PPP2R2A", "BRD4", "ARID1A","STK11", 
-                                             "PARK2"), deletion = FALSE)                                                                                                                                                     
+                                                                                        "RB1", "WWOX", "LRP1B", "PDE4D", "CCNE1", "TP53","FGFR1", 
+                                                                                        "MYC", "EGFR","WHSC1L1", "ERBB2", "MCL1", "MDM2", "CCND1", 
+                                                                                        "ATM","NOTCH1", "PPP2R2A", "BRD4", "ARID1A","STK11", 
+                                                                                        "PARK2"), deletion = FALSE)                                                                                                                                                     
 
 ##O4: Output co-deletions for chromosome 9 only
 test3<- co.deletion_co.amplification_matrix(acc.cnv.chr.location, column_start = 11, threshold = -1, Chromosome = 9, deletion = TRUE)

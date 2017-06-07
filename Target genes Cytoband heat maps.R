@@ -257,7 +257,7 @@ colnames(annotation.table)<- c("strand", "Distance")
 #create object to plot correct fontsize?
 
 ##Plot heatmap:
-tiff(paste(target.gene,"_deletion = ", deletion, ".tiff", sep =""), width = 7, height = 5, units = 'in', res = 300)
+tiff(paste(target.gene,"_deletion = ", deletion, ".tiff", sep =""), width = 18, height = 14, units = 'in', res = 300)
 pheatmap(matrix,
          cluster_row = TRUE,
          cluster_cols = FALSE,
@@ -342,6 +342,52 @@ lapply(x, function(x) Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table,
                                                          cytoband.cordinates = cytoband.cordinates,
                                                          threshold = 1, 
                                                          deletion = FALSE))
+
+
+
+
+# cancer.type<- "BRCA"
+# target.gene<- "CDKN2A"
+# 
+# Plot.target.genes.cytoband.heatmap.cancers.list<- function(cancer.type, target.gene){}
+# 
+# dir.create(paste("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Output/plots/", x, sep = ""))
+
+################
+###
+################
+
+
+x<- c("MET", "CDKN2A", "RB1", "WWOX", 
+      "LRP1B", "PDE4D", "CCNE1", "TP53",
+      "FGFR1", "MYC", "EGFR","WHSC1L1",
+      "ERBB2", "MCL1", "MDM2", "CCND1", "ATM",
+      "NOTCH1", "PPP2R2A", "BRD4", "ARID1A",
+      "STK11", "PARK2")
+
+for (i in 1: length(cnv.list)){
+  
+  tumour.type<- names(cnv.list[i])
+  dir.create(paste("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Output/plots/170607 co-amp co-del (", tumour.type, ")", sep = ""))
+  setwd(paste("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Output/plots/170607 co-amp co-del (", tumour.type, ")", sep = ""))
+  
+  cnv.table<-cnv.table<- chromosomal_location(cnv.list[[i]])
+  
+  lapply(x, function(x) Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table, 
+                                                           target.gene = x, 
+                                                           cytoband.cordinates = cytoband.cordinates,
+                                                           threshold = -1, 
+                                                           deletion = TRUE))
+  
+  lapply(x, function(x) Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table, 
+                                                           target.gene = x, 
+                                                           cytoband.cordinates = cytoband.cordinates,
+                                                           threshold = 1, 
+                                                           deletion = FALSE))
+  
+}
+
+
 
 
 

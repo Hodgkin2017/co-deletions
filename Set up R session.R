@@ -211,7 +211,7 @@ events.per.cytoband<- function(object_name, threshold = -1, cytoband_column = 10
 
 co.deletion_co.amplification_matrix<- function(cnv.table, column_start = 11, threshold = -1, 
                                                selection_criteria, Gene.Symbol = FALSE, start = FALSE, 
-                                               Chromosome = 0, Cytoband = FALSE, remove_NA = TRUE, deletion = TRUE){
+                                               Chromosome = 0, Cytoband = FALSE, remove_NA = TRUE, deletion = TRUE, normalisation = "total.tumour.number"){
   if (remove_NA == TRUE){
     
     cnv.table<- cnv.table %>%
@@ -282,9 +282,20 @@ co.deletion_co.amplification_matrix<- function(cnv.table, column_start = 11, thr
     cnv.matrix<- ifelse(cnv.matrix >= threshold, 1, 0)
   }
   
+  
   ## Calculate total number of co-deletions or amplifications
   heatmap.matrix<- cnv.matrix%*%t(cnv.matrix)
-  heatmap.matrix<- heatmap.matrix/ncol(cnv.matrix)
+  
+  if (normalisation == "total.tumour.number") {
+    
+    heatmap.matrix<- heatmap.matrix/ncol(cnv.matrix)
+    
+  } else if (normalisation == "tumours.with.event") {
+    tumours.with.del.or.amp<- colSums(cnv.matrix)
+    tumours.with.del.or.amp<-sum(tumours.with.del.or.amp >0)
+    heatmap.matrix<- heatmap.matrix/tumours.with.del.or.amp
+    
+  }
   
   ## Remove NAs caused by divideing by 0.
   heatmap.matrix[is.nan(heatmap.matrix)] = 0
