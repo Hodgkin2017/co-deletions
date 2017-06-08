@@ -211,7 +211,7 @@ events.per.cytoband<- function(object_name, threshold = -1, cytoband_column = 10
 
 co.deletion_co.amplification_matrix<- function(cnv.table, column_start = 11, threshold = -1, 
                                                selection_criteria, Gene.Symbol = FALSE, start = FALSE, 
-                                               Chromosome = 0, Cytoband = FALSE, remove_NA = TRUE, deletion = TRUE, normalisation = "total.tumour.number"){
+                                               Chromosome = 0, Cytoband = FALSE, remove_NA = TRUE, deletion = TRUE, normalisation = "tumours.with.event"){
   if (remove_NA == TRUE){
     
     cnv.table<- cnv.table %>%

@@ -204,7 +204,7 @@ cytoband<- cytoband[1,1]
 matrix<- co.deletion_co.amplification_matrix(cnv.table, column_start =  11, threshold = threshold, selection_criteria = cytoband, Cytoband = TRUE, deletion = TRUE)
 
 #############
-##Check matrix contains co-deletions otherwise pheatmap wont plot heatmap
+##Check matrix contains more than one value otherwise pheatmap wont plot heatmap
 
 #if (sum(matrix) == 0) {
  
@@ -257,7 +257,7 @@ colnames(annotation.table)<- c("strand", "Distance")
 #create object to plot correct fontsize?
 
 ##Plot heatmap:
-tiff(paste(target.gene,"_deletion = ", deletion, ".tiff", sep =""), width = 18, height = 14, units = 'in', res = 300)
+tiff(paste(target.gene,"_deletion = ", deletion, ".tiff", sep =""), width = 25, height = 22, units = 'in', res = 300)
 pheatmap(matrix,
          cluster_row = TRUE,
          cluster_cols = FALSE,
@@ -281,14 +281,14 @@ print(target.gene)
 ###Test function
 
 Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table, target.gene = "TP53", cytoband.cordinates = cytoband.cordinates,threshold = -1, deletion = TRUE)
-Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table, target.gene = "PDE4D", cytoband.cordinates = cytoband.cordinates,threshold = -1, deletion = TRUE)
+Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table, target.gene = "CDKN2A", cytoband.cordinates = cytoband.cordinates, threshold = -1, deletion = TRUE)
 Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table, target.gene = "MET", cytoband.cordinates = cytoband.cordinates,threshold = -1, deletion = TRUE)
-Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table, target.gene = "ARID1A", cytoband.cordinates = cytoband.cordinates,threshold = -1, deletion = TRUE)
+Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table, target.gene = "STK11", cytoband.cordinates = cytoband.cordinates,threshold = -1, deletion = TRUE)
 
 ##Comment: Normalise by number of individulas with deletions in cytoband?
 
 ##########################
-###Run apply on fuction created above to plot heat maps automatically
+###Run apply function on co-deletion plotting function created above to plot heat maps automatically
 ########################
 
 x<- c("MET", "CDKN2A", "RB1", "WWOX", 
@@ -320,7 +320,8 @@ lapply(x, function(x) Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table,
                                                          deletion = FALSE))
 
 #################
-## Perform co-amplification and co-deletion analysis for specific cancer types
+### Perform co-amplification and co-deletion analysis for specific cancer types
+#Also see for loop furthur down
 ###############
 names(cnv.list)
 
@@ -354,10 +355,10 @@ lapply(x, function(x) Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table,
 # dir.create(paste("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Output/plots/", x, sep = ""))
 
 ################
-###
+### For loop to create directory and add plots for each cancer type I am most interested in
 ################
 
-
+##Traget genes:
 x<- c("MET", "CDKN2A", "RB1", "WWOX", 
       "LRP1B", "PDE4D", "CCNE1", "TP53",
       "FGFR1", "MYC", "EGFR","WHSC1L1",
@@ -365,13 +366,32 @@ x<- c("MET", "CDKN2A", "RB1", "WWOX",
       "NOTCH1", "PPP2R2A", "BRD4", "ARID1A",
       "STK11", "PARK2")
 
-for (i in 1: length(cnv.list)){
+##New cnv list of cancer types we are most interested in:
+short.cnv.list<- cnv.list[c(3, 7, 9, 12, 20, 21, 23, 24, 26, 29, 30)]
+length(short.cnv.list)
+names(short.cnv.list)
+
+# -        Breast invasive carcinoma (BRCA)
+# -        Esophageal cancer (ESCA)
+# -        Head and neck squamous cell carcinoma (HNSC)
+# -        Lung adenocarcinoma (LUAD)
+# -        Lung squamous cell carcinoma (LUSC)
+# -        Ovarian serous cystadenocarcinoma (OV)
+# -        Pancreatic ductal adenocarcinoma (PAAD)
+# -        Stomach adenocarcinoma (STAD)
+# -        Skin cutaneous melanoma (SKCM)
+# -        Prostate adenocarcinoma (PRAD)
+# -        Colorectal adenocarcinoma (COADREAD)
+
+
+##For loop to make new directory and save co-amplification and co-deletion plots in it
+for (i in 1: length(short.cnv.list)){
   
-  tumour.type<- names(cnv.list[i])
+  tumour.type<- names(short.cnv.list[i])
   dir.create(paste("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Output/plots/170607 co-amp co-del (", tumour.type, ")", sep = ""))
   setwd(paste("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Output/plots/170607 co-amp co-del (", tumour.type, ")", sep = ""))
   
-  cnv.table<-cnv.table<- chromosomal_location(cnv.list[[i]])
+  cnv.table<- chromosomal_location(short.cnv.list[[i]])
   
   lapply(x, function(x) Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table, 
                                                            target.gene = x, 
