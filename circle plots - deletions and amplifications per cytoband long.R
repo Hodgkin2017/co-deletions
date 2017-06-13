@@ -3,7 +3,7 @@
 ###############
 
 library(ggplot2)
-
+library(scales)
 
 ### Trial circle plots:
 
@@ -17,23 +17,126 @@ proportion.of.deletions.per.cytoband<- runif(40)
 df<- cbind(x = cytoband, y = tumour.type, proportion_deletions = proportion.of.deletions.per.cytoband)
 df<- as.data.frame(df)
 df
+
+df3<-cbind(x = cytoband.name, y = letters[1:10], proportion_deletions = proportion.of.deletions.per.cytoband)
+df3<- as.data.frame(df3)
+
+
 ################
 ###Trial plotting dummy data
 
 ggplot(df, aes(x,y)) +
   geom_point(aes(size = proportion_deletions)) +
-  xlab("Cytoband") +
-  ylab("Cancer") +
+  scale_x_continuous(name="Cytoband", breaks=pretty_breaks(n=10), labels = c("crap", cytoband.name[1:10], "crap")) +
+  scale_y_continuous(name="Cancer", breaks=pretty_breaks(n=4), labels = cytoband.name[1:6]) +
   scale_size_area("proportion of\n tumours with\n deletions", breaks = c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0))
 
 
+ggplot(df3, aes(x,y)) +
+  geom_point(aes(size = proportion_deletions)) +
+  scale_x_discrete(name="Cytoband") +
+  scale_y_continuous(name="Cancer")
+
+#############
+##Another test
+
+set.seed (1234)
+rectheat = sample(c(rnorm (10, 5,1), NA, NA), 7*14, replace = T)
+
+dataf <- data.frame (rowv = rep (1:7, 14), columnv = rep(1:14, each = 7),
+                     rectheat, circlesize = rectheat*1.5,
+                     circlefill =  rectheat*10 )
+dataf
+
+##plot another test
+
+ggplot(dataf, aes(y = factor(rowv),
+                  x = factor(columnv))) +        ## global aes
+  geom_tile(aes(fill = rectheat)) +         ## to get the rect filled
+  geom_point(aes(colour = circlefill, 
+                 size =circlesize))  +    ## geom_point for circle illusion
+  scale_color_gradient(low = "yellow",  
+                       high = "red")+       ## color of the corresponding aes
+  scale_size(range = c(1, 20))+             ## to tune the size of circles
+  theme_bw()
+
+ggplot(dataf, aes(y = factor(rowv),
+                  x = factor(columnv))) +
+  geom_point(aes(size = circlesize))
+
+dataf <- data.frame (rowv = rep (LETTERS[1:7], 14), columnv = rep(letters[1:14], each = 7),
+                     rectheat, circlesize = rectheat*1.5,
+                     circlefill =  rectheat*10 )
+dataf
+
 ############
+### Get deletions per cytoband data using events.per.cytoband function
+
+##Target genes:
+target.genes<- c("MET", "CDKN2A", "RB1", "WWOX", 
+      "LRP1B", "PDE4D", "CCNE1", "TP53",
+      "FGFR1", "MYC", "EGFR","WHSC1L1",
+      "ERBB2", "MCL1", "MDM2", "CCND1", "ATM",
+      "NOTCH1", "PPP2R2A", "BRD4", "ARID1A",
+      "STK11", "PARK2")
+
+##New cnv list of cancer types we are most interested in:
+short.cnv.list<- cnv.list[c(3, 7, 9, 12, 20, 21, 23, 24, 26, 29, 30)]
+length(short.cnv.list)
+names(short.cnv.list)
+
+cytoband.table<- unique(short.cnv.list[[1]]$Cytoband)
+length(cytoband.table)
+
+length(unique(short.cnv.list$BRCA$Cytoband))
+
+deletions.per.cytoband.circle.plots.table<- data.frame(cytoband = NA, cancer = NA, proportion_deletions = NA)
 
 
+for (i in 1:length(short.cnv.list)){
+  
+  cancer.type<- names(short.cnv.list)[i]
+  cancer.table<- chromosomal_location(short.cnv.list[[i]])
+  cancer.list<- events.per.cytoband(cancer.table,
+                              threshold = -1,
+                              cytoband_column = 10,
+                              column_data_start = 11,
+                              chromosome_interval = 0,
+                              deletion = TRUE)
+  cancer.deletions.per.cytoband<- cbind(cytoband = cytoband.table, cancer = rep(cancer.type, 806), proportion_deletions = cancer.list[[2]]$proportion.of.deletions)
+  
+  deletions.per.cytoband.circle.plots.table<-rbind(deletions.per.cytoband.circle.plots.table, cancer.deletions.per.cytoband) 
+  
+  
+}
 
+## delete first row of deletions.per.cytoband.circle.plots.table
 
+deletions.per.cytoband.circle.plots.table<-deletions.per.cytoband.circle.plots.table[-1,]
+head(deletions.per.cytoband.circle.plots.table)
+tail(deletions.per.cytoband.circle.plots.table)
+nrow(deletions.per.cytoband.circle.plots.table)
 
+## Plot circle plot
 
+df2<- deletions.per.cytoband.circle.plots.table[c(1:10, 807:817),]
+
+ggplot(deletions.per.cytoband.circle.plots.table, aes(y = factor(cancer),
+                  x = factor(cytoband))) +
+  xlab("Cytoband") +
+  ylab("Cancer") +
+  geom_point(aes(size = as.numeric(proportion_deletions))) + 
+  scale_size_area("Proportion of\ntumours with\ndeletions")
+
+## Repeat for certain cytobands only:
+
+short.cnv.list[[1]] %>% 
+  dplyr::filter(Gene.Symbol == "CDKN2A") %>%
+  dplyr::select(Cytoband)
+
+target.genes.cytoband <- short.cnv.list[[1]] %>% 
+  dplyr::filter(Gene.Symbol %in% target.genes) %>%
+  dplyr::select(Cytoband)
 
 
 
