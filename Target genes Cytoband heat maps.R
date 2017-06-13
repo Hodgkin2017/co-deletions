@@ -204,7 +204,7 @@ cytoband<- cytoband[1,1]
 
 #############
 ###Get co-deletions for cytoband
-matrix<- co.deletion_co.amplification_matrix(cnv.table, column_start =  11, threshold = threshold, selection_criteria = cytoband, Cytoband = TRUE, deletion = TRUE)
+matrix<- co.deletion_co.amplification_matrix(cnv.table, column_start =  11, threshold = threshold, selection_criteria = cytoband, Cytoband = TRUE, deletion = TRUE, normalisation = "tumours.with.event")
 
 #############
 ##Check matrix contains more than one value otherwise pheatmap wont plot heatmap
@@ -367,7 +367,7 @@ lapply(x, function(x) Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table,
 ### For loop to create directory and add plots for each cancer type I am most interested in
 ################
 
-##Traget genes:
+##Target genes:
 x<- c("MET", "CDKN2A", "RB1", "WWOX", 
       "LRP1B", "PDE4D", "CCNE1", "TP53",
       "FGFR1", "MYC", "EGFR","WHSC1L1",
@@ -397,8 +397,8 @@ names(short.cnv.list)
 for (i in 1: length(short.cnv.list)){
   
   tumour.type<- names(short.cnv.list[i])
-  dir.create(paste("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Output/plots/170607 co-amp co-del (", tumour.type, ")", sep = ""))
-  setwd(paste("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Output/plots/170607 co-amp co-del (", tumour.type, ")", sep = ""))
+  dir.create(paste("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Output/plots/170613 co-amp co-del (", tumour.type, ")", sep = ""))
+  setwd(paste("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Output/plots/170613 co-amp co-del (", tumour.type, ")", sep = ""))
   
   cnv.table<- chromosomal_location(short.cnv.list[[i]])
   
