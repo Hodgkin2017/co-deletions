@@ -4,6 +4,8 @@
 
 #############
 ###Get cytoband for CDKN2A (Use ACC data)
+acc.cnv.chr.location<- chromosomal_location(cnv.list[[1]])
+
 acc.cnv.chr.location[1:2, 1:12]
 acc.cnv.chr.location %>% 
   dplyr::filter(Gene.Symbol == "CDKN2A") %>%
@@ -184,6 +186,7 @@ deletion = TRUE
 target.gene = "TP53"
 target.gene = "CDKN2A"
 target.gene = "ARID1A"
+target.gene = "MET"
 threshold = -1
 
 
@@ -236,6 +239,12 @@ matrix.gene.names.loc<- matrix.gene.names.loc %>% mutate(distance_from_start = s
                                                               distance_from_end = cytoband.start.end[1,2] - end,
                                                               minimum_distance = pmin(distance_from_start, distance_from_end) 
 )
+
+##comment: Some genes cross cytoband boundary
+##Give genes that cross cytoband boundary a value of 0
+#ifelse(matrix.gene.names.loc$minimum_distance < 0, 0, matrix.gene.names.loc$minimum_distance)
+matrix.gene.names.loc$minimum_distance[matrix.gene.names.loc$minimum_distance < 0]<- 0
+
 
 ##################
 ## Create annotation table for strand
