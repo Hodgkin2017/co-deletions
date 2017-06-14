@@ -1,0 +1,166 @@
+###################
+### Plot propotion of tumours with co-deletion or co-amplification as a function of distance.
+###################
+
+#######
+##Test of making long dataframe with gather function:
+i=1
+cancer.table<- chromosomal_location(short.cnv.list[[i]])
+cancer.table[1:2,1:11]
+ncol(cancer.table) -10
+co.deletion_co.amplification_matrix(cancer.table, column_start = 11, threshold = -1, Cytoband = TRUE, selection_criteria = "9p21.3", deletion = TRUE, normalisation = "none")
+test<-co.deletion_co.amplification_matrix(cancer.table, column_start = 11, threshold = -1, Cytoband = TRUE, selection_criteria = "9p21.3", deletion = TRUE, normalisation = "total.tumour.number")
+dim(test)
+# test2<-data.frame(gene1 = 1:4, gene2 = 1:4, gene3 = 1:4, gene4 = 1:4)
+# rownames(test2)<-c("gene1", "gene2", "gene3", "gene4")
+# test2<- cbind(rownames(test2), test2)
+# test2
+
+tidyr::gather(test2, gene.id1, gene.id1, 2:5)
+
+test<- as.data.frame(cbind(Gene.Symbol.row = rownames(test), test))
+test
+test3<- tidyr::gather(test, Gene.Symbol.col,proportion, 2:ncol(test))
+
+nrow(test3)
+
+##Maybe plot per chromosome arm rather than per chromosome
+##Try plotting for each cytoband.
+test4<- co.deletion_co.amplification_matrix(cancer.table, column_start = 11, threshold = -1, Chromosome = 9, deletion = TRUE, normalisation = "total.tumour.number")
+
+###############
+##Create three column dataframe of proportion of co-deletions normalised by number of tumours. One row = one gene pair
+
+
+##Test:
+# cancer.table[1:2, 1:12]
+# 
+# dummydata<-data.frame(Gene.Symbol = c("MET", "CDKN2A", "CDKN2B", "RB", "MET2", "CDKN2A2", "CDKN2B2", "RB2"), start = c(10, 100, 120, 300, 20, 200, 220, 400), CHR = c(9, 9, 9, 9, 10, 10, 10, 10), sample1 = c(-1,-1,-1,-1, -1,-1,-1,-1), sample2 = c(-1,-1,-1,-1, 0,0,0,0), sample3 = c(0,0,0,0, 0,0,0,0), sample4 = c(0, 0, 0, 0, 0,0,0,0))
+# dummydata
+# co.deletion_co.amplification_matrix(dummydata, column_start = 4, threshold = -1, Chromosome = 9, deletion = TRUE, normalisation = "total.tumour.number")
+# co.deletion_co.amplification_matrix(dummydata, column_start = 4, threshold = -1, Chromosome = 10, deletion = TRUE, normalisation = "total.tumour.number")
+# 
+# co.deletion.per.chromosome<- lapply(c(9,10), function(x) co.deletion_co.amplification_matrix(dummydata, column_start = 4, threshold = -1, Chromosome = x, deletion = TRUE, normalisation = "total.tumour.number"))
+# co.deletion.per.chromosome
+# dim(co.deletion.per.chromosome[[2]])
+# co.deletion.per.chromosome<- lapply(co.deletion.per.chromosome, function(x) as.data.frame(cbind(Gene.Symbol.row = rownames(x), x)))
+# co.deletion.per.chromosome
+# gathered<- lapply(co.deletion.per.chromosome, function(x) tidyr::gather(x, Gene.Symbol.col,proportion, 2:ncol(x)))
+# gathered
+# 
+# # ?do.call
+# do.call(rbind, gathered)
+
+
+
+
+
+
+
+
+co.deletion.per.chromosome.table<- data.frame(Gene.Symbol.row = NA, Gene.Symbol.col = NA, proportion_deletions = NA)
+co.deletion.per.chromosome.table
+
+c((1:22), "X")
+
+i=1
+cancer.table<- chromosomal_location(short.cnv.list[[i]])
+
+co.deletion.per.chromosome<- lapply(c(1,2), function(x) co.deletion_co.amplification_matrix(cancer.table, column_start = 11, threshold = -1, Chromosome = x, deletion = TRUE, normalisation = "total.tumour.number"))
+dim(co.deletion.per.chromosome[[2]])
+co.deletion.per.chromosome<- lapply(co.deletion.per.chromosome, function(x) as.data.frame(cbind(Gene.Symbol.row = rownames(x), x)))
+
+gathered<- lapply(co.deletion.per.chromosome, function(x) tidyr::gather(x, Gene.Symbol.col,proportion, 2:ncol(x)))
+glimpse(gathered)
+do.call(rbind, gathered)
+
+
+#test3<- tidyr::gather(test, Gene.Symbol.col,proportion, 2:ncol(test))
+
+
+
+
+
+
+
+
+
+## Create a datafame of inter gene distances using the start of the gene.
+
+
+cancer.table[1:2,1:11]
+chromosome9<- cancer.table %>%
+  dplyr::filter(CHR == 9)
+
+chromosome9.start<- cancer.table %>%
+  dplyr::filter(CHR == 9) %>%
+  dplyr::select(Gene.Symbol, start)
+
+intergene.distance<- chromosome9.start$start[2:nrow(chromosome9.start)] - chromosome9.start$start[1:(nrow(chromosome9.start)-1)]
+length(intergene.distance)
+
+
+chromosome9[1:2,1:11]
+
+
+## loop to....
+
+dim(cancer.table)
+
+interval.values<- c((1:22), "X")
+interval.values
+
+for (i in 1:23) {}
+i=1
+selected.interval<- interval.values[i]
+selected.interval
+
+selected.genes.start<- cancer.table %>%
+  dplyr::filter(CHR == selected.interval) %>%
+  dplyr::select(start)
+
+selected.genes.start
+
+
+intergene.distance.table <- data.frame(matrix(NA, ncol = nrow(selected.genes.start), nrow = nrow(selected.genes.start)))
+dim(intergene.distance.table)
+intergene.distance.table
+
+for (j in 1:nrow(selected.genes.start)) {
+
+intergene.distance.table[,j]<- abs(selected.genes.start[,1] - selected.genes.start[j,1])
+
+}
+
+Gene_Symbol<- cancer.table %>%
+  dplyr::filter(CHR == selected.interval) %>%
+  dplyr::select(Gene.Symbol) %>%
+  t() %>% #required to convert output from data.frame to vector
+  as.character()
+
+class(Gene_Symbol)
+length(Gene_Symbol)
+
+colnames(intergene.distance.table)<- Gene_Symbol
+rownames(intergene.distance.table)<- Gene_Symbol
+
+#write.csv(intergene.distance.table, file = "intergene.distance.table.csv")
+
+##Make a list of intergene distances and join to co-deletions list
+
+
+
+
+
+
+
+
+
+
+##Make scatter plot of propotion of tumours with co-deletion or co-amplification as a function of distance.
+
+
+
+
+
+
