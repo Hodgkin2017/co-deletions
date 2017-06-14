@@ -66,14 +66,14 @@ c((1:22), "X")
 i=1
 cancer.table<- chromosomal_location(short.cnv.list[[i]])
 
-co.deletion.per.chromosome<- lapply(c(1,2), function(x) co.deletion_co.amplification_matrix(cancer.table, column_start = 11, threshold = -1, Chromosome = x, deletion = TRUE, normalisation = "total.tumour.number"))
+co.deletion.per.chromosome<- lapply(c((1:22), "X"), function(x) co.deletion_co.amplification_matrix(cancer.table, column_start = 11, threshold = -1, Chromosome = x, deletion = TRUE, normalisation = "total.tumour.number"))
 dim(co.deletion.per.chromosome[[2]])
 co.deletion.per.chromosome<- lapply(co.deletion.per.chromosome, function(x) as.data.frame(cbind(Gene.Symbol.row = rownames(x), x)))
 
 gathered<- lapply(co.deletion.per.chromosome, function(x) tidyr::gather(x, Gene.Symbol.col,proportion, 2:ncol(x)))
 glimpse(gathered)
-do.call(rbind, gathered)
-
+gathered.co.deletion.per.chromosome<- do.call(rbind, gathered)
+dim(gathered.co.deletion.per.chromosome)
 
 #test3<- tidyr::gather(test, Gene.Symbol.col,proportion, 2:ncol(test))
 
@@ -84,43 +84,47 @@ do.call(rbind, gathered)
 
 
 
-
+############
 ## Create a datafame of inter gene distances using the start of the gene.
 
 
-cancer.table[1:2,1:11]
-chromosome9<- cancer.table %>%
-  dplyr::filter(CHR == 9)
+# cancer.table[1:2,1:11]
+# chromosome9<- cancer.table %>%
+#   dplyr::filter(CHR == 9)
+# 
+# chromosome9.start<- cancer.table %>%
+#   dplyr::filter(CHR == 9) %>%
+#   dplyr::select(Gene.Symbol, start)
+# 
+# intergene.distance<- chromosome9.start$start[2:nrow(chromosome9.start)] - chromosome9.start$start[1:(nrow(chromosome9.start)-1)]
+# length(intergene.distance)
+# 
+# 
+# chromosome9[1:2,1:11]
 
-chromosome9.start<- cancer.table %>%
-  dplyr::filter(CHR == 9) %>%
-  dplyr::select(Gene.Symbol, start)
 
-intergene.distance<- chromosome9.start$start[2:nrow(chromosome9.start)] - chromosome9.start$start[1:(nrow(chromosome9.start)-1)]
-length(intergene.distance)
+## Create for loop function to loop through each each chromosome and generate intergene distance
 
+# apply()
+# 
+# dim(cancer.table)
+# 
+# interval.values<- c((1:22), "X")
+# interval.values
+# 
+# for (i in 1:23) {}
+# i=1
+# 
+# selected.interval<- interval.values[i]
+# selected.interval
 
-chromosome9[1:2,1:11]
-
-
-## loop to....
-
-dim(cancer.table)
-
-interval.values<- c((1:22), "X")
-interval.values
-
-for (i in 1:23) {}
-i=1
-selected.interval<- interval.values[i]
-selected.interval
+intergene_distance_function<- function(cancer.table, selected.interval){
 
 selected.genes.start<- cancer.table %>%
   dplyr::filter(CHR == selected.interval) %>%
   dplyr::select(start)
 
 selected.genes.start
-
 
 intergene.distance.table <- data.frame(matrix(NA, ncol = nrow(selected.genes.start), nrow = nrow(selected.genes.start)))
 dim(intergene.distance.table)
@@ -144,18 +148,42 @@ length(Gene_Symbol)
 colnames(intergene.distance.table)<- Gene_Symbol
 rownames(intergene.distance.table)<- Gene_Symbol
 
+return(intergene.distance.table)
+
+}
+
+
+##Test function:
+x<- selected.interval
+
+test<-intergene_distance_function(cancer.table, selected.interval = x)
+
+identical(test, intergene.distance.table)
+
+c((1:22), "X")
+
+intergene_distance<-lapply(c((1:22), "X"), function(x) intergene_distance_function(cancer.table, selected.interval = x))
+
+dim(intergene_distance[[2]])
+
+
 #write.csv(intergene.distance.table, file = "intergene.distance.table.csv")
 
+## Convert dataframes in list to dataframes with one pairwise distance per row and join dataframes together
+
+intergene_distance<- lapply(intergene_distance, function(x) as.data.frame(cbind(Gene.Symbol.row = rownames(x), x)))
+dim(intergene_distance[[2]])
+gathered_intergene_distance<- lapply(intergene_distance, function(x) tidyr::gather(x, Gene.Symbol.col,proportion, 2:ncol(x)))
+dim(gathered_intergene_distance[[2]])
+glimpse(gathered_intergene_distance)
+selected_intergene_distance<- do.call(rbind, gathered_intergene_distance)
+dim(selected_intergene_distance)
+
+
+
+
+
 ##Make a list of intergene distances and join to co-deletions list
-
-
-
-
-
-
-
-
-
 
 ##Make scatter plot of propotion of tumours with co-deletion or co-amplification as a function of distance.
 
