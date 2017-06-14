@@ -128,15 +128,67 @@ ggplot(deletions.per.cytoband.circle.plots.table, aes(y = factor(cancer),
   geom_point(aes(size = as.numeric(proportion_deletions))) + 
   scale_size_area("Proportion of\ntumours with\ndeletions")
 
-## Repeat for certain cytobands only:
+#############
+### Repeat for certain cytobands only:
 
-short.cnv.list[[1]] %>% 
-  dplyr::filter(Gene.Symbol == "CDKN2A") %>%
-  dplyr::select(Cytoband)
 
+# short.cnv.list[[1]] %>% 
+#   dplyr::filter(Gene.Symbol == "CDKN2A") %>%
+#   dplyr::select(Cytoband)
+
+##Get cytobands of target genes
 target.genes.cytoband <- short.cnv.list[[1]] %>% 
   dplyr::filter(Gene.Symbol %in% target.genes) %>%
-  dplyr::select(Cytoband)
+  dplyr::select(Cytoband) %>%
+  t() %>% #required to convert output from data.frame to vector
+  as.character()
+
+##create table of proportion of tumours with deletions per cytoband for target genes
+target.genes.deletions.per.cytoband.circle.plots.table<- deletions.per.cytoband.circle.plots.table %>% 
+  dplyr::filter(cytoband %in% target.genes.cytoband)
+
+##Plot:
+##Comment: in order to get the cytobands to be in numerical order need to use levels =
+ggplot(target.genes.deletions.per.cytoband.circle.plots.table, aes(y = factor(cancer),
+                                                      x = factor(cytoband, levels = unique(target.genes.deletions.per.cytoband.circle.plots.table$cytoband)))) +
+  xlab("Cytoband") +
+  ylab("Cancer") +
+  geom_point(aes(size = as.numeric(proportion_deletions))) + 
+  scale_size_area("Proportion of\nevents per\ncytoband")+
+  theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5),
+        #panel.grid.major = element_blank(), 
+        #panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black")
+        ) #+ theme_bw()
+
+##############
+### Get deletions per genomic region data using events.per.cytoband function?
+
+
+
+################
+### Circle plot: Proportion of co-deletions per cytoband
+###############
+
+##Think about how to do it: 
+##Use my co-deletion function..remind myself how it works
+
+cytoband.table
+
+for (i in 1:length(short.cnv.list)){}
+cancer.table<- chromosomal_location(short.cnv.list[[i]])
+test<- sapply(cytoband.table, function(x) co.deletion_co.amplification_matrix(cancer.table, column_start = 11, threshold = -1, Cytoband = TRUE, selection_criteria = x, deletion = TRUE))
+length(test)
+test4<- co.deletion_co.amplification_matrix(cancer.table, column_start = 11, threshold = -1, Cytoband = TRUE, selection_criteria = c("9p21.2", "9p21.3"), deletion = TRUE, normalisation = "none")
+test4
+
+
+
+
+
+
+
 
 
 

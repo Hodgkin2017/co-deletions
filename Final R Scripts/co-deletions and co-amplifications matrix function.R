@@ -30,7 +30,9 @@
                                                                   #If normalisation = "tumours.with.event" then normalise by 
                                                                   # number of tumours with deletion or amplification event. e.g. if only 7 out of 90 
                                                                   # individuals had a deletion in a cytoband then divide number of co-deletions by 7
-
+                                                                  #If normalisation = "none" then raw number of co-deletions or co-amplifications returned.
+                                                                  #If normalisation = "frequency.for.whole.sample" then normalise number of events by total number of possible events
+                                                                  # reurns a single value and not a matrix
 ##Actions and or Loops outside of functions:
 #None
 
@@ -136,6 +138,11 @@ co.deletion_co.amplification_matrix<- function(cnv.table, column_start = 11, thr
     tumours.with.del.or.amp<- colSums(cnv.matrix)
     tumours.with.del.or.amp<-sum(tumours.with.del.or.amp >0)
     heatmap.matrix<- heatmap.matrix/tumours.with.del.or.amp
+    
+  } else if (normalisation == "none") {
+    
+  } else if (normalisation == "frequency.for.whole.sample"){
+    heatmap.matrix<- sum(heatmap.matrix)/(ncol(cnv.matrix)*(nrow(cnv.matrix)^2))
     
   }
   

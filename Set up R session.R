@@ -13,6 +13,7 @@ library(RColorBrewer)
 library(org.Hs.eg.db)
 library(biomaRt)
 library(parallel)
+library(ggplot2)
 
 ###################
 ###Set working directory
@@ -211,7 +212,7 @@ events.per.cytoband<- function(object_name, threshold = -1, cytoband_column = 10
 
 co.deletion_co.amplification_matrix<- function(cnv.table, column_start = 11, threshold = -1, 
                                                selection_criteria, Gene.Symbol = FALSE, start = FALSE, 
-                                               Chromosome = 0, Cytoband = FALSE, remove_NA = TRUE, deletion = TRUE, normalisation = "tumours.with.event"){
+                                               Chromosome = 0, Cytoband = FALSE, remove_NA = TRUE, deletion = TRUE, normalisation = "total.tumour.number"){
   if (remove_NA == TRUE){
     
     cnv.table<- cnv.table %>%
@@ -294,6 +295,11 @@ co.deletion_co.amplification_matrix<- function(cnv.table, column_start = 11, thr
     tumours.with.del.or.amp<- colSums(cnv.matrix)
     tumours.with.del.or.amp<-sum(tumours.with.del.or.amp >0)
     heatmap.matrix<- heatmap.matrix/tumours.with.del.or.amp
+    
+  } else if (normalisation == "none") {
+    
+  } else if (normalisation == "frequency.for.whole.sample"){
+    heatmap.matrix<- sum(heatmap.matrix)/(ncol(cnv.matrix)*(nrow(cnv.matrix)^2))
     
   }
   
