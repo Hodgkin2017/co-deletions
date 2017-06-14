@@ -154,13 +154,12 @@ return(intergene.distance.table)
 
 
 ##Test function:
-x<- selected.interval
-
-test<-intergene_distance_function(cancer.table, selected.interval = x)
-
-identical(test, intergene.distance.table)
-
-c((1:22), "X")
+##Make a list of intergene distances:
+# x<- selected.interval
+# 
+# test<-intergene_distance_function(cancer.table, selected.interval = x)
+# 
+# identical(test, intergene.distance.table)
 
 intergene_distance<-lapply(c((1:22), "X"), function(x) intergene_distance_function(cancer.table, selected.interval = x))
 
@@ -176,19 +175,52 @@ dim(intergene_distance[[2]])
 gathered_intergene_distance<- lapply(intergene_distance, function(x) tidyr::gather(x, Gene.Symbol.col,proportion, 2:ncol(x)))
 dim(gathered_intergene_distance[[2]])
 glimpse(gathered_intergene_distance)
+##add chromosome name as extra column to each dataframe in list
+
+
 selected_intergene_distance<- do.call(rbind, gathered_intergene_distance)
 dim(selected_intergene_distance)
 
 
+##join intergene distances to co-deletions list
+
+co_deletions_plot_table<- cbind(inter_gene_distance = selected_intergene_distance, co_deletions = gathered.co.deletion.per.chromosome$proportion)
+head(co_deletions_plot_table)
+dim(co_deletions_plot_table)
+## repeat for other chromosomes and have chromosome as a column? 
+#actually I have done this..repeat for other cancers
+
+##Remove all entries with 0 distance or 0 co-deletions
+
+# dummy<-data.frame(gene1 = co_deletions_plot_table[1:10,1], 
+#                   gene2 = co_deletions_plot_table[1:10,2],
+#                   x = c(1,2,0,4,5,6,7,8,0, 10),
+#                   y = c(1,2,3,4,0,6,0,8,9, 10)
+#                   )
+# dummy %>%
+#   dplyr::filter(x != 0) %>%
+#   dplyr::filter(y != 0)
 
 
-
-##Make a list of intergene distances and join to co-deletions list
+co_deletions_removed_zeros_plot_table<-co_deletions_plot_table %>%
+  dplyr::filter(inter_gene_distance.proportion != 0) %>%
+  dplyr::filter(co_deletions != 0)
+dim(co_deletions_removed_zeros_plot_table)
 
 ##Make scatter plot of propotion of tumours with co-deletion or co-amplification as a function of distance.
+small.co_deletions_plot_table<- co_deletions_removed_zeros_plot_table[1:10000,]
+ggplot(small.co_deletions_plot_table, aes(x = as.numeric(inter_gene_distance.proportion), y = as.numeric(co_deletions))) +
+  geom_point(size = 1, shape = 1) +
+  geom_smooth()
 
+ggplot(co_deletions_removed_zeros_plot_table, aes(x = inter_gene_distance.proportion, y = as.integer(co_deletions))) +
+  geom_point(size = 1, shape = 1) +
+  geom_smooth()
 
+# geom_point(colour = "red", size = 3)
+# geom_smooth()...data processing intensive
 
-
+##Comment: do not plot any with a score of 0 for x or y?
+#colour and shape by chromosome or cancer, ?
 
 
