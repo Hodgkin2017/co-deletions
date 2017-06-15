@@ -402,21 +402,21 @@ results_amp_table<- data.frame(matrix(NA, ncol = length(short.cnv.list), nrow = 
 for (i in 1: length(short.cnv.list)){
   
   tumour.type<- names(short.cnv.list[i])
-  dir.create(paste("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Output/plots/170615 co-amp co-del (", tumour.type, ") (Thresh = 1.5)", sep = ""))
-  setwd(paste("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Output/plots/170615 co-amp co-del (", tumour.type, ") (Thresh = 1.5)", sep = ""))
+  dir.create(paste("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Output/plots/170615 co-amp co-del (", tumour.type, ") (Thresh = 1)", sep = ""))
+  setwd(paste("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Output/plots/170615 co-amp co-del (", tumour.type, ") (Thresh = 1)", sep = ""))
   
   cnv.table<- chromosomal_location(short.cnv.list[[i]])
   
   output1<- lapply(x, function(x) Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table, 
                                                            target.gene = x, 
                                                            cytoband.cordinates = cytoband.cordinates,
-                                                           threshold = -1.5, 
+                                                           threshold = -1, 
                                                            deletion = TRUE))
   
   output2<- lapply(x, function(x) Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table, 
                                                            target.gene = x, 
                                                            cytoband.cordinates = cytoband.cordinates,
-                                                           threshold = 1.5, 
+                                                           threshold = 1, 
                                                            deletion = FALSE))
   
   ## save results of wether heatmaps were plotted and if not what the value was....how?

@@ -218,6 +218,20 @@ CNV.all.table<-join.cnv.datasets(cnv.list, column = 4)
 ```{r number_of_Tumours_per_cancer, eval = FALSE}
 
 sapply(cnv.list, function(x) ncol(x)-3)
+sapply(short.cnv.list, function(x) ncol(x)-3)
+ncol(CNV.all.table)-3
+
+names(cnv.list$COAD) %in% names(cnv.list$COADREAD)
+names(cnv.list$READ) %in% names(cnv.list$COADREAD)
+
+## Loop to check the intersection of tumour IDs between COADREAD tumours and other tumours
+for (i in 1: length(cnv.list)){
+  
+  tumours<- names(cnv.list[[i]])
+  tumours<- tumours[-(1:3)]
+  shared_tumours<- any(tumours %in% names(cnv.list$COADREAD))
+  print(paste(names(cnv.list[i]), shared_tumours, sep = " "))
+}
 
 ```
 
