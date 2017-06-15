@@ -217,6 +217,8 @@ CNV.all.table<-join.cnv.datasets(cnv.list, column = 4)
 
 ```{r number_of_Tumours_per_cancer, eval = FALSE}
 
+sapply(cnv.list, function(x) ncol(x)-3)
+
 ```
 
 
