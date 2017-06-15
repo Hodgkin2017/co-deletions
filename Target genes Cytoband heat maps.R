@@ -316,6 +316,8 @@ x<- c("MET", "CDKN2A", "RB1", "WWOX",
 # 
 # #x<- c("MET")
 
+x<- c("MET", "CDKN2A", "RB1")
+
 lapply(x, function(x) Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table, 
                                                          target.gene = x, 
                                                          cytoband.cordinates = cytoband.cordinates,
@@ -392,38 +394,50 @@ names(short.cnv.list)
 # -        Prostate adenocarcinoma (PRAD)
 # -        Colorectal adenocarcinoma (COADREAD)
 
+##Tables to store heatmap plotting success 
+results_del_table<- data.frame(matrix(NA, ncol = length(short.cnv.list), nrow = length(x)))
+results_amp_table<- data.frame(matrix(NA, ncol = length(short.cnv.list), nrow = length(x)))
 
 ##For loop to make new directory and save co-amplification and co-deletion plots in it
-results.table<- data.frame(matrix(NA, ncol = length(short.cnv.list), nrow = 2*length(x)))
-
 for (i in 1: length(short.cnv.list)){
   
   tumour.type<- names(short.cnv.list[i])
-  dir.create(paste("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Output/plots/170615 co-amp co-del (", tumour.type, ") (Thresh = 2)", sep = ""))
-  setwd(paste("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Output/plots/170615 co-amp co-del (", tumour.type, ") (Thresh = 2)", sep = ""))
+  dir.create(paste("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Output/plots/170615 co-amp co-del (", tumour.type, ") (Thresh = 1.5)", sep = ""))
+  setwd(paste("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Output/plots/170615 co-amp co-del (", tumour.type, ") (Thresh = 1.5)", sep = ""))
   
   cnv.table<- chromosomal_location(short.cnv.list[[i]])
   
-  lapply(x, function(x) Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table, 
+  output1<- lapply(x, function(x) Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table, 
                                                            target.gene = x, 
                                                            cytoband.cordinates = cytoband.cordinates,
-                                                           threshold = -2, 
+                                                           threshold = -1.5, 
                                                            deletion = TRUE))
   
-  lapply(x, function(x) Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table, 
+  output2<- lapply(x, function(x) Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table, 
                                                            target.gene = x, 
                                                            cytoband.cordinates = cytoband.cordinates,
-                                                           threshold = 2, 
+                                                           threshold = 1.5, 
                                                            deletion = FALSE))
   
   ## save results of wether heatmaps were plotted and if not what the value was....how?
-  #results.table[,i]<- 
+  output1<- gsub("No heatmap was plotted for", "All", output1)
+  output1<- gsub("as all values in matrix were the same:", "values = ", output1)
+  results_del_table[,i]<- output1
+  output2<- gsub("No heatmap was plotted for", "All", output2)
+  output2<- gsub("as all values in matrix were the same:", "values = ", output2)
+  results_amp_table[,i]<- output2
 }
+setwd("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Output/plots/")
+rownames(results_del_table)<- x
+colnames(results_del_table)<- names(short.cnv.list)
+rownames(results_amp_table)<- x
+colnames(results_amp_table)<- names(short.cnv.list)
 
+results_del_table
+results_amp_table
 
-
-
-
+write.csv(results_del_table, file = "Deletion heatmap output.csv")
+write.csv(results_amp_table, file = "Amplification heatmap output.csv")
 
 ##Comment: TP53 co-deletion heatmap has few TP53 mutations...not correct?! (17p13.1)
 # Nope it is ok!!!!! was accidently counting genomic coordinates!
