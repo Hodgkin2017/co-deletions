@@ -129,6 +129,9 @@ ggplot(deletions.per.cytoband.circle.plots.table, aes(y = factor(cancer),
   geom_point(aes(size = as.numeric(proportion_deletions))) + 
   scale_size_area("Proportion of\ntumours with\ndeletions")
 
+##Save plot
+ggsave("deletions_per_cytoband_circle_plots.tiff")
+
 #############
 ### Repeat for certain cytobands only:
 
@@ -161,7 +164,11 @@ ggplot(target.genes.deletions.per.cytoband.circle.plots.table, aes(y = factor(ca
         #panel.grid.minor = element_blank(),
         panel.background = element_blank(),
         axis.line = element_line(colour = "black")
-        ) #+ theme_bw()
+        ) + #theme_bw()
+##Save plot
+ggsave("target_genes_deletions_per_cytoband_circle_plots.tiff")
+
+
 
 ##############
 ### Get deletions per genomic region data using events.per.cytoband function?
@@ -217,7 +224,10 @@ ggplot(co.deletions.per.cytoband.circle.plots.table, aes(y = factor(cancer),
   xlab("Cytoband") +
   ylab("Cancer") +
   geom_point(aes(size = as.numeric(proportion_deletions))) + 
-  scale_size_area("Proportion of\nco-deletion\nevents")
+  scale_size_area("Proportion of\nco-deletion\nevents") +
+  
+##Save plot
+ggsave("co_deletions_per_cytoband_circle_plots.tiff")
 
 #############
 ### Repeat co-deltion plot for certain cytobands only:
@@ -246,8 +256,10 @@ ggplot(target.genes.co.deletions.per.cytoband.circle.plots.table, aes(y = factor
         #panel.grid.minor = element_blank(),
         panel.background = element_blank(),
         axis.line = element_line(colour = "black")
-  ) #+ theme_bw()
+  ) + #theme_bw()
 
+##Save plot
+ggsave("target_genes_co_deletions_per_cytoband_circle_plots.tiff")
 
 ##############
 ###save objects:
@@ -257,8 +269,8 @@ ggplot(target.genes.co.deletions.per.cytoband.circle.plots.table, aes(y = factor
 # load(file = "mymodel.rda")
 
 ##Allows you to re-assign objects name:
-saveRDS(target.genes.co.deletions.per.cytoband.circle.plots.table, "/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/total.co-deletion.events.per.cytoband.rds")
-saveRDS(target.genes.deletions.per.cytoband.circle.plots.table, "/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/total.deletion.events.per.cytoband.rds")
+saveRDS(co.deletions.per.cytoband.circle.plots.table, "/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/total.co-deletion.events.per.cytoband.rds")
+saveRDS(deletions.per.cytoband.circle.plots.table, "/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/total.deletion.events.per.cytoband.rds")
 saveRDS(short.cnv.list, "/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/target.cancer.list.rds")
 
 

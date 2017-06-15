@@ -244,6 +244,17 @@ ggplot(small.co_deletions_plot_table, aes(x = as.numeric(inter_gene_distance.pro
 
 ## Plot all data:
 ggplot(co_deletions_removed_zeros_plot_table2, aes(x = inter_gene_distance.proportion, 
+                                                   y = co_deletions)) +
+  geom_point(size = 1, shape = 1) +
+  geom_smooth() +
+  xlab("Inter gene distance") +
+  ylab("Proportion of tumours with co-deletion")
+  
+##Save plot
+ggsave("BRCA_co-deletion_distance_BW.tiff")
+
+## Plot all data in coloured by chromosome:
+ggplot(co_deletions_removed_zeros_plot_table2, aes(x = inter_gene_distance.proportion, 
                                                    y = co_deletions,
                                                    colour = inter_gene_distance.chromosome)) +
   geom_point(size = 1, shape = 1) +
@@ -252,11 +263,9 @@ ggplot(co_deletions_removed_zeros_plot_table2, aes(x = inter_gene_distance.propo
   ylab("Proportion of tumours with co-deletion") +
   scale_color_discrete()+
   labs(colour ="Chromosome")
-  
+
 ##Save plot
 ggsave("BRCA_co-deletion_distance_colour.tiff")
-ggsave("BRCA_co-deletion_distance_BW.tiff")
-
 
 
 #axis! legend?

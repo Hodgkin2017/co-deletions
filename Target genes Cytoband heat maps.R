@@ -266,7 +266,7 @@ colnames(annotation.table)<- c("strand", "Distance")
 #create object to plot correct fontsize?
 
 ##Plot heatmap:
-tiff(paste(target.gene,"_deletion = ", deletion, ".tiff", sep =""), width = 25, height = 22, units = 'in', res = 300)
+tiff(paste(target.gene,"_deletion = ", deletion, ".tiff", sep =""), width = 25, height = 22, units = 'in', res = 100)
 pheatmap(matrix,
          cluster_row = TRUE,
          cluster_cols = FALSE,
@@ -394,26 +394,30 @@ names(short.cnv.list)
 
 
 ##For loop to make new directory and save co-amplification and co-deletion plots in it
+results.table<- data.frame(matrix(NA, ncol = length(short.cnv.list), nrow = 2*length(x)))
+
 for (i in 1: length(short.cnv.list)){
   
   tumour.type<- names(short.cnv.list[i])
-  dir.create(paste("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Output/plots/170613 co-amp co-del (", tumour.type, ")", sep = ""))
-  setwd(paste("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Output/plots/170613 co-amp co-del (", tumour.type, ")", sep = ""))
+  dir.create(paste("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Output/plots/170615 co-amp co-del (", tumour.type, ") (Thresh = 2)", sep = ""))
+  setwd(paste("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Output/plots/170615 co-amp co-del (", tumour.type, ") (Thresh = 2)", sep = ""))
   
   cnv.table<- chromosomal_location(short.cnv.list[[i]])
   
   lapply(x, function(x) Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table, 
                                                            target.gene = x, 
                                                            cytoband.cordinates = cytoband.cordinates,
-                                                           threshold = -1, 
+                                                           threshold = -2, 
                                                            deletion = TRUE))
   
   lapply(x, function(x) Plot.target.genes.cytoband.heatmap(cnv.table = cnv.table, 
                                                            target.gene = x, 
                                                            cytoband.cordinates = cytoband.cordinates,
-                                                           threshold = 1, 
+                                                           threshold = 2, 
                                                            deletion = FALSE))
   
+  ## save results of wether heatmaps were plotted and if not what the value was....how?
+  #results.table[,i]<- 
 }
 
 
@@ -446,30 +450,30 @@ for (i in 1: length(short.cnv.list)){
 
 
 ##Try:
-tiff("Plot3.tiff", width = 4, height = 4, units = 'in', res = 300)
-plot(x, y) # Make plot
-dev.off()
-
-
-##Plot heatmap:
-x<- "CDKN2A"
-
-tiff("CDKN2A.tiff", width = 5, height = 5, units = 'in', res = 300)
-
-
-tiff(paste(x, ".tiff", sep =""), width = 5, height = 5, units = 'in', res = 300)
-pheatmap(matrix,
-         cluster_row = T,
-         cluster_cols = F,
-         show_rownames = TRUE,
-         show_colnames = TRUE,
-         fontsize_row = 2,
-         fontsize_col = 2,
-         annotation_col = annotation.table,
-         annotation_colors = ann_colors,
-         
-)
-dev.off()
+# tiff("Plot3.tiff", width = 4, height = 4, units = 'in', res = 300)
+# plot(x, y) # Make plot
+# dev.off()
+# 
+# 
+# ##Plot heatmap:
+# x<- "CDKN2A"
+# 
+# tiff("CDKN2A.tiff", width = 5, height = 5, units = 'in', res = 300)
+# 
+# 
+# tiff(paste(x, ".tiff", sep =""), width = 5, height = 5, units = 'in', res = 300)
+# pheatmap(matrix,
+#          cluster_row = T,
+#          cluster_cols = F,
+#          show_rownames = TRUE,
+#          show_colnames = TRUE,
+#          fontsize_row = 2,
+#          fontsize_col = 2,
+#          annotation_col = annotation.table,
+#          annotation_colors = ann_colors,
+#          
+# )
+# dev.off()
 
 
 

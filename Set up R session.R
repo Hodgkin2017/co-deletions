@@ -24,8 +24,8 @@ setwd("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletion
 ### Load data
 #load("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/R workspaces/co-deletions workspace.RData")
 load("./R workspaces/co-deletions workspace.RData")
-target.genes.co.deletions.per.cytoband.circle.plots.table <- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/total.co-deletion.events.per.cytoband.rds")
-target.genes.deletions.per.cytoband.circle.plots.table<- readRDS( "/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/total.deletion.events.per.cytoband.rds")
+co.deletions.per.cytoband.circle.plots.table <- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/total.co-deletion.events.per.cytoband.rds")
+deletions.per.cytoband.circle.plots.table<- readRDS( "/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/total.deletion.events.per.cytoband.rds")
 short.cnv.list<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/target.cancer.list.rds")
 co_deletions_removed_zeros_plot_table2<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/BRCA_co_deletion_distance_plot_table.rds")
 
