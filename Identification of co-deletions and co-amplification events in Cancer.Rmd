@@ -213,7 +213,7 @@ CNV.all.table<-join.cnv.datasets(cnv.list, column = 4)
 
 ```
 
-## Number of Patinents/Tumours per cancer type
+## Number of Patients/Tumours per cancer type
 
 ```{r number_of_Tumours_per_cancer, eval = FALSE}
 
