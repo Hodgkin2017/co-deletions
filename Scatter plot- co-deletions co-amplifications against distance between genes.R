@@ -311,9 +311,10 @@ outlying_genes %>%
   dplyr::filter(inter_gene_distance.chromosome == 8) %>%
   dim()
 
-##########
-### Repeat scatter plots but using distance from gene of interest
-##########
+##########################
+### Repeat scatter plots but using distance from gene of interest 
+###and investigate co-deletions surrounding gene of interest only
+##########################
 
 
 ##########
@@ -361,31 +362,31 @@ range(cytoband.cordinates$cytoband_size)
 
 
 ##Find start and end of gene: BRCA
-cnv.table[1:2, 1:12]
-
-cnv.table %>% 
-  dplyr::filter(Gene.Symbol == "CDKN2A") %>%
-  dplyr::select(Gene.Symbol, CHR, Cytoband, start, end)
+# cnv.table[1:2, 1:12]
+# 
+# cnv.table %>% 
+#   dplyr::filter(Gene.Symbol == "CDKN2A") %>%
+#   dplyr::select(Gene.Symbol, CHR, Cytoband, start, end)
 
 # CHR Cytoband    start      end
 # 1   9   9p21.3 21967751 21974827
 
 
 ##take all whole genes 2.5MB down stream of start of gene:
-
-cnv.table %>% 
-  dplyr::filter(CHR == 9) %>%
-  dplyr::filter(start <= 21967751) %>%
-  dplyr::filter(start >= 21967751 - 2.5e+6) %>%
-  dplyr::select(Gene.Symbol, CHR, Cytoband, start, end)
+# 
+# cnv.table %>% 
+#   dplyr::filter(CHR == 9) %>%
+#   dplyr::filter(start <= 21967751) %>%
+#   dplyr::filter(start >= 21967751 - 2.5e+6) %>%
+#   dplyr::select(Gene.Symbol, CHR, Cytoband, start, end)
 
 ##take all whole genes 2.5MB up stream of start of gene:
 
-cnv.table %>% 
-  dplyr::filter(CHR == 9) %>%
-  dplyr::filter(start >= 21974827) %>%
-  dplyr::filter(start <= 21974827 + 2.5e+6) %>%
-  dplyr::select(Gene.Symbol, CHR, Cytoband, start, end)
+# cnv.table %>% 
+#   dplyr::filter(CHR == 9) %>%
+#   dplyr::filter(start >= 21974827) %>%
+#   dplyr::filter(start <= 21974827 + 2.5e+6) %>%
+#   dplyr::select(Gene.Symbol, CHR, Cytoband, start, end)
 
 ## Calculate proportion of co-deletions
 
@@ -396,15 +397,15 @@ target_genes<- c("MET", "CDKN2A", "RB1", "WWOX",
       "NOTCH1", "PPP2R2A", "BRD4", "ARID1A",
       "STK11", "PARK2")
 
-x = list(list("CDKN2A",9, 21967751, 21974827))
-x
-
-y<- c(x, list(list("CDKN2A",9, 21967751, 21974827)))
-y
-class(x[[1]][[2]])
-distance<- 2.5e+06
-
-co.deletion.per.target.gene<- lapply(x, function(x) co.deletion_co.amplification_matrix(cnv.table, column_start = 11, threshold = -1, start = TRUE, Chromosome = x[[2]], selection_criteria = c(x[[3]] - distance, x[[4]] + distance), deletion = TRUE, normalisation = "total.tumour.number"))
+# x = list(list("CDKN2A",9, 21967751, 21974827))
+# x
+# 
+# y<- c(x, list(list("CDKN2A",9, 21967751, 21974827)))
+# y
+# class(x[[1]][[2]])
+# distance<- 2.5e+06
+# 
+# co.deletion.per.target.gene<- lapply(x, function(x) co.deletion_co.amplification_matrix(cnv.table, column_start = 11, threshold = -1, start = TRUE, Chromosome = x[[2]], selection_criteria = c(x[[3]] - distance, x[[4]] + distance), deletion = TRUE, normalisation = "total.tumour.number"))
 
 
 ## times two nested apply functions. Inside = target genes co-deletions, outside = different cancers.
@@ -417,8 +418,8 @@ co.deletion.per.target.gene<- lapply(x, function(x) co.deletion_co.amplification
 ###Create list of genes and their chromosome and start and end
 
 ## Create an empty list to store gene information
-gene_information.list<- vector("list", length(target_genes)) 
-gene_information.list
+gene_information_list<- vector("list", length(target_genes)) 
+gene_information_list
 
 ##loop to create list of genes and their start and stop locations
 for (i in 1: length(target_genes)){
@@ -430,15 +431,19 @@ for (i in 1: length(target_genes)){
     dplyr::select(Gene.Symbol, CHR, Cytoband, start, end)
   
   gene_information<- as.list(gene_information)
-  gene_information.list[[i]]<- gene_information
+  gene_information_list[[i]]<- gene_information
   
 }
 
-gene_information.list
-gene_information.list[[4]][[4]]
+gene_information_list
+gene_information_list[[4]][[4]]
+
+##save gene_information.list
+saveRDS(gene_information_list, "/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/target_gene_information_list.rds")
+
 
 ##Create co-deletion matricies for each target gene
-co.deletion.per.target.gene<- lapply(gene_information.list, function(x) co.deletion_co.amplification_matrix(cnv.table, column_start = 11, threshold = -1, start = TRUE, Chromosome = x[[2]], selection_criteria = c(x[[4]] - distance, x[[4]] + distance), deletion = TRUE, normalisation = "total.tumour.number"))
+co.deletion.per.target.gene<- lapply(gene_information_list, function(x) co.deletion_co.amplification_matrix(cnv.table, column_start = 11, threshold = -1, start = TRUE, Chromosome = x[[2]], selection_criteria = c(x[[4]] - distance, x[[4]] + distance), deletion = TRUE, normalisation = "total.tumour.number"))
 co.deletion.per.target.gene[[2]]
 dim(co.deletion.per.target.gene[[2]])
 
@@ -451,13 +456,33 @@ dim(co.deletion.per.target.gene[[2]])
 ##Create a long 3 column wide table with pair-wise proportion of pair wise deletions
 gathered<- lapply(co.deletion.per.target.gene, function(x) tidyr::gather(x, Gene.Symbol.col,proportion, 2:ncol(x)))
 glimpse(gathered)
-gathered.co.deletion.per.target.gene<- do.call(rbind, gathered)
+
+##Keep rows relating to MET v's all genes only and not all genes v's all genes
+gathered[[1]]
+
+gathered_target_genes<- vector("list", length(target_genes))
+
+for(i in 1: length(target_genes)){
+  
+  gene<- target_genes[[i]][1]
+  
+  gathered_target_genes[[i]]<- gathered[[i]] %>% 
+    dplyr::filter(Gene.Symbol.col == gene)
+}
+
+gathered_target_genes
+
+##Bind all dataframes in list together
+gathered.co.deletion.per.target.gene<- do.call(rbind, gathered_target_genes)
 dim(gathered.co.deletion.per.target.gene)
 
 ##Check the correct number of gene:gene pairwise co-deletions
-number.of.genes<- sapply(co.deletion.per.target.gene, function(x) ncol(x)-1)
-number.of.genes
-sum(number.of.genes^2)
+# number.of.genes<- sapply(co.deletion.per.target.gene, function(x) ncol(x)-1)
+# number.of.genes
+# sum(number.of.genes^2)
+
+sum(sapply(co.deletion.per.target.gene, function(x) ncol(x)-1))
+
 ## comment: gathered.co.deletion.per.target.gene has correct number of dimensions, LRP1B has only 3 genes
 #maybe increase the distance from the target gene?
 
@@ -465,13 +490,92 @@ sum(number.of.genes^2)
 ############
 ### Create a dataframe of gene distances from gene of interest.
 
+target_genes<- c("MET", "CDKN2A", "RB1", "WWOX", 
+                 "LRP1B", "PDE4D", "CCNE1", "TP53",
+                 "FGFR1", "MYC", "EGFR","WHSC1L1",
+                 "ERBB2", "MCL1", "MDM2", "CCND1", "ATM",
+                 "NOTCH1", "PPP2R2A", "BRD4", "ARID1A",
+                 "STK11", "PARK2")
+
+gene_information_list
+gene_information_list[[4]][[4]]
+
+##Get start of target gene:
+cnv.table[1:2, 1:12]
+
+x<- gene_information_list[[1]]
+
+x[[4]]
+
+##Get end site of genes 2.5MB away of 5' start site of target gene
+
+end_sites_5prime_genes<- cnv.table %>%
+  dplyr::filter(CHR == x[[2]]) %>%
+  dplyr::filter(end <= x[[4]]) %>%
+  dplyr::filter(end >= x[[4]] - 2.5e+6) %>%
+  dplyr::select(end)
+
+end_sites_5prime_genes
+
+##Calculate the distances between genes
+distance_5prime_genes<- x[[4]] - end_sites_5prime_genes
+distance_5prime_genes
 
 
+##Get the end of the gene
+
+x[[5]]
+
+##Get start site of genes 2.5MB away of 3' end of end of target gene
+start_sites_3prime_genes<-cnv.table %>%
+  dplyr::filter(CHR == x[[2]]) %>%
+  dplyr::filter(start >= x[[5]]) %>%
+  dplyr::filter(start <= x[[5]] + 2.5e+6) %>%
+  dplyr::select(start)
+
+start_sites_3prime_genes
+
+##calculate the distance to the end of the genes 5' of the start of the target gene.
+distance_3prime_genes<- start_sites_3prime_genes - x[[5]]
+distance_3prime_genes
 
 
+###combine start and end distance lists and add 0 in place of MET
+## Add zero:
+distance_5prime_genes<-rbind(distance_5prime_genes, 0)
+distance_5prime_genes
 
+##Make sure both tables have same colnames
+colnames(distance_5prime_genes)<- "start"
 
+## Join data together
 
+distance_from_target_gene<- rbind(distance_5prime_genes, distance_3prime_genes)
+distance_from_target_gene
+
+##check distance data is correct
+
+cnv.table %>%
+  dplyr::filter(CHR == x[[2]]) %>%
+  dplyr::filter(end <= x[[4]]) %>%
+  dplyr::filter(end >= x[[4]] - 2.5e+6) %>%
+  dplyr::select(Gene.Symbol, start, end)
+x[[4]]
+distance_from_target_gene
+
+cnv.table %>%
+  dplyr::filter(CHR == x[[2]]) %>%
+  dplyr::filter(start >= x[[5]]) %>%
+  dplyr::filter(start <= x[[5]] + 2.5e+6) %>%
+   dplyr::select(Gene.Symbol, start, end)
+x[[5]]
+distance_from_target_gene
+
+#############
+#############
+###I AM HERE!!!
+#############
+###########
 
 
 
@@ -484,7 +588,10 @@ sum(number.of.genes^2)
 
 
 
-
+# co_deletions_plot_table2<- cbind(inter_gene_distance = selected_intergene_distance2, co_deletions = gathered.co.deletion.per.chromosome$proportion)
+# head(co_deletions_plot_table2)
+# tail(co_deletions_plot_table2)
+# dim(co_deletions_plot_table2)
 
 
 
