@@ -29,7 +29,7 @@ nrow(test3)
 test4<- co.deletion_co.amplification_matrix(cancer.table, column_start = 11, threshold = -1, Chromosome = 9, deletion = TRUE, normalisation = "total.tumour.number")
 
 ###############
-##Create three column dataframe of proportion of co-deletions normalised by number of tumours. One row = one gene pair
+##Create long three column dataframe of proportion of co-deletions normalised by number of tumours. One row = one gene pair
 
 
 ##Test:
@@ -275,6 +275,28 @@ ggsave("BRCA_co-deletion_distance_colour.tiff")
 ##Comment: do not plot any with a score of 0 for x or y?
 #colour and shape by chromosome or cancer, ?
 
+##Facet wrap plot:
+
+
+## Plot all data in coloured by chromosome:
+
+head(co_deletions_removed_zeros_plot_table2)
+
+ggplot(co_deletions_removed_zeros_plot_table2, aes(x = inter_gene_distance.proportion, 
+                                                   y = co_deletions,
+                                                   colour = inter_gene_distance.chromosome)) +
+  geom_point(size = 1, shape = 1) +
+  geom_smooth() +
+  xlab("Inter gene distance") +
+  ylab("Proportion of tumours with co-deletion") +
+  scale_color_discrete( guide = FALSE)+
+  labs(colour ="Chromosome") +
+  facet_wrap(~inter_gene_distance.chromosome) +
+  theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5))
+
+##Save plot
+ggsave("BRCA_co-deletion_distance_colour_wrap.tiff")
+
 ###########
 ## Find outlying genes proportion > 0.015 and distance > 5.0e+07
 
@@ -289,8 +311,181 @@ outlying_genes %>%
   dplyr::filter(inter_gene_distance.chromosome == 8) %>%
   dim()
 
+##########
+### Repeat scatter plots but using distance from gene of interest
+##########
+
+
+##########
+##Find average cytoband sizes:
+
+# cnv.table<- chromosomal_location(short.cnv.list[[1]])
+# cnv.table[1:2, 1:12]
+# 
+# cnv.table %>%
+#   dplyr::group_by(Cytoband) %>%
+#   dplyr::summarise(max())
+
+##Create input file of cytoband.cordinates
+cytoband.cordinates<- read.delim("../../Input data/Annotations/Cytoband_start_end_hgTables", header = TRUE, stringsAsFactors = FALSE )
+
+cytoband.cordinates.X.chrom<-cytoband.cordinates$X.chrom
+cytoband.cordinates.X.chrom<- gsub(".*chr","",cytoband.cordinates.X.chrom)
+cytoband.cordinates.X.chrom<- paste(cytoband.cordinates.X.chrom, cytoband.cordinates$name, sep = "")
+cytoband.cordinates<-cbind(cytoband_name = cytoband.cordinates.X.chrom, cytoband.cordinates)
+head(cytoband.cordinates)
+
+cytoband.cordinates<- cytoband.cordinates %>% 
+  dplyr::mutate(cytoband_size = chromEnd-chromStart)
+
+head(cytoband.cordinates)
+
+##Average cytoband distances:
+mean(cytoband.cordinates$cytoband_size)
+sd(cytoband.cordinates$cytoband_size)
+range(cytoband.cordinates$cytoband_size)
+
+##Comment: mean cytoband size = 2482046, sd = 2430150, range = 970 to 30627415
+##Comment:What is the average size of focal deletions?
+
+
+############
+### Create a long datafame of co-deletions 2.5MB upstream and downstream of gene of interest.
+
+
+##Use co.deletion_co.amplification_matrix() function to calculate co-deletion of genes 
+#2MB upstream and downstream of gene of interest 
+
+# matrix<- co.deletion_co.amplification_matrix(cnv.table, column_start =  11, threshold = threshold, selection_criteria = cytoband, Cytoband = TRUE, deletion = TRUE, normalisation = "tumours.with.event")
+# test5<- co.deletion_co.amplification_matrix(acc.cnv.chr.location, column_start = 11, threshold = -1, start = TRUE, selection_criteria = c(100000, 250000), deletion = TRUE)
+
+
+##Find start and end of gene: BRCA
+cnv.table[1:2, 1:12]
+
+cnv.table %>% 
+  dplyr::filter(Gene.Symbol == "CDKN2A") %>%
+  dplyr::select(Gene.Symbol, CHR, Cytoband, start, end)
+
+# CHR Cytoband    start      end
+# 1   9   9p21.3 21967751 21974827
+
+
+##take all whole genes 2.5MB down stream of start of gene:
+
+cnv.table %>% 
+  dplyr::filter(CHR == 9) %>%
+  dplyr::filter(start <= 21967751) %>%
+  dplyr::filter(start >= 21967751 - 2.5e+6) %>%
+  dplyr::select(Gene.Symbol, CHR, Cytoband, start, end)
+
+##take all whole genes 2.5MB up stream of start of gene:
+
+cnv.table %>% 
+  dplyr::filter(CHR == 9) %>%
+  dplyr::filter(start >= 21974827) %>%
+  dplyr::filter(start <= 21974827 + 2.5e+6) %>%
+  dplyr::select(Gene.Symbol, CHR, Cytoband, start, end)
+
+## Calculate proportion of co-deletions
+
+target_genes<- c("MET", "CDKN2A", "RB1", "WWOX", 
+      "LRP1B", "PDE4D", "CCNE1", "TP53",
+      "FGFR1", "MYC", "EGFR","WHSC1L1",
+      "ERBB2", "MCL1", "MDM2", "CCND1", "ATM",
+      "NOTCH1", "PPP2R2A", "BRD4", "ARID1A",
+      "STK11", "PARK2")
+
+x = list(list("CDKN2A",9, 21967751, 21974827))
+x
+
+y<- c(x, list(list("CDKN2A",9, 21967751, 21974827)))
+y
+class(x[[1]][[2]])
+distance<- 2.5e+06
+
+co.deletion.per.target.gene<- lapply(x, function(x) co.deletion_co.amplification_matrix(cnv.table, column_start = 11, threshold = -1, start = TRUE, Chromosome = x[[2]], selection_criteria = c(x[[3]] - distance, x[[4]] + distance), deletion = TRUE, normalisation = "total.tumour.number"))
+
+
+## times two nested apply functions. Inside = target genes co-deletions, outside = different cancers.
+#co.deletion.per.chromosome<- lapply(x, function(x) co.deletion_co.amplification_matrix(cancer.table, column_start = 11, threshold = -1, start = TRUE, selection_criteria = c(downstream_limit, upstream_limit), deletion = TRUE, normalisation = "total.tumour.number"))
+##Comment: try different normalisation method e.g. number of individuals with deletion or number of 
+#individual with deletion in gene x.
+
+
 #########
-## Repeat for all cancers
+###Create list of genes and their chromosome and start and end
+
+## Create an empty list to store gene information
+gene_information.list<- vector("list", length(target_genes)) 
+gene_information.list
+
+##loop to create list of genes and their start and stop locations
+for (i in 1: length(target_genes)){
+  
+  gene<- target_genes[i]
+  
+  gene_information<- cnv.table %>% 
+    dplyr::filter(Gene.Symbol == gene) %>%
+    dplyr::select(Gene.Symbol, CHR, Cytoband, start, end)
+  
+  gene_information<- as.list(gene_information)
+  gene_information.list[[i]]<- gene_information
+  
+}
+
+gene_information.list
+gene_information.list[[4]][[4]]
+
+##Create co-deletion matricies for each target gene
+co.deletion.per.target.gene<- lapply(gene_information.list, function(x) co.deletion_co.amplification_matrix(cnv.table, column_start = 11, threshold = -1, start = TRUE, Chromosome = x[[2]], selection_criteria = c(x[[4]] - distance, x[[4]] + distance), deletion = TRUE, normalisation = "total.tumour.number"))
+co.deletion.per.target.gene[[2]]
+dim(co.deletion.per.target.gene[[2]])
+
+##Add gene name to each column to be used with gather function later
+co.deletion.per.target.gene<- lapply(co.deletion.per.target.gene, function(x) as.data.frame(cbind(Gene.Symbol.row = rownames(x), x)))
+co.deletion.per.target.gene[[2]]
+dim(co.deletion.per.target.gene[[2]])
+
+
+##Create a long 3 column wide table with pair-wise proportion of pair wise deletions
+gathered<- lapply(co.deletion.per.target.gene, function(x) tidyr::gather(x, Gene.Symbol.col,proportion, 2:ncol(x)))
+glimpse(gathered)
+gathered.co.deletion.per.target.gene<- do.call(rbind, gathered)
+dim(gathered.co.deletion.per.target.gene)
+
+##Check the correct number of gene:gene pairwise co-deletions
+number.of.genes<- sapply(co.deletion.per.target.gene, function(x) ncol(x)-1)
+number.of.genes
+sum(number.of.genes^2)
+## comment: gathered.co.deletion.per.target.gene has correct number of dimensions, LRP1B has only 3 genes
+#maybe increase the distance from the target gene?
+
+
+############
+### Create a dataframe of gene distances from gene of interest.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#########
+### join pair-wise distance table to pair-wise proportion of co-deletions table
+
+
+
+
+
 
 
 
