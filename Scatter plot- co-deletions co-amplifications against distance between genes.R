@@ -443,9 +443,9 @@ saveRDS(gene_information_list, "/Users/Matt/Documents/Masters_Bioinformatics/Int
 
 
 ##Create co-deletion matricies for each target gene
-co.deletion.per.target.gene<- lapply(gene_information_list, function(x) co.deletion_co.amplification_matrix(cnv.table, column_start = 11, threshold = -1, start = TRUE, Chromosome = x[[2]], selection_criteria = c(x[[4]] - distance, x[[4]] + distance), deletion = TRUE, normalisation = "total.tumour.number"))
-co.deletion.per.target.gene[[2]]
-dim(co.deletion.per.target.gene[[2]])
+co.deletion.per.target.gene<- lapply(gene_information_list, function(x) co.deletion_co.amplification_matrix(cnv.table, column_start = 11, threshold = -1, start = TRUE, Chromosome = x[[2]], selection_criteria = c(x[[4]] - distance, x[[5]] + distance), deletion = TRUE, normalisation = "total.tumour.number"))
+co.deletion.per.target.gene[[5]]
+dim(co.deletion.per.target.gene[[5]])
 
 ##Add gene name to each column to be used with gather function later
 co.deletion.per.target.gene<- lapply(co.deletion.per.target.gene, function(x) as.data.frame(cbind(Gene.Symbol.row = rownames(x), x)))
@@ -490,6 +490,8 @@ sum(sapply(co.deletion.per.target.gene, function(x) ncol(x)-1))
 ############
 ### Create a dataframe of gene distances from gene of interest.
 
+
+
 target_genes<- c("MET", "CDKN2A", "RB1", "WWOX", 
                  "LRP1B", "PDE4D", "CCNE1", "TP53",
                  "FGFR1", "MYC", "EGFR","WHSC1L1",
@@ -499,51 +501,58 @@ target_genes<- c("MET", "CDKN2A", "RB1", "WWOX",
 
 gene_information_list
 gene_information_list[[4]][[4]]
+x<- gene_information_list[[5]]
+x
+
+distance_from_target_gene_function<- function(x){
 
 ##Get start of target gene:
-cnv.table[1:2, 1:12]
+# cnv.table[1:2, 1:12]
+# 
+# x<- gene_information_list[[1]]
+# 
+# x[[4]]
 
-x<- gene_information_list[[1]]
 
-x[[4]]
 
 ##Get end site of genes 2.5MB away of 5' start site of target gene
 
 end_sites_5prime_genes<- cnv.table %>%
   dplyr::filter(CHR == x[[2]]) %>%
-  dplyr::filter(end <= x[[4]]) %>%
-  dplyr::filter(end >= x[[4]] - 2.5e+6) %>%
+  dplyr::filter(start <= x[[4]], start >=  x[[4]] - 2.5e+6) %>%
   dplyr::select(end)
 
-end_sites_5prime_genes
+# end_sites_5prime_genes
 
 ##Calculate the distances between genes
 distance_5prime_genes<- x[[4]] - end_sites_5prime_genes
-distance_5prime_genes
-
+# distance_5prime_genes
+##Any value <0 = 0 i.e. the gene of interest and any overlapping genes
+distance_5prime_genes[distance_5prime_genes < 0]<- 0
 
 ##Get the end of the gene
 
-x[[5]]
+# x[[5]]
 
 ##Get start site of genes 2.5MB away of 3' end of end of target gene
 start_sites_3prime_genes<-cnv.table %>%
   dplyr::filter(CHR == x[[2]]) %>%
-  dplyr::filter(start >= x[[5]]) %>%
-  dplyr::filter(start <= x[[5]] + 2.5e+6) %>%
+  dplyr::filter(start > x[[4]], end <= x[[5]] + 2.5e+6 ) %>%
   dplyr::select(start)
 
-start_sites_3prime_genes
+# start_sites_3prime_genes
 
 ##calculate the distance to the end of the genes 5' of the start of the target gene.
 distance_3prime_genes<- start_sites_3prime_genes - x[[5]]
-distance_3prime_genes
+# distance_3prime_genes
 
+##Any value <0 = 0 i.e. the gene of interest and any overlapping genes
+distance_3prime_genes[distance_3prime_genes < 0]<- 0
 
 ###combine start and end distance lists and add 0 in place of MET
 ## Add zero:
-distance_5prime_genes<-rbind(distance_5prime_genes, 0)
-distance_5prime_genes
+# distance_5prime_genes<-rbind(distance_5prime_genes, 0)
+# distance_5prime_genes
 
 ##Make sure both tables have same colnames
 colnames(distance_5prime_genes)<- "start"
@@ -551,47 +560,118 @@ colnames(distance_5prime_genes)<- "start"
 ## Join data together
 
 distance_from_target_gene<- rbind(distance_5prime_genes, distance_3prime_genes)
-distance_from_target_gene
+# distance_from_target_gene
+
+}
+
+##Use function:
+
+distance_from_target_gene_table<- lapply(gene_information_list, function(x) distance_from_target_gene_function(x))
+distance_from_target_gene_table[[2]]
+
+identical(distance_from_target_gene, distance_from_target_gene_table[[2]])
+
 
 ##check distance data is correct
 
-cnv.table %>%
-  dplyr::filter(CHR == x[[2]]) %>%
-  dplyr::filter(end <= x[[4]]) %>%
-  dplyr::filter(end >= x[[4]] - 2.5e+6) %>%
-  dplyr::select(Gene.Symbol, start, end)
-x[[4]]
-distance_from_target_gene
+# cnv.table %>%
+#   dplyr::filter(CHR == x[[2]]) %>%
+#   dplyr::filter(end <= x[[4]]) %>%
+#   dplyr::filter(end >= x[[4]] - 2.5e+6) %>%
+#   dplyr::select(Gene.Symbol, start, end)
+# x[[4]]
+# distance_from_target_gene
+# 
+# cnv.table %>%
+#   dplyr::filter(CHR == x[[2]]) %>%
+#   dplyr::filter(start >= x[[5]]) %>%
+#   dplyr::filter(start <= x[[5]] + 2.5e+6) %>%
+#    dplyr::select(Gene.Symbol, start, end)
+# x[[5]]
+# distance_from_target_gene
 
-cnv.table %>%
-  dplyr::filter(CHR == x[[2]]) %>%
-  dplyr::filter(start >= x[[5]]) %>%
-  dplyr::filter(start <= x[[5]] + 2.5e+6) %>%
-   dplyr::select(Gene.Symbol, start, end)
-x[[5]]
-distance_from_target_gene
+########
+##Bind all dataframes in list together
+dim(distance_from_target_gene_table)
+distance_from_target_gene_table<- do.call(rbind, distance_from_target_gene_table)
+dim(distance_from_target_gene_table)
 
-#############
-#############
-###I AM HERE!!!
-#############
-###########
+dim(gathered.co.deletion.per.target.gene)
 
 
-
-
-
+sapply(co.deletion.per.target.gene, function(x) nrow(x))
+# sapply(distance_from_target_gene_table, function(x) nrow(x))
 
 
 #########
 ### join pair-wise distance table to pair-wise proportion of co-deletions table
 
+co_deletions_distance_from_target_gene_plot_table<- cbind(proportion_of_co_deletion = gathered.co.deletion.per.target.gene, distance_from_target_gene = distance_from_target_gene_table)
+head(co_deletions_distance_from_target_gene_plot_table)
+tail(co_deletions_distance_from_target_gene_plot_table)
+dim(co_deletions_distance_from_target_gene_plot_table)
+
+colnames(co_deletions_distance_from_target_gene_plot_table)<- c("Comparison_gene", "Target_gene", "proportion_co_del_amp", "distance_from_target_genes")
+
+##Save data
+
+saveRDS(co_deletions_distance_from_target_gene_plot_table, "/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/BRCA_co_deletion_distance_from_target_gene_plot_table.rds")
 
 
-# co_deletions_plot_table2<- cbind(inter_gene_distance = selected_intergene_distance2, co_deletions = gathered.co.deletion.per.chromosome$proportion)
-# head(co_deletions_plot_table2)
-# tail(co_deletions_plot_table2)
-# dim(co_deletions_plot_table2)
+
+##############
+###Plot data
+
+ggplot(co_deletions_distance_from_target_gene_plot_table, aes(x = distance_from_target_genes, 
+                                                   y = proportion_co_del_amp)) +
+  geom_point(size = 1, shape = 1) +
+  xlab("Distance from target gene") +
+  ylab("Proportion of tumours with co-deletion") +
+  theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5))
+
+##Save plot
+ggsave("BRCA_co-deletion_2.5MB_distance_from_target_gene_BW.tiff")
+
+## Plot all data coloured by target gene:
+ggplot(co_deletions_distance_from_target_gene_plot_table, aes(x = distance_from_target_genes, 
+                                                   y = proportion_co_del_amp,
+                                                   colour = Target_gene)) +
+  geom_point(size = 1, shape = 1) +
+  xlab("Distance from target gene") +
+  ylab("Proportion of tumours with co-deletion") +
+  scale_color_discrete()+
+  labs(colour ="Gene") +
+  theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5))
+
+##Save plot
+ggsave("BRCA_co-deletion_2.5MB_distance_from_target_gene_colour.tiff")
+
+##Facet wrap plot coloured by gene:
+
+
+head(co_deletions_distance_from_target_gene_plot_table)
+
+ggplot(co_deletions_distance_from_target_gene_plot_table, aes(x = distance_from_target_genes, 
+                                                   y = proportion_co_del_amp,
+                                                   colour = Target_gene)) +
+  geom_point(size = 1, shape = 1) +
+  xlab("Inter gene distance") +
+  ylab("Proportion of tumours with co-deletion") +
+  scale_color_discrete( guide = FALSE)+
+  labs(colour ="Chromosome") +
+  facet_wrap(~Target_gene) +
+  theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5))
+
+##Save plot
+ggsave("BRCA_co-deletion_2.5MB_distance_from_target_gene_colour_wrap.tiff")
+
+########
+### Repeat function and plot but with greater distance from gene of interest (5MB up and downstream)
+
+
+
+######
+### Repeat using lapply for each cancer type. Maybe make one huge table with cancer type as a new column.
 
 
 

@@ -95,9 +95,11 @@ co.deletion_co.amplification_matrix<- function(cnv.table, column_start = 11, thr
     matrix<- cnv.table %>% dplyr::filter(CHR %in% Chromosome) 
     
     ##Select Chromosomal region of interest and convert CNV data to matrix:
-    matrix<- matrix$start %>%
-      dplyr::between(selection_criteria[1], selection_criteria[2]) %>%
-      matrix[.,]
+    # matrix<- matrix$start %>%
+    # dplyr::between(selection_criteria[1], selection_criteria[2]) %>%
+    # matrix[.,]
+    matrix<- matrix %>%
+      dplyr::filter(start >= selection_criteria[1], end <= selection_criteria[2])
     
     ##Convert Chromosome and region of interest into matrix:
     cnv.matrix<- as.matrix(matrix[,column_start:ncol(matrix)])

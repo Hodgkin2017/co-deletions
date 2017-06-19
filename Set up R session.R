@@ -29,7 +29,8 @@ deletions.per.cytoband.circle.plots.table<- readRDS( "/Users/Matt/Documents/Mast
 short.cnv.list<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/target.cancer.list.rds")
 co_deletions_removed_zeros_plot_table2<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/BRCA_co_deletion_distance_plot_table.rds")
 gene_information_list<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/target_gene_information_list.rds")
-
+## Table of distance from target gene and proportion of deletions
+co_deletions_distance_from_target_gene_plot_table<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/BRCA_co_deletion_distance_from_target_gene_plot_table.rds")
 
 
 
@@ -216,6 +217,7 @@ events.per.cytoband<- function(object_name, threshold = -1, cytoband_column = 10
   return(results)
 }
 
+
 ####################
 ###F1: Function to create matrix containing proportions of co-deletions or amplifications 
 #normalised by the total number of tumours compared
@@ -262,9 +264,8 @@ co.deletion_co.amplification_matrix<- function(cnv.table, column_start = 11, thr
     matrix<- cnv.table %>% dplyr::filter(CHR %in% Chromosome) 
     
     ##Select Chromosomal region of interest and convert CNV data to matrix:
-    matrix<- matrix$start %>%
-      dplyr::between(selection_criteria[1], selection_criteria[2]) %>%
-      matrix[.,]
+    matrix<- matrix %>%
+      dplyr::filter(start >= selection_criteria[1], end <= selection_criteria[2])
     
     ##Convert Chromosome and region of interest into matrix:
     cnv.matrix<- as.matrix(matrix[,column_start:ncol(matrix)])
