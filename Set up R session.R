@@ -31,6 +31,18 @@ co_deletions_removed_zeros_plot_table2<- readRDS("/Users/Matt/Documents/Masters_
 gene_information_list<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/target_gene_information_list.rds")
 ## Table of distance from target gene and proportion of deletions
 co_deletions_distance_from_target_gene_plot_table<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/BRCA_co_deletion_distance_from_target_gene_plot_table.rds")
+## List containing dataframes with each dataframe corresponding to CNVs for one cancer using gistic thresholded values 
+threshold_cnv_list<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/threshold_cnv_list.rds")
+## Dataframe containing gistic thresholded CNV values for all cancer types.
+threshold_CNV_all_table<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/threshold_CNV_all_table.rds")
+## Dataframe containing gistic thresholded CNV values for all cancer types and gene chromosomal location information
+threshold_CNV_all_table_loc<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/threshold_CNV_all_table_loc.rds")
+## List containing dataframes with each dataframe corresponding to CNVs for one cancer using gistic thresholded values and containing chromosomal location
+threshold_cnv_list_loc<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/threshold_cnv_list_loc.rds")
+## List of CNV Dataframes of gistic thresholded CNV scores for specific cancers of interest 
+threshold_short_cnv_list<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/threshold_short_cnv_list.rds")
+## List of CNV Dataframes of gistic thresholded CNV scores with chromosomal location information for specific cancers of interest 
+threshold_short_cnv_list_loc<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/threshold_short_cnv_list_loc.rds")
 
 
 

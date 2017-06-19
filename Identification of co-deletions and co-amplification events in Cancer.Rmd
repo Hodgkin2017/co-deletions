@@ -288,6 +288,12 @@ chromosomal_location<- function(object_name){
 }
 
 acc.cnv.chr.location<-chromosomal_location(cnv.list[[1]])
+
+##Create shorter list of interesting cancer genes
+
+##Append chromosomal location to long and short cancer CNV.list
+
+
 ```
 
 
@@ -391,6 +397,12 @@ co.deletion_co.amplification_matrix<- function(cnv.table, column_start = 11, thr
 
 ```
 
+
+
+
+
+
+
 ##Heatmaps showing co-deletions and co-amplifications for each chromosome for all tumour types combined.
 
 ```{r co-deletion_co-amplification_heatmaps, eval = FALSE}
@@ -429,7 +441,11 @@ lapply(list.CNV.all.table.co.amp, function(x) plot_heatmap(x))
 
 ##Co-deletion and co-amplification of target genes
 
-Gene list from Christophe
+Gene list from Christophe.
+
+Write blurb about each one.
+
+Find more target genes e.g. suppl matrerial of paper?
 
 ```{r Christophe_gene_list}
 
