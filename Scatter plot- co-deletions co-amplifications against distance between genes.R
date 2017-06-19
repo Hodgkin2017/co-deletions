@@ -623,9 +623,12 @@ saveRDS(co_deletions_distance_from_target_gene_plot_table, "/Users/Matt/Document
 ###Plot data
 
 ggplot(co_deletions_distance_from_target_gene_plot_table, aes(x = distance_from_target_genes, 
-                                                   y = proportion_co_del_amp)) +
+                                                   y = as.numeric(proportion_co_del_amp))) +
   geom_point(size = 1, shape = 1) +
-  xlab("Distance from target gene") +
+  scale_x_continuous(breaks = c(0, 0.5e+6, 1.0e+6, 1.5e+6, 2.0e+6, 2.5e+6), 
+                     labels = c(0, 0.5, 1.0, 1.5, 2.0, 2.5)) +
+  scale_y_continuous(breaks = c(0, 0.005, 0.01, 0.015, 0.02,0.025, 0.03)) +
+  xlab("Distance from target gene (MB)") +
   ylab("Proportion of tumours with co-deletion") +
   theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5))
 
@@ -634,10 +637,13 @@ ggsave("BRCA_co-deletion_2.5MB_distance_from_target_gene_BW.tiff")
 
 ## Plot all data coloured by target gene:
 ggplot(co_deletions_distance_from_target_gene_plot_table, aes(x = distance_from_target_genes, 
-                                                   y = proportion_co_del_amp,
+                                                   y = as.numeric(proportion_co_del_amp),
                                                    colour = Target_gene)) +
   geom_point(size = 1, shape = 1) +
-  xlab("Distance from target gene") +
+  scale_x_continuous(breaks = c(0, 0.5e+6, 1.0e+6, 1.5e+6, 2.0e+6, 2.5e+6), 
+                     labels = c(0, 0.5, 1.0, 1.5, 2.0, 2.5)) +
+  scale_y_continuous(breaks = c(0, 0.005, 0.01, 0.015, 0.02,0.025, 0.03)) +
+  xlab("Distance from target gene (MB)") +
   ylab("Proportion of tumours with co-deletion") +
   scale_color_discrete()+
   labs(colour ="Gene") +
@@ -652,20 +658,28 @@ ggsave("BRCA_co-deletion_2.5MB_distance_from_target_gene_colour.tiff")
 head(co_deletions_distance_from_target_gene_plot_table)
 
 ggplot(co_deletions_distance_from_target_gene_plot_table, aes(x = distance_from_target_genes, 
-                                                   y = proportion_co_del_amp,
+                                                   y = as.numeric(proportion_co_del_amp),
                                                    colour = Target_gene)) +
   geom_point(size = 1, shape = 1) +
-  xlab("Inter gene distance") +
+  scale_x_continuous(breaks = c(0, 0.5e+6, 1.0e+6, 1.5e+6, 2.0e+6, 2.5e+6), 
+                     labels = c(0, 0.5, 1.0, 1.5, 2.0, 2.5)) +
+  scale_y_continuous(breaks = c(0, 0.005, 0.01, 0.015, 0.02,0.025, 0.03)) +
+  xlab("Distance from target gene (MB)") +
   ylab("Proportion of tumours with co-deletion") +
-  scale_color_discrete( guide = FALSE)+
-  labs(colour ="Chromosome") +
+  scale_color_discrete(guide = FALSE)+
+  labs(colour ="Gene") +
   facet_wrap(~Target_gene) +
   theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5))
 
 ##Save plot
 ggsave("BRCA_co-deletion_2.5MB_distance_from_target_gene_colour_wrap.tiff")
 
-########
+##Comment: could add column saying if gene is 5' of 3' of gene? Maybe give it a different shape?
+
+
+
+
+#####################
 ### Repeat function and plot but with greater distance from gene of interest (5MB up and downstream)
 
 
