@@ -415,7 +415,7 @@ target_genes<- c("MET", "CDKN2A", "RB1", "WWOX",
 
 
 #########
-###Create list of genes and their chromosome and start and end
+###Create list of target genes and their chromosome and start and end
 
 ## Create an empty list to store gene information
 gene_information_list<- vector("list", length(target_genes)) 
@@ -504,7 +504,7 @@ gene_information_list[[4]][[4]]
 x<- gene_information_list[[5]]
 x
 
-distance_from_target_gene_function<- function(x){
+distance_from_target_gene_function<- function(cnv.table, x, distance){
 
 ##Get start of target gene:
 # cnv.table[1:2, 1:12]
@@ -519,7 +519,7 @@ distance_from_target_gene_function<- function(x){
 
 end_sites_5prime_genes<- cnv.table %>%
   dplyr::filter(CHR == x[[2]]) %>%
-  dplyr::filter(start <= x[[4]], start >=  x[[4]] - 2.5e+6) %>%
+  dplyr::filter(start <= x[[4]], start >=  x[[4]] - distance) %>%
   dplyr::select(end)
 
 # end_sites_5prime_genes
@@ -537,7 +537,7 @@ distance_5prime_genes[distance_5prime_genes < 0]<- 0
 ##Get start site of genes 2.5MB away of 3' end of end of target gene
 start_sites_3prime_genes<-cnv.table %>%
   dplyr::filter(CHR == x[[2]]) %>%
-  dplyr::filter(start > x[[4]], end <= x[[5]] + 2.5e+6 ) %>%
+  dplyr::filter(start > x[[4]], end <= x[[5]] + distance ) %>%
   dplyr::select(start)
 
 # start_sites_3prime_genes
@@ -562,11 +562,13 @@ colnames(distance_5prime_genes)<- "start"
 distance_from_target_gene<- rbind(distance_5prime_genes, distance_3prime_genes)
 # distance_from_target_gene
 
+return(distance_from_target_gene)
+
 }
 
 ##Use function:
 
-distance_from_target_gene_table<- lapply(gene_information_list, function(x) distance_from_target_gene_function(x))
+distance_from_target_gene_table<- lapply(gene_information_list, function(x) distance_from_target_gene_function(cnv.table = cnv.table, x = x, distance = 2.5e+06))
 distance_from_target_gene_table[[2]]
 
 identical(distance_from_target_gene, distance_from_target_gene_table[[2]])
