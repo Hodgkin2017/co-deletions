@@ -551,7 +551,7 @@ plot_genes_surrounding_target_genes_heatmap<- function(cnv.table, target.gene, c
 ###Test function
 
 cnv.table<- threshold_short_cnv_list_loc[[1]]
-x<-gene_information_list[[8]]
+x<-gene_information_list[[10]]
 x
 # distance<-2.5e+06
 
@@ -576,8 +576,199 @@ for (i in 1: length(gene_information_list)){
 ###############
 ###For loop to plot heat maps for different cancers for genes 2.5MB 5' and 3' of target gene.
 
+x<- c("MET", "CDKN2A", "RB1", "WWOX", 
+      "LRP1B", "PDE4D", "CCNE1", "TP53",
+      "FGFR1", "MYC", "EGFR","WHSC1L1",
+      "ERBB2", "MCL1", "MDM2", "CCND1", "ATM",
+      "NOTCH1", "PPP2R2A", "BRD4", "ARID1A",
+      "STK11", "PARK2")
 
 
+
+##Tables to store heatmap plotting success 
+results_del_table_1<- data.frame(matrix(NA, ncol = length(short.cnv.list), nrow = length(x)))
+results_del_table_2<- data.frame(matrix(NA, ncol = length(short.cnv.list), nrow = length(x)))
+results_amp_table_1<- data.frame(matrix(NA, ncol = length(short.cnv.list), nrow = length(x)))
+results_amp_table_2<- data.frame(matrix(NA, ncol = length(short.cnv.list), nrow = length(x)))
+
+##Vector to tempoarily store output of heatmap plotting success  
+output1<- rep(NA, length(gene_information_list))
+output2<- rep(NA, length(gene_information_list))
+output3<- rep(NA, length(gene_information_list))
+output4<- rep(NA, length(gene_information_list))
+
+##For loop to make new directory and save co-amplification and co-deletion plots in it
+for (i in 1: length(threshold_short_cnv_list_loc)){
+  
+  tumour.type<- names(threshold_short_cnv_list_loc[i])
+  dir.create(paste("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Output/plots/170620 co-amp co-del (", tumour.type, ")", sep = ""))
+  setwd(paste("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Output/plots/170620 co-amp co-del (", tumour.type, ")", sep = ""))
+  
+  cnv.table<- threshold_short_cnv_list_loc[[i]]
+  
+  for (j in 1: length(gene_information_list)){
+    x<- gene_information_list[[j]]
+    output1[j]<- plot_genes_surrounding_target_genes_heatmap(cnv.table, target.gene = x[[1]], distance = 2.5e+06, deletion = TRUE, threshold = -1, start = TRUE, Chromosome = x[[2]], selection_criteria = c(x[[4]]-distance, x[[5]]+distance) , normalisation = "tumours.with.event")
+  }
+  for (j in 1: length(gene_information_list)){
+    x<- gene_information_list[[j]]
+    output2[j]<- plot_genes_surrounding_target_genes_heatmap(cnv.table, target.gene = x[[1]], distance = 2.5e+06, deletion = TRUE, threshold = -2, start = TRUE, Chromosome = x[[2]], selection_criteria = c(x[[4]]-distance, x[[5]]+distance) , normalisation = "tumours.with.event")
+  }
+  for (j in 1: length(gene_information_list)){
+    x<- gene_information_list[[j]]
+    output3[j]<- plot_genes_surrounding_target_genes_heatmap(cnv.table, target.gene = x[[1]], distance = 2.5e+06, deletion = FALSE, threshold = 1, start = TRUE, Chromosome = x[[2]], selection_criteria = c(x[[4]]-distance, x[[5]]+distance) , normalisation = "tumours.with.event")
+  }
+  for (j in 1: length(gene_information_list)){
+    x<- gene_information_list[[j]]
+    output4[j]<- plot_genes_surrounding_target_genes_heatmap(cnv.table, target.gene = x[[1]], distance = 2.5e+06, deletion = FALSE, threshold = 2, start = TRUE, Chromosome = x[[2]], selection_criteria = c(x[[4]]-distance, x[[5]]+distance) , normalisation = "tumours.with.event")
+  }
+  
+ 
+  ## save results of wether heatmaps were plotted and if not what the value was:
+  #Co-deletion with threshold -1
+  output1<- gsub("No heatmap was plotted for", "All", output1)
+  output1<- gsub("as all values in matrix were the same:", "values = ", output1)
+  results_del_table_1[,i]<- output1
+  #Co-deletion with threshold -2
+  output2<- gsub("No heatmap was plotted for", "All", output2)
+  output2<- gsub("as all values in matrix were the same:", "values = ", output2)
+  results_del_table_2[,i]<- output2
+  #Co-amplification with threshold 1
+  output3<- gsub("No heatmap was plotted for", "All", output3)
+  output3<- gsub("as all values in matrix were the same:", "values = ", output3)
+  results_amp_table_1[,i]<- output3
+  #Co-amplification with threshold 1
+  output4<- gsub("No heatmap was plotted for", "All", output4)
+  output4<- gsub("as all values in matrix were the same:", "values = ", output4)
+  results_amp_table_2[,i]<- output4
+  
+}
+
+## Tables of heatmap plotting success: Add row names and column names:
+setwd("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Output/plots/")
+x<- c("MET", "CDKN2A", "RB1", "WWOX", 
+      "LRP1B", "PDE4D", "CCNE1", "TP53",
+      "FGFR1", "MYC", "EGFR","WHSC1L1",
+      "ERBB2", "MCL1", "MDM2", "CCND1", "ATM",
+      "NOTCH1", "PPP2R2A", "BRD4", "ARID1A",
+      "STK11", "PARK2")
+rownames(results_del_table_1)<- x
+colnames(results_del_table_1)<- names(threshold_short_cnv_list_loc)
+rownames(results_del_table_2)<- x
+colnames(results_del_table_2)<- names(threshold_short_cnv_list_loc)
+rownames(results_amp_table_1)<- x
+colnames(results_amp_table_1)<- names(threshold_short_cnv_list_loc)
+rownames(results_amp_table_2)<- x
+colnames(results_amp_table_2)<- names(threshold_short_cnv_list_loc)
+
+results_del_table_1
+results_del_table_2
+results_amp_table_1
+results_amp_table_2
+
+
+## Save output files:
+write.csv(results_del_table_1, file = "Deletion heatmap output threshold -1.csv")
+write.csv(results_del_table_2, file = "Deletion heatmap output threshold -2.csv")
+
+write.csv(results_amp_table_1, file = "Amplification heatmap output threshold +1.csv")
+write.csv(results_amp_table_2, file = "Amplification heatmap output threshold +2.csv")
+
+
+###############
+###For loop to plot heat maps for different cancers for genes 5MB 5' and 3' of target gene.
+
+x<- c("MET", "CDKN2A", "RB1", "WWOX", 
+      "LRP1B", "PDE4D", "CCNE1", "TP53",
+      "FGFR1", "MYC", "EGFR","WHSC1L1",
+      "ERBB2", "MCL1", "MDM2", "CCND1", "ATM",
+      "NOTCH1", "PPP2R2A", "BRD4", "ARID1A",
+      "STK11", "PARK2")
+
+
+
+##Tables to store heatmap plotting success 
+results_del_table_1<- data.frame(matrix(NA, ncol = length(short.cnv.list), nrow = length(x)))
+results_del_table_2<- data.frame(matrix(NA, ncol = length(short.cnv.list), nrow = length(x)))
+results_amp_table_1<- data.frame(matrix(NA, ncol = length(short.cnv.list), nrow = length(x)))
+results_amp_table_2<- data.frame(matrix(NA, ncol = length(short.cnv.list), nrow = length(x)))
+
+##Vector to tempoarily store output of heatmap plotting success  
+output1<- rep(NA, length(gene_information_list))
+output2<- rep(NA, length(gene_information_list))
+output3<- rep(NA, length(gene_information_list))
+output4<- rep(NA, length(gene_information_list))
+
+##For loop to make new directory and save co-amplification and co-deletion plots in it
+for (i in 1: length(threshold_short_cnv_list_loc)){
+  
+  tumour.type<- names(threshold_short_cnv_list_loc[i])
+  dir.create(paste("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Output/plots/170620 co-amp co-del_5MB (", tumour.type, ")", sep = ""))
+  setwd(paste("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Output/plots/170620 co-amp co-del_5MB (", tumour.type, ")", sep = ""))
+  
+  cnv.table<- threshold_short_cnv_list_loc[[i]]
+  
+  for (j in 1: length(gene_information_list)){
+    x<- gene_information_list[[j]]
+    output1[j]<- plot_genes_surrounding_target_genes_heatmap(cnv.table, target.gene = x[[1]], distance = 5e+06, deletion = TRUE, threshold = -1, start = TRUE, Chromosome = x[[2]], selection_criteria = c(x[[4]]-distance, x[[5]]+distance) , normalisation = "tumours.with.event")
+  }
+  for (j in 1: length(gene_information_list)){
+    x<- gene_information_list[[j]]
+    output2[j]<- plot_genes_surrounding_target_genes_heatmap(cnv.table, target.gene = x[[1]], distance = 5e+06, deletion = TRUE, threshold = -2, start = TRUE, Chromosome = x[[2]], selection_criteria = c(x[[4]]-distance, x[[5]]+distance) , normalisation = "tumours.with.event")
+  }
+  for (j in 1: length(gene_information_list)){
+    x<- gene_information_list[[j]]
+    output3[j]<- plot_genes_surrounding_target_genes_heatmap(cnv.table, target.gene = x[[1]], distance = 5e+06, deletion = FALSE, threshold = 1, start = TRUE, Chromosome = x[[2]], selection_criteria = c(x[[4]]-distance, x[[5]]+distance) , normalisation = "tumours.with.event")
+  }
+  for (j in 1: length(gene_information_list)){
+    x<- gene_information_list[[j]]
+    output4[j]<- plot_genes_surrounding_target_genes_heatmap(cnv.table, target.gene = x[[1]], distance = 5e+06, deletion = FALSE, threshold = 2, start = TRUE, Chromosome = x[[2]], selection_criteria = c(x[[4]]-distance, x[[5]]+distance) , normalisation = "tumours.with.event")
+  }
+  
+  
+  ## save results of wether heatmaps were plotted and if not what the value was:
+  #Co-deletion with threshold -1
+  output1<- gsub("No heatmap was plotted for", "All", output1)
+  output1<- gsub("as all values in matrix were the same:", "values = ", output1)
+  results_del_table_1[,i]<- output1
+  #Co-deletion with threshold -2
+  output2<- gsub("No heatmap was plotted for", "All", output2)
+  output2<- gsub("as all values in matrix were the same:", "values = ", output2)
+  results_del_table_2[,i]<- output2
+  #Co-amplification with threshold 1
+  output3<- gsub("No heatmap was plotted for", "All", output3)
+  output3<- gsub("as all values in matrix were the same:", "values = ", output3)
+  results_amp_table_1[,i]<- output3
+  #Co-amplification with threshold 1
+  output4<- gsub("No heatmap was plotted for", "All", output4)
+  output4<- gsub("as all values in matrix were the same:", "values = ", output4)
+  results_amp_table_2[,i]<- output4
+  
+}
+
+## Tables of heatmap plotting success: Add row names and column names:
+setwd("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Output/plots/")
+rownames(results_del_table_1)<- x
+colnames(results_del_table_1)<- names(threshold_short_cnv_list_loc)
+rownames(results_del_table_2)<- x
+colnames(results_del_table_2)<- names(threshold_short_cnv_list_loc)
+rownames(results_amp_table_1)<- x
+colnames(results_amp_table_1)<- names(threshold_short_cnv_list_loc)
+rownames(results_amp_table_2)<- x
+colnames(results_amp_table_2)<- names(threshold_short_cnv_list_loc)
+
+results_del_table_1
+results_del_table_2
+results_amp_table_1
+results_amp_table_2
+
+
+## Save output files:
+write.csv(results_del_table_1, file = "Deletion heatmap output threshold -1.csv")
+write.csv(results_del_table_2, file = "Deletion heatmap output threshold -2.csv")
+
+write.csv(results_amp_table_1, file = "Amplification heatmap output threshold +1.csv")
+write.csv(results_amp_table_2, file = "Amplification heatmap output threshold +2.csv")
 
 
 
