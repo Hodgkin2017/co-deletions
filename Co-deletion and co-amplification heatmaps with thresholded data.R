@@ -675,6 +675,8 @@ write.csv(results_amp_table_1, file = "Amplification heatmap output threshold +1
 write.csv(results_amp_table_2, file = "Amplification heatmap output threshold +2.csv")
 
 
+
+
 ###############
 ###For loop to plot heat maps for different cancers for genes 5MB 5' and 3' of target gene.
 

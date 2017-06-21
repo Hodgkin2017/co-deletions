@@ -311,6 +311,16 @@ outlying_genes %>%
   dplyr::filter(inter_gene_distance.chromosome == 8) %>%
   dim()
 
+
+
+
+
+
+
+
+
+
+
 ##########################
 ### Repeat scatter plots but using distance from gene of interest 
 ###and investigate co-deletions surrounding gene of interest only
@@ -439,13 +449,15 @@ gene_information_list
 gene_information_list[[4]][[4]]
 
 ##save gene_information.list
-saveRDS(gene_information_list, "/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/target_gene_information_list.rds")
+#saveRDS(gene_information_list, "/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/target_gene_information_list.rds")
 
+distance<- 5.0e+06
 
 ##Create co-deletion matricies for each target gene
-co.deletion.per.target.gene<- lapply(gene_information_list, function(x) co.deletion_co.amplification_matrix(cnv.table, column_start = 11, threshold = -1, start = TRUE, Chromosome = x[[2]], selection_criteria = c(x[[4]] - distance, x[[5]] + distance), deletion = TRUE, normalisation = "total.tumour.number"))
-co.deletion.per.target.gene[[5]]
-dim(co.deletion.per.target.gene[[5]])
+co.deletion.per.target.gene<- lapply(gene_information_list, function(x) co.deletion_co.amplification_matrix(cnv.table, column_start = 11, threshold = -2, start = TRUE, Chromosome = x[[2]], selection_criteria = c(x[[4]] - distance, x[[5]] + distance), deletion = TRUE, normalisation = "total.tumour.number"))
+length(co.deletion.per.target.gene)
+co.deletion.per.target.gene[[2]]
+dim(co.deletion.per.target.gene[[2]])
 
 ##Add gene name to each column to be used with gather function later
 co.deletion.per.target.gene<- lapply(co.deletion.per.target.gene, function(x) as.data.frame(cbind(Gene.Symbol.row = rownames(x), x)))
@@ -455,7 +467,8 @@ dim(co.deletion.per.target.gene[[2]])
 
 ##Create a long 3 column wide table with pair-wise proportion of pair wise deletions
 gathered<- lapply(co.deletion.per.target.gene, function(x) tidyr::gather(x, Gene.Symbol.col,proportion, 2:ncol(x)))
-glimpse(gathered)
+gathered[[2]]
+dim(gathered[[2]])
 
 ##Keep rows relating to MET v's all genes only and not all genes v's all genes
 gathered[[1]]
@@ -475,7 +488,7 @@ gathered_target_genes
 ##Bind all dataframes in list together
 gathered.co.deletion.per.target.gene<- do.call(rbind, gathered_target_genes)
 dim(gathered.co.deletion.per.target.gene)
-
+gathered.co.deletion.per.target.gene
 ##Check the correct number of gene:gene pairwise co-deletions
 # number.of.genes<- sapply(co.deletion.per.target.gene, function(x) ncol(x)-1)
 # number.of.genes
@@ -501,8 +514,8 @@ target_genes<- c("MET", "CDKN2A", "RB1", "WWOX",
 
 gene_information_list
 gene_information_list[[4]][[4]]
-x<- gene_information_list[[5]]
-x
+#x<- gene_information_list[[5]]
+#x
 
 distance_from_target_gene_function<- function(cnv.table, x, distance){
 
@@ -547,7 +560,11 @@ distance_3prime_genes<- start_sites_3prime_genes - x[[5]]
 # distance_3prime_genes
 
 ##Any value <0 = 0 i.e. the gene of interest and any overlapping genes
+if (nrow(distance_3prime_genes) == 0){
+  
+}else {
 distance_3prime_genes[distance_3prime_genes < 0]<- 0
+}
 
 ###combine start and end distance lists and add 0 in place of MET
 ## Add zero:
@@ -568,10 +585,11 @@ return(distance_from_target_gene)
 
 ##Use function:
 
-distance_from_target_gene_table<- lapply(gene_information_list, function(x) distance_from_target_gene_function(cnv.table = cnv.table, x = x, distance = 2.5e+06))
+distance_from_target_gene_table<- lapply(gene_information_list, function(x) distance_from_target_gene_function(cnv.table = cnv.table, x = x, distance = distance))
 distance_from_target_gene_table[[2]]
+distance_from_target_gene_table
 
-identical(distance_from_target_gene, distance_from_target_gene_table[[2]])
+#identical(distance_from_target_gene, distance_from_target_gene_table[[2]])
 
 
 ##check distance data is correct
@@ -627,24 +645,24 @@ saveRDS(co_deletions_distance_from_target_gene_plot_table, "/Users/Matt/Document
 ggplot(co_deletions_distance_from_target_gene_plot_table, aes(x = distance_from_target_genes, 
                                                    y = as.numeric(proportion_co_del_amp))) +
   geom_point(size = 1, shape = 1) +
-  scale_x_continuous(breaks = c(0, 0.5e+6, 1.0e+6, 1.5e+6, 2.0e+6, 2.5e+6), 
-                     labels = c(0, 0.5, 1.0, 1.5, 2.0, 2.5)) +
-  scale_y_continuous(breaks = c(0, 0.005, 0.01, 0.015, 0.02,0.025, 0.03)) +
+  #scale_x_continuous(breaks = c(0, 0.5e+6, 1.0e+6, 1.5e+6, 2.0e+6, 2.5e+6), 
+                    # labels = c(0, 0.5, 1.0, 1.5, 2.0, 2.5)) +
+  #scale_y_continuous(breaks = c(0, 0.005, 0.01, 0.015, 0.02,0.025, 0.03)) +
   xlab("Distance from target gene (MB)") +
   ylab("Proportion of tumours with co-deletion") +
   theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5))
 
 ##Save plot
-ggsave("BRCA_co-deletion_2.5MB_distance_from_target_gene_BW.tiff")
+ggsave("BRCA_co-deletion_5.0MB_distance_from_target_gene_BW.tiff")
 
 ## Plot all data coloured by target gene:
 ggplot(co_deletions_distance_from_target_gene_plot_table, aes(x = distance_from_target_genes, 
                                                    y = as.numeric(proportion_co_del_amp),
                                                    colour = Target_gene)) +
   geom_point(size = 1, shape = 1) +
-  scale_x_continuous(breaks = c(0, 0.5e+6, 1.0e+6, 1.5e+6, 2.0e+6, 2.5e+6), 
-                     labels = c(0, 0.5, 1.0, 1.5, 2.0, 2.5)) +
-  scale_y_continuous(breaks = c(0, 0.005, 0.01, 0.015, 0.02,0.025, 0.03)) +
+  #scale_x_continuous(breaks = c(0, 0.5e+6, 1.0e+6, 1.5e+6, 2.0e+6, 2.5e+6), 
+                     #labels = c(0, 0.5, 1.0, 1.5, 2.0, 2.5)) +
+  #scale_y_continuous(breaks = c(0, 0.005, 0.01, 0.015, 0.02,0.025, 0.03)) +
   xlab("Distance from target gene (MB)") +
   ylab("Proportion of tumours with co-deletion") +
   scale_color_discrete()+
@@ -652,7 +670,7 @@ ggplot(co_deletions_distance_from_target_gene_plot_table, aes(x = distance_from_
   theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5))
 
 ##Save plot
-ggsave("BRCA_co-deletion_2.5MB_distance_from_target_gene_colour.tiff")
+ggsave("BRCA_co-deletion_5.0MB_distance_from_target_gene_colour.tiff")
 
 ##Facet wrap plot coloured by gene:
 
@@ -663,9 +681,9 @@ ggplot(co_deletions_distance_from_target_gene_plot_table, aes(x = distance_from_
                                                    y = as.numeric(proportion_co_del_amp),
                                                    colour = Target_gene)) +
   geom_point(size = 1, shape = 1) +
-  scale_x_continuous(breaks = c(0, 0.5e+6, 1.0e+6, 1.5e+6, 2.0e+6, 2.5e+6), 
-                     labels = c(0, 0.5, 1.0, 1.5, 2.0, 2.5)) +
-  scale_y_continuous(breaks = c(0, 0.005, 0.01, 0.015, 0.02,0.025, 0.03)) +
+  #scale_x_continuous(breaks = c(0, 0.5e+6, 1.0e+6, 1.5e+6, 2.0e+6, 2.5e+6), 
+                     #labels = c(0, 0.5, 1.0, 1.5, 2.0, 2.5)) +
+  #scale_y_continuous(breaks = c(0, 0.005, 0.01, 0.015, 0.02,0.025, 0.03)) +
   xlab("Distance from target gene (MB)") +
   ylab("Proportion of tumours with co-deletion") +
   scale_color_discrete(guide = FALSE)+
@@ -674,12 +692,32 @@ ggplot(co_deletions_distance_from_target_gene_plot_table, aes(x = distance_from_
   theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5))
 
 ##Save plot
-ggsave("BRCA_co-deletion_2.5MB_distance_from_target_gene_colour_wrap.tiff")
+ggsave("BRCA_co-deletion_5.0MB_distance_from_target_gene_colour_wrap.tiff")
 
 ##Comment: could add column saying if gene is 5' of 3' of gene? Maybe give it a different shape?
 
+###################
+### Plot using log of distance;
+co_deletions_distance_from_target_gene_plot_table_log<- co_deletions_distance_from_target_gene_plot_table
+co_deletions_distance_from_target_gene_plot_table_log$distance_from_target_genes<- log10(co_deletions_distance_from_target_gene_plot_table_log$distance_from_target_genes + 1)
+co_deletions_distance_from_target_gene_plot_table_log
 
+ggplot(co_deletions_distance_from_target_gene_plot_table_log, aes(x = distance_from_target_genes, 
+                                                              y = as.numeric(proportion_co_del_amp),
+                                                              colour = Target_gene)) +
+  geom_point(size = 1, shape = 1) +
+  #scale_x_continuous(breaks = c(0, 0.5e+6, 1.0e+6, 1.5e+6, 2.0e+6, 2.5e+6), 
+  #labels = c(0, 0.5, 1.0, 1.5, 2.0, 2.5)) +
+  #scale_y_continuous(breaks = c(0, 0.005, 0.01, 0.015, 0.02,0.025, 0.03)) +
+  xlab("Distance from target gene (MB)") +
+  ylab("Proportion of tumours with co-deletion") +
+  scale_color_discrete(guide = FALSE)+
+  labs(colour ="Gene") +
+  facet_wrap(~Target_gene) +
+  theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5))
 
+##Save plot
+ggsave("BRCA_co-deletion_5.0MB_distance_from_target_gene_colour_log_wrap.tiff")
 
 #####################
 ### Repeat function and plot but with greater distance from gene of interest (5MB up and downstream)
