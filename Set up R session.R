@@ -43,6 +43,8 @@ threshold_cnv_list_loc<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/I
 threshold_short_cnv_list<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/threshold_short_cnv_list.rds")
 ## List of CNV Dataframes of gistic thresholded CNV scores with chromosomal location information for specific cancers of interest 
 threshold_short_cnv_list_loc<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/threshold_short_cnv_list_loc.rds")
+## List of target genes 1:
+target_genes<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/target_genes1.rds")
 
 
 

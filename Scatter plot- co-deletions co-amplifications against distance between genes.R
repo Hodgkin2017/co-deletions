@@ -407,6 +407,11 @@ target_genes<- c("MET", "CDKN2A", "RB1", "WWOX",
       "NOTCH1", "PPP2R2A", "BRD4", "ARID1A",
       "STK11", "PARK2")
 
+## Save object
+#saveRDS(target_genes, "/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/target_genes1.rds")
+
+
+
 # x = list(list("CDKN2A",9, 21967751, 21974827))
 # x
 # 
@@ -451,10 +456,12 @@ gene_information_list[[4]][[4]]
 ##save gene_information.list
 #saveRDS(gene_information_list, "/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/target_gene_information_list.rds")
 
-distance<- 5.0e+06
+cnv.table<- threshold_short_cnv_list_loc[[1]]
+
+distance<- 2.5e+06
 
 ##Create co-deletion matricies for each target gene
-co.deletion.per.target.gene<- lapply(gene_information_list, function(x) co.deletion_co.amplification_matrix(cnv.table, column_start = 11, threshold = -2, start = TRUE, Chromosome = x[[2]], selection_criteria = c(x[[4]] - distance, x[[5]] + distance), deletion = TRUE, normalisation = "total.tumour.number"))
+co.deletion.per.target.gene<- lapply(gene_information_list, function(x) co.deletion_co.amplification_matrix(cnv.table, column_start = 11, threshold = -2, start = TRUE, Chromosome = x[[2]], selection_criteria = c(x[[4]] - distance, x[[5]] + distance), deletion = TRUE, normalisation = "tumours.with.event"))
 length(co.deletion.per.target.gene)
 co.deletion.per.target.gene[[2]]
 dim(co.deletion.per.target.gene[[2]])
@@ -635,7 +642,7 @@ colnames(co_deletions_distance_from_target_gene_plot_table)<- c("Comparison_gene
 
 ##Save data
 
-saveRDS(co_deletions_distance_from_target_gene_plot_table, "/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/BRCA_co_deletion_distance_from_target_gene_plot_table.rds")
+#saveRDS(co_deletions_distance_from_target_gene_plot_table, "/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/BRCA_co_deletion_distance_from_target_gene_plot_table.rds")
 
 
 
