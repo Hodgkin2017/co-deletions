@@ -24,13 +24,13 @@ setwd("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletion
 ### Load data
 #load("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/R workspaces/co-deletions workspace.RData")
 load("./R workspaces/co-deletions workspace.RData")
-#co.deletions.per.cytoband.circle.plots.table <- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/total.co-deletion.events.per.cytoband.rds")
-#deletions.per.cytoband.circle.plots.table<- readRDS( "/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/total.deletion.events.per.cytoband.rds")
+co.deletions.per.cytoband.circle.plots.table <- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/total.co-deletion.events.per.cytoband.rds")
+deletions.per.cytoband.circle.plots.table<- readRDS( "/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/total.deletion.events.per.cytoband.rds")
 short.cnv.list<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/target.cancer.list.rds")
-#co_deletions_removed_zeros_plot_table2<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/BRCA_co_deletion_distance_plot_table.rds")
-#gene_information_list<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/target_gene_information_list.rds")
+co_deletions_removed_zeros_plot_table2<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/BRCA_co_deletion_distance_plot_table.rds")
+gene_information_list<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/target_gene_information_list.rds")
 ## Table of distance from target gene and proportion of deletions
-#co_deletions_distance_from_target_gene_plot_table<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/BRCA_co_deletion_distance_from_target_gene_plot_table.rds")
+co_deletions_distance_from_target_gene_plot_table<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/BRCA_co_deletion_distance_from_target_gene_plot_table.rds")
 ## List containing dataframes with each dataframe corresponding to CNVs for one cancer using gistic thresholded values 
 threshold_cnv_list<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/threshold_cnv_list.rds")
 ## Dataframe containing gistic thresholded CNV values for all cancer types.
