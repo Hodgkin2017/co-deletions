@@ -39,9 +39,9 @@ ggplot(co_deletions_distance_from_target_gene_plot_table[1:100,],
 
 ggplot(co_deletions_distance_from_target_gene_plot_table[1:100,], 
        aes(Comparison_gene, as.numeric(proportion_co_del_amp), colour = Target_gene)) +
-  geom_point() +
+  geom_point(size = 0.5, shape = 1) +
   #geom_area(aes(fill=Target_gene)) +
-  geom_line(stat = "identity", aes(group = Target_gene, fill = Target_gene)) +
+  geom_line(stat = "identity", aes(group = Target_gene)) +
   facet_wrap(~Target_gene, nrow = 1, scales = "free_x") + 
   theme(legend.position="none") +
   theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5))
@@ -151,5 +151,107 @@ mean_co_deletion_co_amplification_values_around_gene<- function(co_deletion_tabl
 ##Test function:
 mean_co_deletion_co_amplification_values_around_gene(dummydata, 1)
 mean_co_deletion_co_amplification_values_around_gene(dummydata, 2)
+
+###############
+### Get average co-deletion of neighbouring genes 2.5MB around target genes 
+
+##Create list with one dataframe per target gene of co-deletions
+distance<- 2.5e+06
+co.deletion.per.target.gene<- lapply(gene_information_list, function(x) co.deletion_co.amplification_matrix(cnv.table, column_start = 11, threshold = -2, start = TRUE, Chromosome = x[[2]], selection_criteria = c(x[[4]] - distance, x[[5]] + distance), deletion = TRUE, normalisation = "tumours.with.event"))
+length(co.deletion.per.target.gene)
+co.deletion.per.target.gene[[2]]
+
+##Calculate average co-deletion for target gene +/- one gene.
+test<- mean_co_deletion_co_amplification_values_around_gene(co.deletion.per.target.gene[[2]], 1)
+test
+
+co_deletion_around_target_gene<- lapply(co.deletion.per.target.gene, function(x) mean_co_deletion_co_amplification_values_around_gene(x,1))
+length(co_deletion_around_target_gene)
+co_deletion_around_target_gene[[2]]
+
+identical(test, co_deletion_around_target_gene[[2]])
+
+##Calculate average co-deletion for target gene +/- two genes.
+co_deletion_around_target_gene2<- lapply(co.deletion.per.target.gene, function(x) mean_co_deletion_co_amplification_values_around_gene(x,2))
+length(co_deletion_around_target_gene2)
+co_deletion_around_target_gene2[[2]]
+
+##Join each item of co.deletion.around.target.gene list into a one column dataframe:
+co_deletion_around_target_gene<- unlist(co_deletion_around_target_gene)
+co_deletion_around_target_gene
+
+co_deletion_around_target_gene2<- unlist(co_deletion_around_target_gene2)
+co_deletion_around_target_gene2
+
+##Join co.deletion.around.target.gene to original dataframe with per gene proportion of co-deletions
+#with target gene
+length(co_deletion_around_target_gene)
+dim(co_deletions_distance_from_target_gene_plot_table)
+co_deletions_distance_from_target_gene_plot_table<- cbind(co_deletions_distance_from_target_gene_plot_table, co_deletion_around_target_gene)
+dim(co_deletions_distance_from_target_gene_plot_table)
+head(co_deletions_distance_from_target_gene_plot_table)
+tail(co_deletions_distance_from_target_gene_plot_table)
+
+co_deletions_distance_from_target_gene_plot_table<- cbind(co_deletions_distance_from_target_gene_plot_table, co_deletion_around_target_gene2)
+
+
+##Plot proportion of co-deletions with target gene and with surounding genes
+
+# ggplot(co_deletions_distance_from_target_gene_plot_table[1:100,], 
+#        aes(Comparison_gene, as.numeric(proportion_co_del_amp), colour = Target_gene)) +
+#   geom_point(size = 0.5, shape = 1) +
+#   geom_line(stat = "identity", aes(group = Target_gene)) +
+#   geom_point(aes(y= co_deletion_around_target_gene), size = 0.5, shape = 1) +
+#   geom_line(aes(y= co_deletion_around_target_gene), stat = "identity", aes(group = Target_gene)) +
+#   facet_wrap(~Target_gene, nrow = 1, scales = "free_x") + 
+#   theme(legend.position="none") +
+#   theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5))
+
+##Plot neighbouring/local co-deletions one gene away
+ggplot(co_deletions_distance_from_target_gene_plot_table, aes(x=Comparison_gene, group = Target_gene)) + 
+  geom_point(aes(y = as.numeric(proportion_co_del_amp), colour = "Co-deletion with target gene"), size = 0.5, shape = 1) +
+  geom_line(aes(y = as.numeric(proportion_co_del_amp), colour = "Co-deletion with target gene")) + 
+  geom_point(aes(y = as.numeric(co_deletion_around_target_gene), colour = "Mean co-deletion for genes 1 gene away"), size = 0.5, shape = 1) +
+  geom_line(aes(y = as.numeric(co_deletion_around_target_gene), colour = "Mean co-deletion for genes 1 gene away")) +
+  #facet_wrap(~Target_gene, nrow = 1, scales = "free_x") + 
+  facet_wrap(~Target_gene, scales = "free_x") + 
+  #theme(legend.position="none") +
+  theme(legend.position="bottom") +
+  theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5))
+
+##Save plot
+ggsave("BRCA_co-deletion_distance_1geneaway_lineplot.tiff")
+
+##Plot neighbouring/local co-deletions two genes away
+ggplot(co_deletions_distance_from_target_gene_plot_table, aes(x=Comparison_gene, group = Target_gene)) + 
+  geom_point(aes(y = as.numeric(proportion_co_del_amp), colour = "Co-deletion with target gene"), size = 0.5, shape = 1) +
+  geom_line(aes(y = as.numeric(proportion_co_del_amp), colour = "Co-deletion with target gene")) + 
+  geom_point(aes(y = as.numeric(co_deletion_around_target_gene2), colour = "Mean co-deletion for genes 2 gene away"), size = 0.5, shape = 1) +
+  geom_line(aes(y = as.numeric(co_deletion_around_target_gene2), colour = "Mean co-deletion for genes 2 gene away")) +
+  #facet_wrap(~Target_gene, nrow = 1, scales = "free_x") + 
+  facet_wrap(~Target_gene, scales = "free_x") + 
+  #theme(legend.position="none") +
+  theme(legend.position="bottom") +
+  theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5))
+
+##Save plot
+ggsave("BRCA_co-deletion_distance_2genesaway_lineplot.tiff")
+
+############
+# df = read.table(text = "School_id Year Value 
+# A           1998    5
+# B           1998    10
+# C           1999    15
+# A           2000    7
+# B           2005    15", sep = "", header = TRUE)
+# df
+# 
+# ggplot(data = df, aes(x = factor(Year), y = Value, color = School_id)) +       
+#   geom_line(aes(group = School_id)) + geom_point()
+# 
+# 
+# ggplot(data = co_deletions_distance_from_target_gene_plot_table[20:30,], aes(x = factor(Comparison_gene), y = Value, color = School_id)) +       
+#   geom_line(aes(group = School_id)) + geom_point()
+# 
 
 
