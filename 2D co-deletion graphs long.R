@@ -220,7 +220,7 @@ ggplot(co_deletions_distance_from_target_gene_plot_table, aes(x=Comparison_gene,
   theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5))
 
 ##Save plot
-ggsave("BRCA_co-deletion_distance_1geneaway_lineplot.tiff")
+ggsave("BRCA_co-deletion_distance_1geneaway_lineplot.tiff",width = 16, height = 12, dpi = 100)
 
 ##Plot neighbouring/local co-deletions two genes away
 ggplot(co_deletions_distance_from_target_gene_plot_table, aes(x=Comparison_gene, group = Target_gene)) + 
@@ -235,7 +235,32 @@ ggplot(co_deletions_distance_from_target_gene_plot_table, aes(x=Comparison_gene,
   theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5))
 
 ##Save plot
-ggsave("BRCA_co-deletion_distance_2genesaway_lineplot.tiff")
+ggsave("BRCA_co-deletion_distance_2genesaway_lineplot.tiff",width = 16, height = 12, dpi = 100)
+
+
+##Plot neighbouring/local co-deletions one and two genes away
+ggplot(co_deletions_distance_from_target_gene_plot_table, aes(x=Comparison_gene, group = Target_gene)) + 
+  geom_point(aes(y = as.numeric(proportion_co_del_amp), colour = "Co-deletion with target gene"), size = 0.5, shape = 1) +
+  geom_line(aes(y = as.numeric(proportion_co_del_amp), colour = "Co-deletion with target gene")) +
+  geom_point(aes(y = as.numeric(co_deletion_around_target_gene), colour = "Mean co-deletion for genes 1 gene away"), size = 0.5, shape = 1) +
+  geom_line(aes(y = as.numeric(co_deletion_around_target_gene), colour = "Mean co-deletion for genes 1 gene away")) +
+  geom_point(aes(y = as.numeric(co_deletion_around_target_gene2), colour = "Mean co-deletion for genes 2 gene away"), size = 0.5, shape = 1) +
+  geom_line(aes(y = as.numeric(co_deletion_around_target_gene2), colour = "Mean co-deletion for genes 2 gene away")) +
+  #facet_wrap(~Target_gene, nrow = 1, scales = "free_x") + 
+  facet_wrap(~Target_gene, scales = "free_x") + 
+  #theme(legend.position="none") +
+  theme(legend.position="bottom") +
+  theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5))
+
+##Save plot
+ggsave("BRCA_co-deletion_distance_1and2genesaway_lineplot.tiff",width = 16, height = 12, dpi = 100)
+
+
+
+
+
+
+
 
 ############
 # df = read.table(text = "School_id Year Value 
