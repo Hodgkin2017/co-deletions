@@ -258,7 +258,7 @@ ggsave("BRCA_co-deletion_distance_1and2genesaway_lineplot.tiff",width = 16, heig
 
 
 
-
+#co_deletions_distance_from_target_gene_plot_table2<- co_deletions_distance_from_target_gene_plot_table
 
 
 
