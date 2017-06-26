@@ -47,7 +47,7 @@ target_genes<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships
 
 ```
 
-### Hypothesis and Aims
+# Hypothesis and Aims
 
 Add something here.......
 
@@ -57,7 +57,7 @@ Aims:
 2. Aim Two
 3. Aim Three
 
-### Data source
+# Data source
 
 Collection and geneotyping of Tumours was performed by the Cancer Genome atlas (TCGA) whose aim is to.....(write more?).  Tumour genotyping raw data was processed at the Broad Institute as part of the firehose project (http://firebrowse.org). The project aims to regularly process cancer genomic data from the TCGA using standardised methods for the benefit of the scientific community and by doing so reduce processing time and human error. 
 
@@ -118,7 +118,7 @@ A new folder was manually created for each cancer type and the unzipped files fo
 
 An R script was used to import the CNV data files for each cancer type from their respective folders. The CNV file (all_thresholded.by_genes.txt) contained the thesholded values computed from the raw GISTIC scores where a value of 1 was a  deletion(-1) or amplification (+1) above the threshold for the tumour and a value of 2 was a deletion(-2) or amplification(+2) above the arm level threshold for the tumour. Each individual patient tumour had its own threshold (recorded in file: sample_cutoffs.txt) below/above which a score of 0, 1 or 2 was given (for deletion/amplification).
 
-# From TCGA/CBioPortal (http://www.cbioportal.org/faq.jsp#what-is-gistic-what-is-rae)
+### From TCGA/CBioPortal (http://www.cbioportal.org/faq.jsp#what-is-gistic-what-is-rae)
 
 **What is GISTIC? What is RAE?**
 
@@ -129,7 +129,7 @@ For TCGA studies, the table in allthresholded.bygenes.txt (which is the part of 
 By contrast, the high-level thresholds are calculated on a sample-by-sample basis and are based on the maximum (or minimum) median arm-level amplification (or deletion) copy number found in the sample. The idea, for deletions anyway, is that this level is a good approximation for hemizygous given the purity and ploidy of the sample. The actual cutoffs used for each sample can be found in a table in the output file sample_cutoffs.txt. All GISTIC output files for TCGA are available at: gdac.broadinstitute.org.
 
 
-# From nozzle file that comes with data downloaded from firebrowse:
+### From nozzle file that comes with data downloaded from firebrowse:
 
 **All Thresholded By Genes (all_thresholded.by_genes.txt)**
 A gene-level table of discrete amplification and deletion indicators at for all samples. There is a row for each gene. The first three columns name the gene, its NIH locus ID, and its cytoband - the remaining columns are the samples. A table value of 0 means no amplification or deletion above the threshold. Amplifications are positive numbers: 1 means amplification above the amplification threshold; 2 means amplifications larger to the arm level amplifications observed for the sample. Deletions are represented by negative table values: -1 represents deletion beyond the threshold; -2 means deletions greater than the minimum arm-level deletion observed for the sample.
