@@ -129,9 +129,7 @@ For TCGA studies, the table in allthresholded.bygenes.txt (which is the part of 
 By contrast, the high-level thresholds are calculated on a sample-by-sample basis and are based on the maximum (or minimum) median arm-level amplification (or deletion) copy number found in the sample. The idea, for deletions anyway, is that this level is a good approximation for hemizygous given the purity and ploidy of the sample. The actual cutoffs used for each sample can be found in a table in the output file sample_cutoffs.txt. All GISTIC output files for TCGA are available at: gdac.broadinstitute.org.
 
 
-# From nozzle file that comes with data downloaded from firebrowse:
-## From nozzle file that comes with data downloaded from firebrowse2:
-### From nozzle file that comes with data downloaded from firebrowse3:
+## From nozzle file that comes with data downloaded from firebrowse:
 
 **All Thresholded By Genes (all_thresholded.by_genes.txt)**
 A gene-level table of discrete amplification and deletion indicators at for all samples. There is a row for each gene. The first three columns name the gene, its NIH locus ID, and its cytoband - the remaining columns are the samples. A table value of 0 means no amplification or deletion above the threshold. Amplifications are positive numbers: 1 means amplification above the amplification threshold; 2 means amplifications larger to the arm level amplifications observed for the sample. Deletions are represented by negative table values: -1 represents deletion beyond the threshold; -2 means deletions greater than the minimum arm-level deletion observed for the sample.
