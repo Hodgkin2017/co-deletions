@@ -2,24 +2,87 @@
 ### Function to create table of intergene distances and proportion of co-deletions/co-amplifications
 ####################
 
+###Contents:
+
+##Functions:
+#F1. create_target_gene_information_list    #Function to create a list containing target gene name, cytoband, chromosome and
+                                            #start and end locations
+                                            #Function arguments:
+                                            #cnv.table            # CNV file containing gene location information
+                                            #target_genes         # Vector of gene names used to create list
+#F2. distance_from_target_gene_function     #Function to calculate the distances between the target gene and genes within a 
+                                            #certain 5' and 3' distance of the genes start and end site.
+                                            #Function arguments:
+                                            #cnv.table            # CNV file containing gene location information
+                                            #gene_information     # List containing genes of interest and location information 
+                                                                  #created using create_target_gene_information_list function 
+                                            #distance             # distance 5' and 3' of target gene to specify which 
+                                                                  #genes to include in analysis.
+#F3. intergene_distance_matrix_function     #Function to create intergene distances for all genes on a chromosome.
+                                            #Function arguments:
+                                            #cnv.table            # CNV file containing gene location information
+                                            #chromosome           # Chromosome to get intergene distances for.
+
+#F4. distance_from_target_gene_co_deletion_co_amplification_function    #Function to obtain the distance between each gene and 
+                                                                        #the target gene and the proportion of 
+                                                                        #co-deletions/co-amplifications
+                                            #Function arguments:
+                                            #cnv.table                # CNV file
+                                            #column_start             # First column in file containing tumour CNV data
+                                            #gene_information_list    # List containing genes of interest and location information 
+                                                                      #created using create_target_gene_information_list function 
+                                            #distance                 # distance 5' and 3' of target gene to specify which 
+                                                                      #genes to include.
+                                            #threshold                # Value above (deletion = FALSE) or below 
+                                                                      #(deletion = TRUE) which CNVs will be included in analysis
+                                            #deletion = TRUE          # If deletion = TRUE: Count number of deletion events
+                                                                      # If deletion = FALSE: Count number of amplification events
+                                            #normalisation            #If normalisation = "total.tumour.number" then normalise by total number of tumours
+                                                                      #If normalisation = "tumours.with.event" then normalise by 
+                                                                      # number of tumours with deletion or amplification event. e.g. if only 7 out of 90 
+                                                                      # individuals had a deletion in a cytoband then divide number of co-deletions by 7
+                                                                      #If normalisation = "none" then raw number of co-deletions or co-amplifications returned.
+                                                                      #If normalisation = "frequency.for.whole.sample" then normalise number of events 
+                                                                      #by total number of possible events. Returns a single value and not a matrix
+#F5. mean_co_deletion_co_amplification_values_around_gene             #Function to create a list containing target gene name, cytoband, chromosome and
+                                                                      #start and end locations
+                                            #Function arguments:
+                                            #cnv.table                            # CNV file containing gene location information
+                                            #distance_from_gene_to_calculate_mean # distance 5' and 3' of target gene to specify which               
+                                                                                  #genes to include in analysis.
+ 
+##Actions and or Loops outside of functions:
+#None
+
+##Selected Objects:
+#O1. target_genes           #List of gene names used as input for functions
+#O2. cnv.table              #A table from TCGA containing CNV data and gene information (generated by chromosomal_location function)
+#O3. gene_information_list  #List of genes and their location information required input for functions
+#O4. chromosome_9_intergene_distance                  #Output co-deletions for chromosome 9 only
+#O5. chromosome_all_intergene_distance                  #Output co-deletions for Cytobands "9p21.2" and "9p21.3" only
+#O6. test1                  #Output co-deletions between residues 100,000 and 250,000 only
+#O7. test2                  #Output co-deletions on chromosome 9 between 100,000 and 250,000 only
+
+
+
 
 
 
 ######################
-## Initial function parameters:
+## O1:Initial function parameters:
 target_genes<- c("MET", "CDKN2A", "RB1", "WWOX", 
                  "LRP1B", "PDE4D", "CCNE1", "TP53",
                  "FGFR1", "MYC", "EGFR","WHSC1L1",
                  "ERBB2", "MCL1", "MDM2", "CCND1", "ATM",
                  "NOTCH1", "PPP2R2A", "BRD4", "ARID1A",
                  "STK11", "PARK2")
-
+##O2:
 cnv.table<- threshold_short_cnv_list_loc[[1]]
 
 
 
 ###################
-##Function to create list of target genes, their chromosome, cytoband, start and end
+##F1: Function to create list of target genes, their chromosome, cytoband, start and end
 ###################
 
 create_target_gene_information_list<- function(cnv_table, target_genes){
@@ -46,7 +109,7 @@ create_target_gene_information_list<- function(cnv_table, target_genes){
 }
 
 ###############
-##Test function
+##O3: Test function
 gene_information_list<- create_target_gene_information_list(cnv_table = cnv.table, target_genes = target_genes)
 gene_information_list[[4]]
 gene_information_list
@@ -56,7 +119,7 @@ gene_information_list
 
 
 #################
-### Function to calculate the distance from each gene in list to a gene of interest (target_gene):
+###F2: Function to calculate the distance from each gene in list to a gene of interest (target_gene):
 #################
 
 
@@ -109,7 +172,7 @@ distance_from_target_gene_function(cnv.table = cnv.table, gene_information = gen
 
 
 #############
-### Function that takes a dataframe including Gene.Symbol, chromosome(CHR) and start site (start) and 
+###F3: Function that takes a dataframe including Gene.Symbol, chromosome(CHR) and start site (start) and 
 #creates a matrix of intergene distances using the start site per chromosome
 #############
 
@@ -148,40 +211,21 @@ intergene_distance_matrix_function<- function(cnv.table, chromosome){
 #######
 ###Test function:
 
+##O4: One chromosome:
 chromosome_9_intergene_distance<- intergene_distance_matrix_function(cnv.table = cnv.table, chromosome = 9)
 dim(chromosome_9_intergene_distance)
 chromosome_9_intergene_distance
 
-
+##O5: All chromosomes
 chromosome_all_intergene_distance<-lapply(c((1:22), "X"), function(x) intergene_distance_matrix_function(cnv.table, chromosome = x))
 length(chromosome_all_intergene_distance)
 dim(chromosome_all_intergene_distance[[9]])
 
 
 
-
-
-
-
-
-
-
-################
-### Function for all v's all genes??????
-###############
-
-intergene_distance_co_deletion_co_amplification_function<- function(cnv.table, Chromosome, deletion = TRUE, threshold = -2, compare_all_genes = FALSE, normalisation = "total.tumour.number", column_start = 11){}
-
-
-
-
-
-
-
-
-
 ###################
-### Function for gene v's target gene:
+###F4: Function for gene v's target gene: Creates table with gene distances and 
+#proportion of co-deletion/amplifications:
 ###################
 
 distance_from_target_gene_co_deletion_co_amplification_function<- function(cnv.table, gene_information_list, 
@@ -308,14 +352,54 @@ return(co_deletions_distance_from_target_gene_plot_table)
 
 ###########
 ### Test function:
-test<- distance_from_target_gene_co_deletion_co_amplification_function(cnv.table = cnv.table, gene_information_list = gene_information_list, distance = 2.5e+06, deletion = TRUE, threshold = -2, compare_all_genes = FALSE, normalisation = "tumours.with.event")
-dim(test)
-head(test)
-tail(test)
 
+##O6: Compare each each to target gene
+test1<- distance_from_target_gene_co_deletion_co_amplification_function(cnv.table = cnv.table, gene_information_list = gene_information_list, distance = 2.5e+06, deletion = TRUE, threshold = -2, compare_all_genes = FALSE, normalisation = "tumours.with.event")
+dim(test1)
+head(test1)
+tail(test1)
+
+##O7: Compare all genes to each other
 test2<- distance_from_target_gene_co_deletion_co_amplification_function(cnv.table = cnv.table, gene_information_list = gene_information_list, distance = 2.5e+06, deletion = TRUE, threshold = -2, compare_all_genes = TRUE, normalisation = "tumours.with.event")
 dim(test2)
 head(test2)
 tail(test2)
 
+##############
+###F5: Function to get mean co-deletion of genes +/- n genes away from current gene:
+##############
+
+mean_co_deletion_co_amplification_values_around_gene<- function(co_deletion_table, 
+                                                                distance_from_gene_to_calculate_mean){
+  
+  ##Calculate co-del/co-amp for n genes around current gene(sixe of sliding window)
+  n<- distance_from_gene_to_calculate_mean
+  
+  result<-rep(NA, nrow(co_deletion_table))
+  
+  ##Loop to get co-del/co-amp mean in sliding window
+  for(i in 1: nrow(co_deletion_table)){
+    
+    if(i < n){
+      start<- i
+      end<- i+n
+      result[i]<- mean(co_deletion_table[i, start:end])
+      
+    } else if((i >= n) & (i+n-1 < ncol(co_deletion_table))) {
+      start<- i-n
+      end<- i+n
+      result[i]<- mean(co_deletion_table[i, start:end])
+      
+    } else if(i+n > ncol(co_deletion_table)) {
+      
+      start<- i-n
+      end<- ncol(co_deletion_table)
+      result[i]<- mean(co_deletion_table[i, start:end])
+      
+    }
+  }
+  
+  return(result)
+  
+}
 

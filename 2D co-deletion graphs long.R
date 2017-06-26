@@ -12,7 +12,8 @@
 
 ## Comment: Make scatter plot method into  function so it is easier to run and change attributes e.g. distance and normalisation
 #Make it have two outputs a list of just target gene co-deletions and a list of all v's all target gene co-deletions
-co_deletions_distance_from_target_gene_plot_table<- readRDS(file = "temp.data.rds")
+cnv.table<-threshold_short_cnv_list_loc[[1]]
+co_deletions_distance_from_target_gene_plot_table<- distance_from_target_gene_co_deletion_co_amplification_function(cnv.table = cnv.table, gene_information_list = gene_information_list, distance = 2.5e+06, deletion = TRUE, threshold = -2, compare_all_genes = FALSE, normalisation = "tumours.with.event")
 dim(co_deletions_distance_from_target_gene_plot_table)
 head(co_deletions_distance_from_target_gene_plot_table)
 tail(co_deletions_distance_from_target_gene_plot_table)
@@ -37,18 +38,18 @@ ggplot(co_deletions_distance_from_target_gene_plot_table[1:100,],
   theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5))
 
 
-ggplot(co_deletions_distance_from_target_gene_plot_table[1:100,], 
-       aes(Comparison_gene, as.numeric(proportion_co_del_amp), colour = Target_gene)) +
-  geom_point(size = 0.5, shape = 1) +
-  #geom_area(aes(fill=Target_gene)) +
-  geom_line(stat = "identity", aes(group = Target_gene)) +
-  facet_wrap(~Target_gene, nrow = 1, scales = "free_x") + 
-  theme(legend.position="none") +
-  theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5))
+# ggplot(co_deletions_distance_from_target_gene_plot_table[1:100,], 
+#        aes(Comparison_gene, as.numeric(proportion_co_del_amp), colour = Target_gene)) +
+#   geom_point(size = 0.5, shape = 1) +
+#   #geom_area(aes(fill=Target_gene)) +
+#   geom_line(stat = "identity", aes(group = Target_gene)) +
+#   facet_wrap(~Target_gene, nrow = 1, scales = "free_x") + 
+#   theme(legend.position="none") +
+#   theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5))
 
-ggplot(co_deletions_distance_from_target_gene_plot_table[1:100,], 
-       aes(Comparison_gene, as.numeric(proportion_co_del_amp), colour = Target_gene)) +
-  geom_area(mapping = aes(x = ), fill=Target_gene)
+# ggplot(co_deletions_distance_from_target_gene_plot_table[1:100,], 
+#        aes(Comparison_gene, as.numeric(proportion_co_del_amp), colour = Target_gene)) +
+#   geom_area(mapping = aes(x = ), fill=Target_gene)
 
 ########### From: https://stackoverflow.com/questions/30343494/ggplot2-geom-area-with-factorial-x-axis
 # library(directlabels)
@@ -75,12 +76,12 @@ ggplot(co_deletions_distance_from_target_gene_plot_table[1:100,],
 #   guides(fill = FALSE, colour = FALSE)
 
 #########
-dummydata2<-data.frame(Comparison_gene = as.factor(letters[1:8]), Target_gene = rep(c("b", "g"), c(4,4)), proportion_co_del_amp = c(1.5, 2.2, 3.7, 5.2, 3.2, 1.2, 4.3, 3.9))
-dummydata2
-
-ggplot(dummydata2, aes(Comparison_gene, as.numeric(proportion_co_del_amp))) +
-  geom_bar(stat = "identity", aes(fill = Target_gene)) +
-  facet_wrap(~Target_gene, scales = "free_x")
+# dummydata2<-data.frame(Comparison_gene = as.factor(letters[1:8]), Target_gene = rep(c("b", "g"), c(4,4)), proportion_co_del_amp = c(1.5, 2.2, 3.7, 5.2, 3.2, 1.2, 4.3, 3.9))
+# dummydata2
+# 
+# ggplot(dummydata2, aes(Comparison_gene, as.numeric(proportion_co_del_amp))) +
+#   geom_bar(stat = "identity", aes(fill = Target_gene)) +
+#   facet_wrap(~Target_gene, scales = "free_x")
 
 ###################
 ### Calculate average co-deletion in neighbouring genes
@@ -149,11 +150,12 @@ mean_co_deletion_co_amplification_values_around_gene<- function(co_deletion_tabl
 }
 
 ##Test function:
-mean_co_deletion_co_amplification_values_around_gene(dummydata, 1)
-mean_co_deletion_co_amplification_values_around_gene(dummydata, 2)
+# mean_co_deletion_co_amplification_values_around_gene(dummydata, 1)
+# mean_co_deletion_co_amplification_values_around_gene(dummydata, 2)
 
 ###############
-### Get average co-deletion of neighbouring genes 2.5MB around target genes 
+### Get average co-deletion of neighbouring genes 2.5MB around target genes then join to table 
+#with co-deletions and distance per target gene
 
 ##Create list with one dataframe per target gene of co-deletions
 distance<- 2.5e+06
@@ -164,6 +166,8 @@ co.deletion.per.target.gene[[2]]
 ##Calculate average co-deletion for target gene +/- one gene.
 test<- mean_co_deletion_co_amplification_values_around_gene(co.deletion.per.target.gene[[2]], 1)
 test
+length(test)
+dim(co.deletion.per.target.gene[[2]])
 
 co_deletion_around_target_gene<- lapply(co.deletion.per.target.gene, function(x) mean_co_deletion_co_amplification_values_around_gene(x,1))
 length(co_deletion_around_target_gene)
@@ -254,29 +258,3 @@ ggplot(co_deletions_distance_from_target_gene_plot_table, aes(x=Comparison_gene,
 
 ##Save plot
 ggsave("BRCA_co-deletion_distance_1and2genesaway_lineplot.tiff",width = 16, height = 12, dpi = 100)
-
-
-
-
-#co_deletions_distance_from_target_gene_plot_table2<- co_deletions_distance_from_target_gene_plot_table
-
-
-
-############
-# df = read.table(text = "School_id Year Value 
-# A           1998    5
-# B           1998    10
-# C           1999    15
-# A           2000    7
-# B           2005    15", sep = "", header = TRUE)
-# df
-# 
-# ggplot(data = df, aes(x = factor(Year), y = Value, color = School_id)) +       
-#   geom_line(aes(group = School_id)) + geom_point()
-# 
-# 
-# ggplot(data = co_deletions_distance_from_target_gene_plot_table[20:30,], aes(x = factor(Comparison_gene), y = Value, color = School_id)) +       
-#   geom_line(aes(group = School_id)) + geom_point()
-# 
-
-
