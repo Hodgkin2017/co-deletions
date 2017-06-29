@@ -53,7 +53,7 @@ library(dplyr)
 ###F1: Function to create matrix containing proportions of co-deletions or amplifications 
 #normalised by the total number of tumours compared
 
-co.deletion_co.amplification_matrix<- function(cnv.table, column_start = 11, threshold = -1, 
+co.deletion_co.amplification_matrix<- function(cnv.table, column_start = 11, threshold = -2, 
                                                selection_criteria, Gene.Symbol = FALSE, start = FALSE, 
                                                Chromosome = 0, Cytoband = FALSE, remove_NA = TRUE, deletion = TRUE, normalisation = "total.tumour.number"){
   if (remove_NA == TRUE){

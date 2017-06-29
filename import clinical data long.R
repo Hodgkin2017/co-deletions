@@ -333,6 +333,16 @@ length(which(!(cnv_tumour_ID %in% clinical_tumour_ID)))
 
 ##Comment: ALl STAD CNV samples have clinical data
 
+
+#############################
+### Tidy data to keep only interesting columns and then combine datasets together into 
+#one long table with a new column for cancer type
+#############################
+
+
+
+  
+
 ###############
 ###Join tables together to make one long table?
 
