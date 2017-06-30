@@ -729,27 +729,188 @@ all_clin_combined[indicies,]
 
 
 
+
+
+
+
+
 ################
 ### Use BRCA data from cbioportal to plot survival plots
 ###############
 
+BRCA_cbioportal_clinical <- t(read.delim("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/Survival analysis and gene expression tutorial/BRCA/BRCA_cbioportal_clinical_data.txt",header=T, row.names=5))
+dim(BRCA_cbioportal_clinical)
+BRCA_cbioportal_clinical[1:2, 1:10]
+colnames(BRCA_cbioportal_clinical)
+rownames(BRCA_cbioportal_clinical)
+BRCA_cbioportal_clinical[1,1]
+
+###Remove duplicate samples?
+##Get sample IDs
+patient_IDs<- colnames(BRCA_cbioportal_clinical)
+
+#Keep patient ID only
+patient_IDs<- substr(patient_IDs, 0, 12)
+ncol(BRCA_cbioportal_clinical)
+length(unique(patient_IDs))
+
+indicies<- which(duplicated(patient_IDs))
+indicies
+
+BRCA_cbioportal_clinical[1:2, indicies]
+
+repeated_samples<- patient_IDs[indicies]
+indicies<- which(patient_IDs %in% repeated_samples)
+indicies
+patient_IDs[indicies]
+BRCA_cbioportal_clinical[1:2,indicies]
+
+###Keep column with less NA's
+sample_pairs<- c()
+##find sample pairs:
+for (i in 1: length(indicies)){
+  sampleID<- patient_IDs[indicies[i]]
+  sampleID<- grep(sampleID,patient_IDs) 
+  sample_pairs<- cbind(sample_pairs, sampleID)
+}
+sample_pairs
+
+
+##keep unique sample_pairs columns only
+sample_pairs<- sample_pairs[,!duplicated(sample_pairs, MARGIN = 2)]
+sample_pairs
+
+## Identify which column has the lowest number of NAs
+n<- nrow(sample_pairs)
+df<- matrix(NA, nrow = 1, ncol = n)
+df
+which_column_to_remove<- c()
+
+for (i in 1:ncol(sample_pairs)){
+
+  for (j in 1:n){
+  df[1,j]<- sum(is.na(BRCA_cbioportal_clinical[,sample_pairs[j,i]]))
+  }
+  which_row<- which(max(df[1,]) == df[1,])
+  which_column_to_remove<-c(which_column_to_remove, sample_pairs[which_row, i])
+}
+sample_pairs
+which_column_to_remove
+which_column_to_remove<- as.vector(which_column_to_remove)
+
+BRCA_cbioportal_clinical_unique<- BRCA_cbioportal_clinical[,-which_column_to_remove]
+
+###Test I have removed duplicate samples:
+
+##Get sample IDs
+patient_IDs<- colnames(BRCA_cbioportal_clinical_unique)
+
+##Keep patient ID only
+patient_IDs<- substr(patient_IDs, 0, 12)
+ncol(BRCA_cbioportal_clinical_unique)
+length(unique(patient_IDs))
+
+indicies<- which(duplicated(patient_IDs))
+indicies
+
+BRCA_cbioportal_clinical_unique[1:2, indicies]
+##Comment: Worked! Only unique columns now! Turn above into function?
 
 
 
 
 
 
+###################
+### Create table using BRCA cbioportal dataset to plot survival data:
+
+##Get patient IDs:
+ind_keep <- grep("Patient ID",colnames(BRCA_cbioportal_clinical_unique))
+ind_keep
+clinical_IDS<- colnames(BRCA_cbioportal_clinical_unique)
+clinical_IDS<- substr(clinical_IDS, 0, 12)
+clinical_IDS
+
+# get the columns that contain data we can use: days to death, new tumor event, last day contact to....
+ind_keep <- grep("Disease.Free..Months.",rownames(BRCA_cbioportal_clinical_unique))
+ind_keep
+new_tum_collapsed<- as.numeric(BRCA_cbioportal_clinical_unique[ind_keep,])
+new_tum_collapsed
+
+# do the same for death
+ind_keep <- grep("Death.from.Initial.Pathologic.Diagnosis.Date",rownames(BRCA_cbioportal_clinical_unique))
+ind_keep
+death_collapsed<- as.numeric(BRCA_cbioportal_clinical_unique[ind_keep,])
+death_collapsed
 
 
+# and days last follow up here we take the most recent which is the max number
+ind_keep <- grep('days_to_last_followup',colnames(clinical))
+fl <- as.matrix(clinical[,ind_keep])
+fl_collapsed<- as.numeric(BRCA_cbioportal_clinical_unique[ind_keep,])
+fl_collapsed
+
+# and put everything together
+all_clin <- data.frame(new_tum_collapsed,cancer_status_collapsed, death_collapsed,fl_collapsed)
+colnames(all_clin) <- c('new_tumor_days', "cancer_status", 'death_days', 'followUp_days')
+head(all_clin, 20)
+tail(all_clin, 20)
+
+# create vector with time to new tumor containing data to censor for new_tumor
+all_clin$new_time <- c()
+for (i in 1:length(as.numeric(as.character(all_clin$new_tumor_days)))){
+  ## Combine new_tumor days and followUp_days
+  all_clin$new_time[i] <- ifelse (is.na(as.numeric(as.character(all_clin$new_tumor_days)))[i],
+                                  as.numeric(as.character(all_clin$followUp_days))[i],as.numeric(as.character(all_clin$new_tumor_days))[i])
+  ## If no followUp_days or new_tumor_days then take death_days
+  all_clin$new_time[i]<- ifelse (is.na(as.numeric(as.character(all_clin$new_time)))[i],
+                                 as.numeric(as.character(all_clin$death_days))[i], as.numeric(as.character(all_clin$new_time))[i])
+  
+}
 
 
+# create vector time to death containing values to censor for death
+all_clin$new_death <- c()
+for (i in 1:length(as.numeric(as.character(all_clin$death_days)))){
+  all_clin$new_death[i] <- ifelse ( is.na(as.numeric(as.character(all_clin$death_days))[i]),
+                                    as.numeric(as.character(all_clin$followUp_days))[i],as.numeric(as.character(all_clin$death_days))[i])
+}
 
+head(all_clin, 20)
 
+# create vector for death censoring
+ind_keep <- grep('patient.vital_status',colnames(clinical))
+clinical[,ind_keep]
+table(clinical[,ind_keep])
+# alive dead
+# 993   104
 
+all_clin$death_event <- ifelse(clinical[,ind_keep] == 'alive', 0,1)
 
+#finally add row.names to clinical
+length(clinical_IDS)
+nrow(all_clin)
+rownames(all_clin) <- clinical_IDS
 
+head(all_clin, 40)
 
+# run survival analysis
+# s <- survfit(Surv(as.numeric(as.character(all_clin$new_death)),all_clin$death_event)~1)
+# s1 <- tryCatch(survdiff(Surv(as.numeric(as.character(all_clin$new_death))[ind_clin],all_clin$death_event[ind_clin])~event_rna[ind_gene,ind_tum]), error = function(e) return(NA))
 
+##Overall survival:
+s<- survfit(Surv(new_death, event = death_event == 1)~1, data = all_clin)
+s
+summary(s)
+plot(s)
+
+##Disease free:?
+##Create a new column for 1 = had new tumour event?
+s1<- survfit(Surv(new_time, event = death_event == 1)~1, data = all_clin)
+s1
+summary(s1)
+plot(s1)
+plot(s1, mark.time = T)
 
 
 
