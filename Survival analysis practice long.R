@@ -130,6 +130,23 @@ for (i in 1:dim(new_tum)[1]){
 
 new_tum_collapsed
 
+## Get tumour neoplasm status
+ind_keep <- grep('person_neoplasm_cancer_status',colnames(clinical))
+ind_keep
+cancer_status <- as.matrix(clinical[,ind_keep])
+cancer_status
+cancer_status_collapsed <- c()
+for (i in 1:dim(cancer_status)[1]){
+  if ( sum ( is.na(cancer_status2[i,])) < dim(cancer_status)[2]){
+    m <- max(cancer_status[i,],na.rm=T)
+    cancer_status_collapsed <- c(cancer_status_collapsed,m)
+  } else {
+    cancer_status_collapsed <- c(cancer_status_collapsed,'NA')
+  }
+}
+
+cancer_status_collapsed
+
 ## comment: Why more than one value for death? Use min or max values?
 
 # do the same to death
@@ -224,7 +241,25 @@ plot(s1)
 ################
 ### Create data for survival analysis using :BRCA_clinical file
 
-##As far as I am awars there is no tumour free time in the data
+##As far as I am aware there is no tumour free time in the data
+
+## Get tumour neoplasm status
+ind_keep <- grep('person_neoplasm_cancer_status',colnames(BRCA_clinical))
+ind_keep
+cancer_status2 <- as.matrix(BRCA_clinical[,ind_keep])
+cancer_status2
+cancer_status_collapsed2 <- c()
+for (i in 1:dim(cancer_status2)[1]){
+  if ( sum ( is.na(cancer_status2[i,])) < dim(cancer_status2)[2]){
+    m <- max(cancer_status2[i,],na.rm=T)
+    cancer_status_collapsed2 <- c(cancer_status_collapsed2,m)
+  } else {
+    cancer_status_collapsed2 <- c(cancer_status_collapsed2,'NA')
+  }
+}
+
+cancer_status_collapsed2
+
 
 # do the same to death
 ind_keep <- grep('days_to_death',colnames(BRCA_clinical))
@@ -260,8 +295,8 @@ for (i in 1:dim(fl2)[1]){
 fl_collapsed2
 
 # and put everything together
-all_clin2 <- data.frame(death_collapsed2,fl_collapsed2)
-colnames(all_clin2) <- c('death_days', 'followUp_days')
+all_clin2 <- data.frame(death_collapsed2,fl_collapsed2, cancer_status_collapsed2)
+colnames(all_clin2) <- c('death_days', 'followUp_days', "cancer_status")
 head(all_clin2, 20)
 tail(all_clin2, 20)
 
@@ -305,10 +340,10 @@ summary(s)
 plot(s)
 
 ##Disease free:?
-s1<- survfit(Surv(new_time, death_event == 1)~1, data = all_clin2)
-s1
-summary(s1)
-plot(s1)
+# s1<- survfit(Surv(new_time, death_event == 1)~1, data = all_clin2)
+# s1
+# summary(s1)
+# plot(s1)
 
 ##Comment: On first glance the survival analysis using the two datasets is quite different. Need to
 #Find out why and how different they are.
@@ -363,5 +398,303 @@ all_clin_combined[indicies,]
 # example TCGA-A2-A0CO was tumour free when she died but is classed as a death event for the fget data but not for the 
 #firebrowse data so perhaps this individual died from other causes?
 
-##Comment, repeat analysis with PRAD data that has patient_death_reason column and see what happens.
+##Comment, repeat analysis with PRAD/STAD data that has patient_death_reason column and see what happens.
+#Looking at CBio survival curve (http://www.cbioportal.org/study?id=brca_tcga#summary) my survival curve using the (fget) BRCA_clinical dataset is most similar.
+
+
+
+
+
+
+
+
+##################
+### Repeat Survival analysis with STAD data to see if patient_reason_death explains difference in vitality status
+#################
+
+
+#############
+###From STAD_clinical.tsv:
+
+STAD_clinical<- read.delim("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/clinical/STAD_clinical.tsv", header = TRUE, stringsAsFactors = FALSE)
+STAD_clinical$tcga_participant_barcode
+colnames(STAD_clinical)
+STAD_clinical[1,1]
+
+#############
+###From : ....merged_only_clinical_clin_format.txt
+
+
+STAD_clinical_firebrowse <- t(read.delim("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/Survival analysis and gene expression tutorial/STAD/gdac.broadinstitute.org_STAD.Merge_Clinical.Level_1.2016012800.0.0/STAD.merged_only_clinical_clin_format.txt",header=T, row.names=1))
+
+dim(STAD_clinical_firebrowse)
+STAD_clinical_firebrowse[1:2, 1:10]
+colnames(STAD_clinical_firebrowse)
+STAD_clinical_firebrowse[1,1]
+
+##Get patient IDs:
+ind_keep <- grep("patient.bcr_patient_barcode",colnames(STAD_clinical_firebrowse))
+clinical_IDS<- STAD_clinical_firebrowse[,ind_keep]
+clinical_IDS
+
+
+
+
+##########
+### Create data for survival analysis using: merged_only_clinical_clin_format file
+##Follow instrictions from: https://www.biostars.org/p/153013/
+
+# get the columns that contain data we can use: days to death, new tumor event, last day contact to....
+ind_keep <- grep('days_to_new_tumor_event_after_initial_treatment',colnames(STAD_clinical_firebrowse))
+ind_keep
+
+# this is a bit tedious, since there are numerous follow ups, let's collapse them together and keep the first value (the higher one) if more than one is available
+new_tum <- as.matrix(STAD_clinical_firebrowse[,ind_keep])
+dim(new_tum)
+new_tum_collapsed <- c()
+for (i in 1:dim(new_tum)[1]){
+  if ( sum ( is.na(new_tum[i,])) < dim(new_tum)[2]){
+    m <- min(new_tum[i,],na.rm=T)
+    new_tum_collapsed <- c(new_tum_collapsed,m)
+  } else {
+    new_tum_collapsed <- c(new_tum_collapsed,'NA')
+  }
+}
+
+new_tum_collapsed
+
+## comment: Why more than one value for death? Use min or max values?
+
+# do the same to death
+ind_keep <- grep('days_to_death',colnames(STAD_clinical_firebrowse))
+death <- as.matrix(STAD_clinical_firebrowse[,ind_keep])
+death_collapsed <- c()
+for (i in 1:dim(death)[1]){
+  if ( sum ( is.na(death[i,])) < dim(death)[2]){
+    m <- max(death[i,],na.rm=T)
+    death_collapsed <- c(death_collapsed,m)
+  } else {
+    death_collapsed <- c(death_collapsed,'NA')
+  }
+}
+
+death_collapsed
+
+
+# and days last follow up here we take the most recent which is the max number
+ind_keep <- grep('days_to_last_followup',colnames(STAD_clinical_firebrowse))
+fl <- as.matrix(STAD_clinical_firebrowse[,ind_keep])
+fl_collapsed <- c()
+for (i in 1:dim(fl)[1]){
+  if ( sum (is.na(fl[i,])) < dim(fl)[2]){
+    m <- max(fl[i,],na.rm=T)
+    fl_collapsed <- c(fl_collapsed,m)
+  } else {
+    fl_collapsed <- c(fl_collapsed,'NA')
+  }
+}
+
+fl_collapsed
+
+# and put everything together
+STAD_clinical_firebrowse_all_clin <- data.frame(new_tum_collapsed,death_collapsed,fl_collapsed)
+colnames(STAD_clinical_firebrowse_all_clin) <- c('new_tumor_days', 'death_days', 'followUp_days')
+head(STAD_clinical_firebrowse_all_clin, 20)
+tail(STAD_clinical_firebrowse_all_clin, 20)
+
+# create vector with time to new tumor containing data to censor for new_tumor
+STAD_clinical_firebrowse_all_clin$new_time <- c()
+for (i in 1:length(as.numeric(as.character(STAD_clinical_firebrowse_all_clin$new_tumor_days)))){
+  STAD_clinical_firebrowse_all_clin$new_time[i] <- ifelse ( is.na(as.numeric(as.character(STAD_clinical_firebrowse_all_clin$new_tumor_days))[i]),
+                                   as.numeric(as.character(STAD_clinical_firebrowse_all_clin$followUp_days))[i],as.numeric(as.character(STAD_clinical_firebrowse_all_clin$new_tumor_days))[i])
+}
+
+
+# create vector time to death containing values to censor for death
+STAD_clinical_firebrowse_all_clin$new_death <- c()
+for (i in 1:length(as.numeric(as.character(STAD_clinical_firebrowse_all_clin$death_days)))){
+  STAD_clinical_firebrowse_all_clin$new_death[i] <- ifelse ( is.na(as.numeric(as.character(STAD_clinical_firebrowse_all_clin$death_days))[i]),
+                                    as.numeric(as.character(STAD_clinical_firebrowse_all_clin$followUp_days))[i],as.numeric(as.character(STAD_clinical_firebrowse_all_clin$death_days))[i])
+}
+
+head(STAD_clinical_firebrowse_all_clin, 20)
+
+# create vector for death censoring
+ind_keep <- grep('patient.vital_status',colnames(STAD_clinical_firebrowse))
+ind_keep
+STAD_clinical_firebrowse[,ind_keep]
+table(STAD_clinical_firebrowse[,ind_keep])
+# alive dead
+# 356    87 
+
+STAD_clinical_firebrowse_all_clin$death_event <- ifelse(STAD_clinical_firebrowse[,ind_keep] == 'alive', 0,1)
+
+#finally add row.names to clinical
+length(clinical_IDS)
+nrow(STAD_clinical_firebrowse_all_clin)
+rownames(STAD_clinical_firebrowse_all_clin) <- clinical_IDS
+
+head(STAD_clinical_firebrowse_all_clin, 20)
+
+# run survival analysis
+# s <- survfit(Surv(as.numeric(as.character(all_clin$new_death)),all_clin$death_event)~1)
+# s1 <- tryCatch(survdiff(Surv(as.numeric(as.character(all_clin$new_death))[ind_clin],all_clin$death_event[ind_clin])~event_rna[ind_gene,ind_tum]), error = function(e) return(NA))
+
+##Overall survival:
+s<- survfit(Surv(new_death, death_event == 1)~1, data = STAD_clinical_firebrowse_all_clin)
+s
+summary(s)
+plot(s)
+
+##Disease free:?
+##Create a new column for 1 = had new tumour event?
+s1<- survfit(Surv(new_time, death_event == 1)~1, data = STAD_clinical_firebrowse_all_clin)
+s1
+summary(s1)
+plot(s1)
+
+
+
+
+
+################
+### Create data for survival analysis using :STAD_clinical file
+
+##As far as I am awars there is no tumour free time in the data
+
+# do the same to death
+ind_keep <- grep('days_to_death',colnames(STAD_clinical))
+ind_keep
+death2 <- as.matrix(STAD_clinical[,ind_keep])
+death2
+death_collapsed2 <- c()
+for (i in 1:dim(death2)[1]){
+  if ( sum ( is.na(death2[i,])) < dim(death2)[2]){
+    m <- max(death2[i,],na.rm=T)
+    death_collapsed2 <- c(death_collapsed2,m)
+  } else {
+    death_collapsed2 <- c(death_collapsed2,'NA')
+  }
+}
+
+death_collapsed2
+
+
+# and days last follow up here we take the most recent which is the max number
+ind_keep <- grep('days_to_last_followup',colnames(STAD_clinical))
+fl2 <- as.matrix(STAD_clinical[,ind_keep])
+fl_collapsed2 <- c()
+for (i in 1:dim(fl2)[1]){
+  if ( sum (is.na(fl2[i,])) < dim(fl2)[2]){
+    m <- max(fl2[i,],na.rm=T)
+    fl_collapsed2 <- c(fl_collapsed2,m)
+  } else {
+    fl_collapsed2 <- c(fl_collapsed2,'NA')
+  }
+}
+
+fl_collapsed2
+
+# and put everything together
+STAD_clinical_all_clin2 <- data.frame(death_collapsed2,fl_collapsed2)
+colnames(STAD_clinical_all_clin2) <- c('death_days', 'followUp_days')
+head(STAD_clinical_all_clin2, 20)
+tail(STAD_clinical_all_clin2, 20)
+
+
+# create vector time to death containing values to censor for death
+STAD_clinical_all_clin2$new_death <- c()
+for (i in 1:length(as.numeric(as.character(STAD_clinical_all_clin2$death_days)))){
+  STAD_clinical_all_clin2$new_death[i] <- ifelse ( is.na(as.numeric(as.character(STAD_clinical_all_clin2$death_days))[i]),
+                                     as.numeric(as.character(STAD_clinical_all_clin2$followUp_days))[i],as.numeric(as.character(STAD_clinical_all_clin2$death_days))[i])
+}
+
+head(STAD_clinical_all_clin2, 20)
+
+# create vector for death censoring
+ind_keep <- grep('vital_status',colnames(STAD_clinical))
+STAD_clinical[,ind_keep]
+table(STAD_clinical[,ind_keep])
+# alive dead
+# 268   175 (this analysis)
+# 356    87 (previous analysis)
+
+STAD_clinical_all_clin2$death_event <- ifelse(STAD_clinical[,ind_keep] == 'alive', 0,1)
+
+##finally add row.names to clinical
+clinical_IDS2<- STAD_clinical$tcga_participant_barcode
+clinical_IDS2
+length(clinical_IDS2)
+nrow(STAD_clinical_all_clin2)
+rownames(STAD_clinical_all_clin2) <- clinical_IDS2
+
+head(STAD_clinical_all_clin2, 20)
+
+# run survival analysis
+# s <- survfit(Surv(as.numeric(as.character(all_clin$new_death)),all_clin$death_event)~1)
+# s1 <- tryCatch(survdiff(Surv(as.numeric(as.character(all_clin$new_death))[ind_clin],all_clin$death_event[ind_clin])~event_rna[ind_gene,ind_tum]), error = function(e) return(NA))
+
+##Overall survival:
+s<- survfit(Surv(new_death, death_event == 1)~1, data = STAD_clinical_all_clin2)
+s
+summary(s)
+plot(s)
+
+##Disease free:?
+# s1<- survfit(Surv(new_time, death_event == 1)~1, data = all_clin2)
+# s1
+# summary(s1)
+# plot(s1)
+
+##Comment: On first glance the survival analysis using the two datasets is quite different. Need to
+#Find out why and how different they are.
+
+
+##############
+### Compare patient IDs between two datasets:
+
+STAD_clinical_ID_dataset_fget<- sort(clinical_IDS2, decreasing = FALSE)
+STAD_clinical_ID_dataset1_firehose<- as.vector(toupper(clinical_IDS))
+STAD_clinical_ID_dataset1_firehose<- sort(STAD_clinical_ID_dataset1_firehose, decreasing = FALSE)
+
+STAD_clinical_ID_dataset_fget[1:10]
+STAD_clinical_ID_dataset1_firehose[1:10]
+identical(STAD_clinical_ID_dataset_fget, STAD_clinical_ID_dataset1_firehose)
+
+##Comment: Samples are the same between datasets
+
+
+############
+### Compare vital status between datasets
+
+STAD_clinical_firebrowse_all_clin$ID<- as.vector(toupper(clinical_IDS))
+head(STAD_clinical_firebrowse_all_clin, 20)
+
+STAD_clinical_all_clin2$ID<- clinical_IDS2
+head(STAD_clinical_all_clin2, 20)
+
+##Order dataframes based on patient barcode:
+STAD_clinical_firebrowse_all_clin<- STAD_clinical_firebrowse_all_clin[order(STAD_clinical_firebrowse_all_clin$ID),]
+STAD_clinical_all_clin2<- STAD_clinical_all_clin2[order(STAD_clinical_all_clin2$ID),]
+
+identical(STAD_clinical_firebrowse_all_clin$death_days, STAD_clinical_all_clin2$death_days)
+identical(STAD_clinical_firebrowse_all_clin$death_event, STAD_clinical_all_clin2$death_event)
+
+indicies<- which(!(STAD_clinical_firebrowse_all_clin$death_event == STAD_clinical_all_clin2$death_event))
+indicies
+# a<- c(0, 0, 1, 0, 1, 1)
+# b<- c(0, 0, 1, 1, 0, 0)
+# which(a %in% b)
+# match(a,b)
+# which(!(a==b))
+
+all_clin_combined<- cbind(STAD_clinical_firebrowse_all_clin, STAD_clinical_all_clin2)
+head(all_clin_combined)
+
+all_clin_combined[indicies,]
+
+##Comment: Differences in datasets not related to cause of death. Therefore, maybe firebrowse dataset is older?
+##From now on use survival data from fget downloaded data but get days_to_tumor_event_after_initial_treatment
+#to determine disease free status?
+
 
