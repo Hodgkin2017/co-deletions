@@ -236,7 +236,9 @@ ggplot(co_deletions_distance_from_target_gene_plot_table, aes(x=Comparison_gene,
   facet_wrap(~Target_gene, scales = "free_x") + 
   #theme(legend.position="none") +
   theme(legend.position="bottom") +
-  theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5))
+  theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5)) 
+#+ geom_vline(xintercept = Target_gene)
+
 
 ##Save plot
 ggsave("BRCA_co-deletion_distance_2genesaway_lineplot.tiff",width = 16, height = 12, dpi = 100)

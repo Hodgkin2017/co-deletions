@@ -137,7 +137,7 @@ cancer_status <- as.matrix(clinical[,ind_keep])
 cancer_status
 cancer_status_collapsed <- c()
 for (i in 1:dim(cancer_status)[1]){
-  if ( sum ( is.na(cancer_status2[i,])) < dim(cancer_status)[2]){
+  if ( sum ( is.na(cancer_status[i,])) < dim(cancer_status)[2]){
     m <- max(cancer_status[i,],na.rm=T)
     cancer_status_collapsed <- c(cancer_status_collapsed,m)
   } else {
@@ -181,17 +181,22 @@ for (i in 1:dim(fl)[1]){
 fl_collapsed
 
 # and put everything together
-all_clin <- data.frame(new_tum_collapsed,death_collapsed,fl_collapsed)
-colnames(all_clin) <- c('new_tumor_days', 'death_days', 'followUp_days')
+all_clin <- data.frame(new_tum_collapsed,cancer_status_collapsed, death_collapsed,fl_collapsed)
+colnames(all_clin) <- c('new_tumor_days', "cancer_status", 'death_days', 'followUp_days')
 head(all_clin, 20)
 tail(all_clin, 20)
 
 # create vector with time to new tumor containing data to censor for new_tumor
 all_clin$new_time <- c()
 for (i in 1:length(as.numeric(as.character(all_clin$new_tumor_days)))){
-  all_clin$new_time[i] <- ifelse ( is.na(as.numeric(as.character(all_clin$new_tumor_days))[i]),
+  ## Combine new_tumor days and followUp_days
+  all_clin$new_time[i] <- ifelse (is.na(as.numeric(as.character(all_clin$new_tumor_days)))[i],
                                    as.numeric(as.character(all_clin$followUp_days))[i],as.numeric(as.character(all_clin$new_tumor_days))[i])
-}
+  ## If no followUp_days or new_tumor_days then take death_days
+  all_clin$new_time[i]<- ifelse (is.na(as.numeric(as.character(all_clin$new_time)))[i],
+                                 as.numeric(as.character(all_clin$death_days))[i], as.numeric(as.character(all_clin$new_time))[i])
+
+  }
 
 
 # create vector time to death containing values to censor for death
@@ -217,24 +222,25 @@ length(clinical_IDS)
 nrow(all_clin)
 rownames(all_clin) <- clinical_IDS
 
-head(all_clin, 20)
+head(all_clin, 40)
 
 # run survival analysis
 # s <- survfit(Surv(as.numeric(as.character(all_clin$new_death)),all_clin$death_event)~1)
 # s1 <- tryCatch(survdiff(Surv(as.numeric(as.character(all_clin$new_death))[ind_clin],all_clin$death_event[ind_clin])~event_rna[ind_gene,ind_tum]), error = function(e) return(NA))
 
 ##Overall survival:
-s<- survfit(Surv(new_death, death_event == 1)~1, data = all_clin)
+s<- survfit(Surv(new_death, event = death_event == 1)~1, data = all_clin)
 s
 summary(s)
 plot(s)
 
 ##Disease free:?
 ##Create a new column for 1 = had new tumour event?
-s1<- survfit(Surv(new_time, death_event == 1)~1, data = all_clin)
+s1<- survfit(Surv(new_time, event = death_event == 1)~1, data = all_clin)
 s1
 summary(s1)
 plot(s1)
+plot(s1, mark.time = T)
 
 
 
@@ -407,6 +413,29 @@ all_clin_combined[indicies,]
 
 
 
+############
+##Use disease free survival with (new_time) with death_event from fbget data table (BRCA_clinical)
+
+all_clin2_with_DFS<- cbind(all_clin2, ID2 = all_clin$ID, new_time = all_clin$new_time)
+head(all_clin2_with_DFS, 20)
+
+identical(all_clin2_with_DFS$ID, as.character(all_clin2_with_DFS$ID2))
+
+s<- survfit(Surv(new_death, death_event == 1)~1, data = all_clin2_with_DFS)
+s
+summary(s)
+plot(s)
+plot(s, mark.time = T)
+
+##This individual does not have death time:
+all_clin2_with_DFS[932,]
+
+##Disease free survival
+s1<- survfit(Surv(new_time, death_event == 1)~1, data = all_clin2_with_DFS)
+s1
+summary(s1)
+plot(s1)
+plot(s1, mark.time = T)
 
 ##################
 ### Repeat Survival analysis with STAD data to see if patient_reason_death explains difference in vitality status
@@ -696,5 +725,32 @@ all_clin_combined[indicies,]
 ##Comment: Differences in datasets not related to cause of death. Therefore, maybe firebrowse dataset is older?
 ##From now on use survival data from fget downloaded data but get days_to_tumor_event_after_initial_treatment
 #to determine disease free status?
+
+
+
+
+################
+### Use BRCA data from cbioportal to plot survival plots
+###############
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
