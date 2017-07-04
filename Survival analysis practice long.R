@@ -754,11 +754,13 @@ patient_IDs<- substr(patient_IDs, 0, 12)
 ncol(BRCA_cbioportal_clinical)
 length(unique(patient_IDs))
 
+##Find duplicate patients IDS
 indicies<- which(duplicated(patient_IDs))
 indicies
 
 BRCA_cbioportal_clinical[1:2, indicies]
 
+##Find original and repeated patient IDS
 repeated_samples<- patient_IDs[indicies]
 indicies<- which(patient_IDs %in% repeated_samples)
 indicies
@@ -837,6 +839,10 @@ ind_keep
 new_tum_collapsed<- as.numeric(BRCA_cbioportal_clinical_unique[ind_keep,])
 new_tum_collapsed
 
+#Convert months to days:
+new_tum_collapsed<- new_tum_collapsed*(365.25/12)
+new_tum_collapsed
+
 # do the same for death
 ind_keep <- grep("Death.from.Initial.Pathologic.Diagnosis.Date",rownames(BRCA_cbioportal_clinical_unique))
 ind_keep
@@ -845,14 +851,15 @@ death_collapsed
 
 
 # and days last follow up here we take the most recent which is the max number
-ind_keep <- grep('days_to_last_followup',colnames(clinical))
-fl <- as.matrix(clinical[,ind_keep])
+ind_keep <- grep("Days.to.Last.Followup",rownames(BRCA_cbioportal_clinical_unique))
+ind_keep
+fl <- as.matrix(BRCA_cbioportal_clinical_unique[,ind_keep])
 fl_collapsed<- as.numeric(BRCA_cbioportal_clinical_unique[ind_keep,])
 fl_collapsed
 
 # and put everything together
-all_clin <- data.frame(new_tum_collapsed,cancer_status_collapsed, death_collapsed,fl_collapsed)
-colnames(all_clin) <- c('new_tumor_days', "cancer_status", 'death_days', 'followUp_days')
+all_clin <- data.frame(new_tum_collapsed, death_collapsed,fl_collapsed)
+colnames(all_clin) <- c('new_tumor_days', 'death_days', 'followUp_days')
 head(all_clin, 20)
 tail(all_clin, 20)
 
@@ -877,15 +884,17 @@ for (i in 1:length(as.numeric(as.character(all_clin$death_days)))){
 }
 
 head(all_clin, 20)
+tail(all_clin, 20)
 
 # create vector for death censoring
-ind_keep <- grep('patient.vital_status',colnames(clinical))
-clinical[,ind_keep]
-table(clinical[,ind_keep])
+ind_keep <- grep("Patient.s.Vital.Status",rownames(BRCA_cbioportal_clinical_unique))
+ind_keep
+BRCA_cbioportal_clinical_unique[ind_keep,]
+table(BRCA_cbioportal_clinical_unique[ind_keep,])
 # alive dead
-# 993   104
+# 944   152
 
-all_clin$death_event <- ifelse(clinical[,ind_keep] == 'alive', 0,1)
+all_clin$death_event <- ifelse(BRCA_cbioportal_clinical_unique[ind_keep,] == 'Alive', 0,1)
 
 #finally add row.names to clinical
 length(clinical_IDS)
@@ -893,10 +902,6 @@ nrow(all_clin)
 rownames(all_clin) <- clinical_IDS
 
 head(all_clin, 40)
-
-# run survival analysis
-# s <- survfit(Surv(as.numeric(as.character(all_clin$new_death)),all_clin$death_event)~1)
-# s1 <- tryCatch(survdiff(Surv(as.numeric(as.character(all_clin$new_death))[ind_clin],all_clin$death_event[ind_clin])~event_rna[ind_gene,ind_tum]), error = function(e) return(NA))
 
 ##Overall survival:
 s<- survfit(Surv(new_death, event = death_event == 1)~1, data = all_clin)
@@ -911,6 +916,44 @@ s1
 summary(s1)
 plot(s1)
 plot(s1, mark.time = T)
+range(all_clin$new_time, na.rm = TRUE)
+range(all_clin$death_days, na.rm = TRUE)
+
+table(all_clin$death_event)
+
+##Comment: Conclusion: Clinical data from CBioportal produces similar but not exactly the same graphs 
+#as shown on the CBioportal website. Use this dat from now on for my furthu analysis?
+
+##Compare sample names between the BRCA_Clinical and BRCA_cbioportal_clinical_unique
+
+BRCA_clinical[1:2, 1:10]
+BRCA_clinical$tcga_participant_barcode
+
+BRCA_cbioportal_clinical_unique[1:2, 1:10]
+colnames(BRCA_cbioportal_clinical_unique)
+
+BRCA_clinical_IDs<- BRCA_clinical$tcga_participant_barcode
+BRCA_cbioportal_clinical_unique_clinical_IDs<- colnames(BRCA_cbioportal_clinical_unique)
+
+##Exactly the same patient samples between both datasets
+which(!(BRCA_clinical_IDs %in% BRCA_cbioportal_clinical_unique))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
