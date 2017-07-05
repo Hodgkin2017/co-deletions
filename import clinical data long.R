@@ -356,5 +356,135 @@ ALL_clinical_table<- rbind()
 ##Save data
 
 
+#######################
+### Create a list of Clinical data using fbget
+######################
+
+setwd("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/clinical/fbget/")
+
+file_names<-dir()
+file_names
+clinical_fbget_list <- vector("list", length(file_names))
+for (i in 1: length(file_names)){
+  clinical_fbget_list[[i]]<-read.delim(file_names[i], header = TRUE, stringsAsFactors = FALSE)
+  print(file_names[i])
+}
+names(clinical_fbget_list)<- file_names
+clinical_fbget_list[[1]][1:2, 1:4]
+
+##Save data
+saveRDS(clinical_fbget_list, file = "/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/clinical_fbget_list.rds")
+
+#######################
+### Create a list of Clinical data obtained from CBioPortal
+######################
+
+setwd("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/clinical/cbioportal/")
+
+##Create list:
+file_names<-dir()
+file_names
+clinical_cbioportal_list <- vector("list", length(file_names))
+for (i in 1: length(file_names)){
+  clinical_cbioportal_list[[i]]<-read.delim(file_names[i], header = TRUE, stringsAsFactors = FALSE)
+  print(file_names[i])
+}
+names(clinical_cbioportal_list)<- file_names
+
+clinical_cbioportal_list[[1]][1:2, 1:5]
+
+lapply(clinical_cbioportal_list, function(x) dim(x))
+
+##Loop to Remove duplicate tumour entries
+
+for (i in 1:length(clinical_cbioportal_list)) {
+##Get sample IDs
+patient_IDs<- clinical_cbioportal_list[[i]]$Patient.ID
+
+##Find duplicate patients IDS
+indicies<- which(duplicated(patient_IDs))
+indicies
+
+#clinical_cbioportal_list[[i]][indicies, 4:6]
+
+if (any(indicies)) {
+
+##Find original and repeated patient IDS
+repeated_samples<- patient_IDs[indicies]
+indicies<- which(patient_IDs %in% repeated_samples)
+#indicies
+
+###Keep column with less NA's
+sample_pairs<- c()
+##find sample pairs:
+for (j in 1: length(indicies)){
+  sampleID<- patient_IDs[indicies[j]]
+  sampleID<- grep(sampleID,patient_IDs) 
+  sample_pairs<- cbind(sample_pairs, sampleID)
+}
+#sample_pairs
 
 
+##keep unique sample_pairs columns only
+sample_pairs<- sample_pairs[,!duplicated(sample_pairs, MARGIN = 2)]
+sample_pairs<- as.data.frame(sample_pairs)
+#sample_pairs
+
+
+## Identify which column has the lowest number of NAs
+n<- nrow(sample_pairs)
+df<- matrix(NA, nrow = 1, ncol = n)
+#df
+which_row_to_remove<- c()
+
+for (a in 1:ncol(sample_pairs)){
+  
+  for (b in 1:n){
+    df[1,b]<- sum(is.na(clinical_cbioportal_list[[i]][sample_pairs[b,a],]))
+  }
+  which_row<- which(max(df[1,]) == df[1,])
+  which_row_to_remove<-c(which_row_to_remove, sample_pairs[which_row, a])
+}
+# sample_pairs
+# which_row_to_remove
+which_row_to_remove<- as.vector(which_row_to_remove)
+
+clinical_cbioportal_list[[i]]<- clinical_cbioportal_list[[i]][-which_row_to_remove,]
+} else {}
+
+print(names(clinical_cbioportal_list[i]))
+}
+
+sapply(clinical_cbioportal_list, function(x) dim(x))
+sapply(clinical_fbget_list, function(x) dim(x))
+sapply(threshold_CNV_all_table_loc ,function(x) dim(x)-11)
+
+###############
+###Test I have removed duplicate samples from clinical_cbioportal_list:
+
+##Get sample IDs
+for (i in 1:length(clinical_cbioportal_list)){
+patient_IDs<- clinical_cbioportal_list[[i]]$Patient.ID
+
+indicies<- which(duplicated(patient_IDs))
+print(names(clinical_cbioportal_list[i]))
+print(indicies)
+}
+
+#############
+###Test I have removed duplicate samples from clinical_fbget_list:
+
+##Get sample IDs
+for (i in 1:length(clinical_fbget_list)){
+  patient_IDs<- clinical_fbget_list[[i]]$Patient.ID
+  
+  indicies<- which(duplicated(patient_IDs))
+  print(names(clinical_fbget_list[i]))
+  print(indicies)
+}
+
+#################
+###Compare number of 
+sapply(clinical_cbioportal_list, function(x) nrow(x))
+sapply(clinical_fbget_list, function(x) nrow(x))
+sapply(threshold_short_cnv_list_loc, function(x) ncol(x)-11)

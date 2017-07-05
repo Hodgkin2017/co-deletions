@@ -45,7 +45,9 @@ threshold_short_cnv_list<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics
 threshold_short_cnv_list_loc<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/threshold_short_cnv_list_loc.rds")
 ## List of target genes 1:
 target_genes<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/target_genes1.rds")
-
+## Comprehensive clinical data from firehose using fbget
+clinical_fbget_list<- readRDS(file = "/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/clinical_fbget_list.rds")
+## Concise clinical data from cbioportal
 
 
 
