@@ -455,6 +455,10 @@ clinical_cbioportal_list[[i]]<- clinical_cbioportal_list[[i]][-which_row_to_remo
 print(names(clinical_cbioportal_list[i]))
 }
 
+setwd("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions")
+saveRDS(clinical_cbioportal_list, file = "./R workspaces/clinical_cbioportal_list")
+
+
 sapply(clinical_cbioportal_list, function(x) dim(x))
 sapply(clinical_fbget_list, function(x) dim(x))
 sapply(threshold_CNV_all_table_loc ,function(x) dim(x)-11)
