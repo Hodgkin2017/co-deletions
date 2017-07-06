@@ -229,7 +229,7 @@ deletion_category_gene_name_table<- cbind.data.frame(gene = row.names(test4[[2]]
 deletion_category_gene_name_table$gene<-as.character(deletion_category_gene_name_table$gene)
 deletion_category_gene_name_table[1:2, 1:5]
 
-
+##Filter deletion category table by current gene of interest i.e. proximal gene
 deletion_category<- deletion_category_gene_name_table %>% 
   dplyr::filter(gene == proximal_gene) %>%
   dplyr::select(-gene)
@@ -323,6 +323,128 @@ table(clinical_survival_deletion_category_1_2$deletion_category)
 summary(coxph(Surv(new_death, event = death_event == 1)~deletion_category, data = clinical_survival_deletion_category_1_2))
 ##Disease free survival
 summary(coxph(Surv(disease_free_survival, event = death_event == 1)~deletion_category, data = clinical_survival_deletion_category_1_2))
+
+##############
+### Test Maria's script with my data (Overall survival):
+
+# construct survival object:
+OSsurvObj <- with(clinical_survival_deletion_category, Surv(new_death, death_event==1))
+OSsurvObj
+
+# survival by deletion type/category:
+performSurvivalAnalysis(OSsurvObj,clinical_survival_deletion_category$deletion_category, 
+                        plotTitle = "Survival by sex")
+
+
+###############
+###Function that will create table for a target gene of surrounding genes (rows) and 
+#p-value, HR, mean survival and number of individuals per group (columns)
+
+##parameters:
+surv <- with(clinical_survival_deletion_category, Surv(new_death, death_event==1))
+surv
+dfCov<- clinical_survival_deletion_category$deletion_category
+dfCov
+plot_graph = TRUE
+target_gene<- gene_information_list[[2]][[1]]
+x<- test4[[2]]
+proximal_gene<- "MTAP"
+max_survival<- max(clinical_survival_deletion_category$death_days, na.rm = T)
+##############
+
+##Create empty vector
+# survival_stats<- as.data.frame(matrix(NA, ncol = 4, nrow = nrow(x)))
+# dim(survival_stats)
+
+performSurvivalAnalysis <- function(surv,dfCov,plotTitle="",ylabel="Overall survival", plot_graph = FALSE, target_gene) {
+
+  ##Create empty vector to store stats
+  survival_stats<- rep(NA, 8)
+  
+  ##Fit Kaplain meier graph to one co-variable to compare data with :
+if (is.null(ncol(dfCov))) {
+  fittedSurv <- survfit(surv~dfCov, na.action = na.exclude)
+  #fittedSurv_mean<- print(fittedSurv, print.rmean=TRUE)
+  fittedSurv_mean<- survival:::survmean(fittedSurv, rmean="individual") 
+  #survival:::survmean(fittedSurv, rmean="common") 
+  df.categ <- cbind(sapply(names(fittedSurv$strata), function(x) strsplit(x,"=")[[1]][2]),
+                    fittedSurv$n)
+  df.categ <- data.frame(df.categ)
+} else {
+  ## Fit Kaplain meier graph to More than one co-varaible:
+  fittedSurv <- survfit(surv~dfCov[,1]+dfCov[,2], na.action = na.exclude)
+  df.categ <- melt(fittedSurv$strata)
+  df.categ$name <- rownames(df.categ)
+}
+##Get category names for one variable
+categNames <- apply(df.categ, 1, function(x) paste0(x[1]," (",x[2],")"))
+if (!is.null(ncol(dfCov))) {
+  categNames <- sapply(categNames, function(x) gsub("dfCov\\[, 1\\]",colnames(dfCov)[1],x))
+  categNames <- sapply(categNames, function(x) gsub("dfCov\\[, 2\\]",colnames(dfCov)[2],x))
+}
+
+if (plot_graph == TRUE) {
+plot(fittedSurv, main=plotTitle,
+     xlab="Time (days)", ylab=ylabel, 
+     col=brewer.pal(9,"Set1"), mark.time=T)
+legend("topright", legend=categNames, 
+       col=brewer.pal(9,"Set1"), 
+       lwd=2, cex=0.9)
+}
+print("Chi-sq test:")
+if (is.null(ncol(dfCov))) {
+  print(survdiff(surv~dfCov,rho = 0))
+} else {
+  print(survdiff(surv~dfCov[,1]+dfCov[,2],rho = 0))
+}
+
+print("Cox PH test:")
+if (is.null(ncol(dfCov))) {
+  print(summary(coxph(surv~dfCov)))
+  coxfit <- coxph(surv~dfCov)
+} else {
+  print(summary(coxph(surv~dfCov[,1]+dfCov[,2])))
+  coxfit <- coxph(surv~dfCov[,1]+dfCov[,2])
+}
+
+# print("Kaplan-meier:")
+# if (is.null(ncol(dfCov))) {
+#   print(summary(coxph(surv~dfCov)))
+#   coxfit <- coxph(surv~dfCov)
+# } else {
+#   print(summary(coxph(surv~dfCov[,1]+dfCov[,2])))
+#   coxfit <- coxph(surv~dfCov[,1]+dfCov[,2])
+# }
+
+if (plot_graph == TRUE) {
+text(1000,0,labels=paste0("HR=",round(exp(summary(coxfit)$coefficients[1]),2),"; p=",
+                          round(summary(coxfit)$logtest[3],3)))
+}
+
+survival_stats[1]<- target_gene
+survival_stats[2]<- proximal_gene
+survival_stats[3]<- round(summary(coxfit)$logtest[3],2)
+survival_stats[4]<- round(summary(coxfit)$waldtest[3],2)
+survival_stats[5]<- round(summary(coxfit)$sctest[3],2)
+survival_stats[6]<- round(summary(coxfit)$coefficients[2],2)
+survival_stats[7]<- paste(fittedSurv_mean$matrix[,5], collapse = " ") #mean
+survival_stats[8]<-  paste(fittedSurv_mean$matrix[,3], collapse = " ")
+
+names(survival_stats)<-c("target_gene", "proximal_gene", "p-value_Likelihood_ratio_test",
+                            "p-value_Wald_test", "p-value_logrank_test", "Hazard_ratio", "mean_survival", 
+                            "number_of_samples_per_category")
+return(survival_stats)
+}
+
+##############
+### Test function:
+performSurvivalAnalysis(surv,dfCov, plotTitle="title",ylabel="Overall survival", plot_graph = FALSE, target_gene = target_gene )
+
+
+
+
+
+
 
 
 
