@@ -492,3 +492,25 @@ for (i in 1:length(clinical_fbget_list)){
 sapply(clinical_cbioportal_list, function(x) nrow(x))
 sapply(clinical_fbget_list, function(x) nrow(x))
 sapply(threshold_short_cnv_list_loc, function(x) ncol(x)-11)
+
+
+################
+##Create a list for each cancer type containing all survival data: Overall Survival data from fbget 
+#and disease free survival from cbioportal 
+
+survival_list
+
+clinical_cbioportal_list[[1]]$Patient.ID
+
+clinical_cbioportal_list[[1]]$
+
+
+
+
+
+
+
+
+
+
+
