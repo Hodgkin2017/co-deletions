@@ -14,6 +14,9 @@ library(org.Hs.eg.db)
 library(biomaRt)
 library(parallel)
 library(ggplot2)
+library(survival)
+
+
 
 ###################
 ###Set working directory

@@ -14,7 +14,7 @@
 
 
 ###############
-### Characterise Tunours based on their type of deletion and perform survival analysis:
+### Characterise Tumours based on their type of deletion and perform survival analysis:
 ##############
 
 ##Parameters:
@@ -39,7 +39,7 @@ target_gene = gene_information[[1]]
 #of the target gene and each suurounbding gene 
 
 categorise_deletion_type_around_target_gene<- function(cnv.table, target_gene, Chromosome, selection_criteria, threshold = -2, 
-                                                       column_start = 11, start = TRUE, remove_NA = TRUE, Cytoband = FALSE) {
+                                                       deletion = TRUE, column_start = 11, start = TRUE, remove_NA = TRUE, Cytoband = FALSE) {
 
 
 #############
@@ -184,12 +184,15 @@ return(deletion_category_table)
 
 x<- gene_information_list[[2]]
 distance<- 2.5e+06
+##BRCA CNV table:
+cnv.table<- threshold_short_cnv_list_loc[[1]]
+
 test3<- categorise_deletion_type_around_target_gene(cnv.table = cnv.table, target_gene = x[[1]], Chromosome = x[[2]], 
-                                            selection_criteria = c(x[[4]] - distance, x[[5]]+ distance), threshold = -2)
+                                            selection_criteria = c(x[[4]] - distance, x[[5]]+ distance), threshold = -2, deletion = TRUE)
 
-identical(deletion_category_table, test3)
+#identical(deletion_category_table, test3)
 
-##Test function in lapply:
+##Test function in lapply with a list of target genes:
 my_list<- gene_information_list[1:2]
 test4<- lapply(my_list, function(x) categorise_deletion_type_around_target_gene(cnv.table = cnv.table, target_gene = x[[1]], Chromosome = x[[2]], 
                                                                              selection_criteria = c(x[[4]] - distance, x[[5]]+ distance), threshold = -2))
@@ -200,18 +203,28 @@ identical(test4[[2]], test3)
 test4[[1]][,1:3]
 test4[[2]][,1:3]
 
+
+
+
+
+
+
+
+
+
 ####################
 ###Perform survival analysis for CDKN2A and MTAP
+####################
 
 #Parameters:
 test4[[2]][,1:3]
 proximal_gene<- "MTAP"
 #survival data
-clinical_fbget_list
+clinical_survival_list[[1]]
 
 ####################
-##Get gene deletion data for MTAP
-
+###Get gene deletion data for MTAP
+## Add extra column with patient ID:
 deletion_category_gene_name_table<- cbind.data.frame(gene = row.names(test4[[2]]) ,test4[[2]])
 deletion_category_gene_name_table$gene<-as.character(deletion_category_gene_name_table$gene)
 deletion_category_gene_name_table[1:2, 1:5]
@@ -230,28 +243,86 @@ deletion_category
 
 rownames(deletion_category)
 
-deletion_category
+deletion_category_patient_ID<- rownames(deletion_category) %>%
+  substr(0, 12) %>%
+  gsub("\\.", "-", .) %>%
+  cbind.data.frame(patient_IDs = ., deletion_category)
 
+deletion_category_patient_ID$patient_IDs<- as.character(deletion_category_patient_ID$patient_IDs)
 
-BRCA_cnv_names<- substr(BRCA_cnv_names, 0, 12)
-BRCA_cnv_names<- gsub("\\.", "-", BRCA_cnv_names)
-
-
-
-
-
-
-
-
+class(deletion_category_patient_ID$patient_IDs)
+deletion_category_patient_ID
+clinical_survival_list[[1]]$patient_IDs
 
 
 
+clinical_survival_deletion_category<- dplyr::full_join(clinical_survival_list[[1]], deletion_category_patient_ID, by = "patient_IDs")
+head(clinical_survival_deletion_category, 40)
+dim(clinical_survival_deletion_category)
+dim(clinical_survival_list[[1]])
+##Comment 18 tumours do not match between clinical and cnv data
+sum(is.na(clinical_survival_deletion_category$deletion_category))
+sum(is.na(test4[[2]][2,]))
 
 
 
 
+########
+### Survival analysis
+
+##Overall survival:
+s<- survfit(Surv(new_death, event = death_event == 1)~1, data = clinical_survival_deletion_category)
+s
+summary(s)
+plot(s)
+
+##Disease free survival
+s1<- survfit(Surv(disease_free_survival, event = death_event == 1)~1, data = clinical_survival_deletion_category)
+s1
+summary(s1)
+plot(s1)
+plot(s1, mark.time = T)
+
+##Overall survival by deletion_category
+
+s<- survfit(Surv(new_death, event = death_event == 1)~deletion_category, data = clinical_survival_deletion_category)
+s
+summary(s)
+plot(s)
+print(survfit(Surv(new_death, event = death_event == 1)~deletion_category, data = clinical_survival_deletion_category), print.rmean=TRUE)
+
+##Disease free survival by deletion_category
+s1<- survfit(Surv(disease_free_survival, event = death_event == 1)~deletion_category, data = clinical_survival_deletion_category)
+s1
+summary(s1)
+plot(s1)
+plot(s1, mark.time = T)
+
+###############
+## log-rank test:
+
+#surv_object<- Surv(disease_free_survival, event = death_event == 1, data = clinical_survival_deletion_category)
+survdiff(Surv(disease_free_survival, event = death_event == 1)~deletion_category, data = clinical_survival_deletion_category)
+
+###############
+##Cox-ph model:
+
+coxph(Surv(disease_free_survival, event = death_event == 1)~deletion_category, data = clinical_survival_deletion_category)
+summary(coxph(Surv(disease_free_survival, event = death_event == 1)~deletion_category, data = clinical_survival_deletion_category))
 
 
+#############
+##Cox-ph model using just deletion_categories 1 and 2 only!
+
+clinical_survival_deletion_category_1_2<- clinical_survival_deletion_category %>%
+  dplyr::filter(deletion_category == 1 | deletion_category == 2)
+
+table(clinical_survival_deletion_category_1_2$deletion_category)
+
+##Overall survival:
+summary(coxph(Surv(new_death, event = death_event == 1)~deletion_category, data = clinical_survival_deletion_category_1_2))
+##Disease free survival
+summary(coxph(Surv(disease_free_survival, event = death_event == 1)~deletion_category, data = clinical_survival_deletion_category_1_2))
 
 
 
@@ -263,7 +334,7 @@ BRCA_cnv_names<- gsub("\\.", "-", BRCA_cnv_names)
 #target gene and proximal gene (2), proximal gene only (3) or deletion in neither gene (4)
 
 ###########
-## Perform survival analysis and record p-value and mean/median survival
+## Perform survival analysis and record p-value and mean/median survival, number of samples tested
 #print(survfit(my.surv ~ 1), print.rmean=TRUE)
 
 
