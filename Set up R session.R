@@ -49,7 +49,8 @@ target_genes<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships
 clinical_fbget_list<- readRDS(file = "./R workspaces/clinical_fbget_list.rds")
 ## Concise clinical data from cbioportal
 clinical_cbioportal_list<- readRDS(file = "./R workspaces/clinical_cbioportal_list")
-
+## List of Overall survival and disease free survival
+clinical_survival_list<- readRDS(file = "./R workspaces/clinical_survival_list")
 
 
 

@@ -502,15 +502,236 @@ survival_list
 
 clinical_cbioportal_list[[1]]$Patient.ID
 
-clinical_cbioportal_list[[1]]$
+x<- clinical_cbioportal_list[[1]]
+x$Patient.ID
+
+  
+###################
+### Create table using BRCA cbioportal dataset to plot survival data:
+
+##Get patient IDs:
+clinical_IDS<- x$Patient.ID
+
+# get the columns that contain data we can use: days to death, new tumor event, last day contact to....
+new_tum_collapsed<- as.numeric(x$Disease.Free..Months.)
+
+#Convert months to days:
+new_tum_collapsed<- new_tum_collapsed*(365.25/12)
+new_tum_collapsed
+
+# do the same for death
+death_collapsed<- as.numeric(x$Death.from.Initial.Pathologic.Diagnosis.Date)
+death_collapsed
+
+# and days last follow up here we take the most recent which is the max number
+followup_collapsed<- as.numeric(x$Days.to.Last.Followup)
+followup_collapsed
+
+# and put everything together
+all_clin <- data.frame(new_tum_collapsed, death_collapsed,followup_collapsed)
+colnames(all_clin) <- c('new_tumor_days', 'death_days', 'followUp_days')
+head(all_clin, 20)
+tail(all_clin, 20)
+
+# create vector with time to new tumor containing data to censor for new_tumor
+all_clin$new_time <- c()
+for (i in 1:nrow(all_clin)){
+  ## Combine new_tumor days and followUp_days
+  all_clin$new_time[i] <- ifelse (is.na(as.numeric(as.character(all_clin$new_tumor_days)))[i],
+                                  as.numeric(as.character(all_clin$followUp_days))[i],as.numeric(as.character(all_clin$new_tumor_days))[i])
+  ## If no followUp_days or new_tumor_days then take death_days
+  all_clin$new_time[i]<- ifelse (is.na(as.numeric(as.character(all_clin$new_time)))[i],
+                                 as.numeric(as.character(all_clin$death_days))[i], as.numeric(as.character(all_clin$new_time))[i])
+  
+}
+all_clin$new_time
+
+# create vector time to death containing values to censor for death
+all_clin$new_death <- c()
+for (i in 1:nrow(all_clin)){
+  all_clin$new_death[i] <- ifelse ( is.na(as.numeric(as.character(all_clin$death_days))[i]),
+                                    as.numeric(as.character(all_clin$followUp_days))[i],as.numeric(as.character(all_clin$death_days))[i])
+}
+
+head(all_clin, 20)
+tail(all_clin, 20)
+
+# create vector for death censoring
+table(x$Patient.s.Vital.Status)
+# alive dead
+# 944   152
+
+all_clin$death_event <- ifelse(x$Patient.s.Vital.Status == 'Alive', 0,1)
+
+#finally add row.names to clinical
+length(clinical_IDS)
+nrow(all_clin)
+rownames(all_clin) <- clinical_IDS
+
+head(all_clin, 40)
 
 
+all_clin_cbio<- all_clin
+
+################
+###fbget clinical data
+x<- clinical_fbget_list[[1]]
+
+clinical_IDS<- x$tcga_participant_barcode
+clinical_IDS
+
+### get the columns that contain data we can use: days to death, new tumor event, last day contact to....
+
+## do the same for death
+death_collapsed<- as.numeric(x$days_to_death)
+death_collapsed
+
+## and days last follow up here we take the most recent which is the max number
+followup_collapsed<- as.numeric(x$days_to_last_followup)
+followup_collapsed
+
+## and put everything together
+all_clin <- data.frame(death_collapsed,followup_collapsed)
+colnames(all_clin) <- c('death_days', 'followUp_days')
+head(all_clin, 20)
+tail(all_clin, 20)
+
+# create vector time to death containing values to censor for death
+all_clin$new_death <- c()
+for (i in 1:nrow(all_clin)){
+  all_clin$new_death[i] <- ifelse ( is.na(as.numeric(as.character(all_clin$death_days))[i]),
+                                    as.numeric(as.character(all_clin$followUp_days))[i],as.numeric(as.character(all_clin$death_days))[i])
+}
+
+head(all_clin, 20)
+tail(all_clin, 20)
+
+# create vector for death censoring
+table(x$vital_status)
+# alive dead
+# 944   152
+
+all_clin$death_event <- ifelse(x$vital_status == 'alive', 0,1)
+
+#finally add row.names to clinical
+length(clinical_IDS)
+nrow(all_clin)
+rownames(all_clin) <- clinical_IDS
+
+head(all_clin, 40)
+
+############
+###Compare datasets:
+
+all_clin<-cbind(patient_ID = rownames(all_clin), all_clin)
+head(all_clin, 40)
+dim(all_clin)
+all_clin_cbio<-cbind(patient_ID = rownames(all_clin_cbio), all_clin_cbio)
+head(all_clin_cbio, 40)
+dim(all_clin_cbio)
+all_clin_joined<- dplyr::full_join(all_clin, all_clin_cbio, by = "patient_ID")
+dim(all_clin_joined)
+head(all_clin_joined, 40)
+
+all_clin_joined2 <- all_clin_joined %>% 
+  dplyr::filter(!is.na(death_event.x)) %>%
+  dplyr::filter(!is.na(death_event.y))
+
+dim(all_clin_joined)
+dim(all_clin_joined2)
+identical(all_clin_joined2$death_event.x, all_clin_joined2$death_event.y)
+all.equal(all_clin_joined2$death_event.x, all_clin_joined2$death_event.y)
+all.equal(all_clin_joined2$death_days.x, all_clin_joined2$death_days.y)
+all.equal(all_clin_joined2$new_death.x, all_clin_joined2$new_death.y)
+which(is.na(all_clin_joined2$new_death.y))
+identical(all_clin_joined2$followUp_days.x, all_clin_joined2$followUp_days.y)
+which(is.na(all_clin_joined2$followUp_days.x))
+which(is.na(all_clin_joined2$followUp_days.y))
 
 
+#################
+###Create list of all survival data:
 
+##empty list
 
+clinical_survival<- vector("list", length(clinical_fbget_list))
+clinical_survival
 
+##Loop:
+for ( j in 1: length(clinical_fbget_list)){
+  
+  ##Get fbget clinical data
+  x<- clinical_fbget_list[[j]]
+  
+  clinical_IDS<- x$tcga_participant_barcode
+  
+  ## Get days to death data:
+  death_collapsed<- as.numeric(x$days_to_death)
+  
+  ## Get days to follow up data
+  followup_collapsed<- as.numeric(x$days_to_last_followup)
+  
+  ## combine data:
+  all_clin <- data.frame(death_collapsed,followup_collapsed)
+  colnames(all_clin) <- c('death_days', 'followUp_days')
+  
+  ## create new column with last follow up or days to death data:
+  all_clin$new_death <- c()
+  for (i in 1:nrow(all_clin)){
+    all_clin$new_death[i] <- ifelse ( is.na(as.numeric(as.character(all_clin$death_days))[i]),
+                                      as.numeric(as.character(all_clin$followUp_days))[i],as.numeric(as.character(all_clin$death_days))[i])
+  }
+  
+  ## Create new column with 1= patient died and 0 - patient survived
+  all_clin$death_event <- ifelse(x$vital_status == 'alive', 0,1)
+  
+  ##Add row names to all_clin and a new column with clinical IDs
+  rownames(all_clin) <- clinical_IDS
+  all_clin<- cbind(patient_IDs = rownames(all_clin), all_clin)
+  all_clin$patient_IDs<- as.character(all_clin$patient_IDs)
+  
+  ###############
+  ##Get disease free survival days from cbioportal clinical data:
+  
+  x<- clinical_cbioportal_list[[j]]
+  
+  ##Get patient IDs:
+  clinical_IDS<- x$Patient.ID
+  
+  # get the number of month to new tumour
+  new_tum_collapsed<- as.numeric(x$Disease.Free..Months.)
+  
+  #Convert number of month to new tumour to days:
+  new_tum_collapsed<- new_tum_collapsed*(365.25/12)
+  
+  new_tum_collapsed<- cbind(patient_IDs = clinical_IDS, new_tumor_days = new_tum_collapsed)
+  new_tum_collapsed<- as.data.frame(new_tum_collapsed)
+  new_tum_collapsed$patient_IDs<- as.character(new_tum_collapsed$patient_IDs)
+  
+  ##Join days to new tumour and overall survival together:
+  all_clin_joined<- dplyr::full_join(new_tum_collapsed, all_clin, by = "patient_IDs")
+  
+  ##Calculate disease free survival time:
+  all_clin_joined$disease_free_survival<- c()
+  for (i in 1:nrow(all_clin_joined)){
+      ## Combine new_tumor days and followUp_days
+    all_clin_joined$disease_free_survival[i] <- ifelse (is.na(as.numeric(as.character(all_clin_joined$new_tumor_days)))[i],
+                                      as.numeric(as.character(all_clin_joined$followUp_days))[i],as.numeric(as.character(all_clin_joined$new_tumor_days))[i])
+      ## If no followUp_days or new_tumor_days then take death_days
+    all_clin_joined$disease_free_survival[i]<- ifelse (is.na(as.numeric(as.character(all_clin_joined$disease_free_survival)))[i],
+                                     as.numeric(as.character(all_clin_joined$death_days))[i], as.numeric(as.character(all_clin_joined$disease_free_survival))[i])
 
+    }
+  
+  clinical_survival[[j]]<- all_clin_joined
+  
+}
 
+names(clinical_survival)<- names(clinical_fbget_list)
+head(clinical_survival[[1]], 40)
+head(clinical_survival[[2]], 40)
+head(clinical_survival[[11]], 40)
 
-
+##save data:
+clinical_survival_list<- clinical_survival
+#saveRDS(clinical_survival_list, file = "./R workspaces/clinical_survival_list")
