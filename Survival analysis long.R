@@ -189,7 +189,7 @@ cnv.table<- threshold_short_cnv_list_loc[[1]]
 
 test3<- categorise_deletion_type_around_target_gene(cnv.table = cnv.table, target_gene = x[[1]], Chromosome = x[[2]], 
                                             selection_criteria = c(x[[4]] - distance, x[[5]]+ distance), threshold = -2, deletion = TRUE)
-
+test3[1:2, 1:4]
 #identical(deletion_category_table, test3)
 
 ##Test function in lapply with a list of target genes:
@@ -243,6 +243,7 @@ deletion_category
 
 rownames(deletion_category)
 
+##Convert patient IDs in deletion_category so they match with the patient IDS in the clinical table
 deletion_category_patient_ID<- rownames(deletion_category) %>%
   substr(0, 12) %>%
   gsub("\\.", "-", .) %>%
@@ -260,7 +261,7 @@ clinical_survival_deletion_category<- dplyr::full_join(clinical_survival_list[[1
 head(clinical_survival_deletion_category, 40)
 dim(clinical_survival_deletion_category)
 dim(clinical_survival_list[[1]])
-##Comment 18 tumours do not match between clinical and cnv data
+##Comment 18 tumours do not match between clinical and cnv data:
 sum(is.na(clinical_survival_deletion_category$deletion_category))
 sum(is.na(test4[[2]][2,]))
 
@@ -438,14 +439,23 @@ return(survival_stats)
 
 ##############
 ### Test function:
-performSurvivalAnalysis(surv,dfCov, plotTitle="title",ylabel="Overall survival", plot_graph = FALSE, target_gene = target_gene )
+surv <- with(clinical_survival_deletion_category, Surv(new_death, death_event==1))
+surv
+dfCov<- clinical_survival_deletion_category$deletion_category
+dfCov
+# plot_graph = TRUE
+target_gene<- gene_information_list[[2]][[1]]
+# x<- test4[[2]]
+proximal_gene<- "MTAP"
+# max_survival<- max(clinical_survival_deletion_category$death_days, na.rm = T)
 
+survival_stats<- performSurvivalAnalysis(surv,dfCov, plotTitle="title",ylabel="Overall survival", plot_graph = FALSE, target_gene = target_gene )
+survival_stats
 
+##########
+##Test performSurvivalAnalysis function in apply loop:
 
-
-
-
-
+survival_stats_list<- lapply(, function(x))
 
 
 
