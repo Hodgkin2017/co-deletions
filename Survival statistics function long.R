@@ -329,7 +329,7 @@ dim(test_function[[2]])
 
 #######
 ### Get Survival statistics
-deletion_category_survival_target_gene<- test_function[[2]]
+deletion_category_survival_target_gene<- test_function[[1]]
 
 survival_statistics<- function(deletion_category_survival_target_gene, print_to_screen = print_to_screen, plot_graph = plot_graph){
   
@@ -389,9 +389,17 @@ for (i in 1:nrow(survival_stats_table)){
     survival_stats_table[i, 4]<- round(summary(coxfit)$waldtest[3],2)
     survival_stats_table[i, 5]<- round(summary(coxfit)$sctest[3],2)
     survival_stats_table[i, 6]<- round(summary(coxfit)$coefficients[2],2)
+  
+    if(is.null(ncol(fittedSurv_mean$matrix))){
+      survival_stats_table[i, 7]<- unique(covariable_object) #categories
+      survival_stats_table[i, 8]<- paste(fittedSurv_mean$matrix[5], collapse = " ") #mean
+      survival_stats_table[i, 9]<-  paste(fittedSurv_mean$matrix[3], collapse = " ") #number of samples
+    } else {
     survival_stats_table[i, 7]<- paste(rownames(fittedSurv_mean$matrix), collapse = " ") #categories
     survival_stats_table[i, 8]<- paste(fittedSurv_mean$matrix[,5], collapse = " ") #mean
     survival_stats_table[i, 9]<-  paste(fittedSurv_mean$matrix[,3], collapse = " ") #number of samples
+    }
+    
  
 }
   
@@ -401,12 +409,12 @@ for (i in 1:nrow(survival_stats_table)){
 
 ########
 ### test function:
-deletion_category_survival_target_gene<- test_function[[2]]
+deletion_category_survival_target_gene<- test_function[[1]]
 test_stats<- survival_statistics(deletion_category_survival_target_gene, print_to_screen = print_to_screen, plot_graph = plot_graph)
 test_stats
 
 ## Test function in apply:
-
+test_stats<-lapply(test_function, function(x) survival_statistics(x, print_to_screen = print_to_screen, plot_graph = plot_graph))
 
 
 
