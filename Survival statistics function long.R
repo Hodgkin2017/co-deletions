@@ -9,6 +9,8 @@ target_gene_list<- gene_information_list[1:2]
 target_gene_list
 cnv.table<- threshold_short_cnv_list_loc[[1]]
 dim(cnv.table)
+gene_information<- gene_information_list[[1]]
+gene_information
 
 remove_NA = TRUE
 start = TRUE
@@ -20,6 +22,9 @@ deletion = TRUE
 threshold = -2
 target_gene = gene_information[[1]]
 survival_time_list<- clinical_survival_list[[1]]
+time_of_death_column<- 5
+death_event_column<- 6
+print_to_screen<- FALSE
 
 #########
 ##Functions used in main function:
@@ -285,8 +290,19 @@ join_clinical_deletion_category_table<- function(deletion_category_target_gene, 
 #########
 ### Main Function:
 
+##Parameters:
+# gene_information_list
+# target_gene_list<- gene_information_list[1:2]
+# target_gene_list
+# cnv.table<- threshold_short_cnv_list_loc[[1]]
+# survival_time_list<- clinical_survival_list[[1]]
+
+
 survival_analysis_of_gene_list<- function(target_gene_list, survival_time_list, cnv.table, distance = 2.5e+06, 
-                                          threshold = -2, deletion = TRUE, time_of_death_column, death_event_column, column_start = 11, start = TRUE, remove_NA = TRUE, Cytoband = FALSE, print_to_screen = FALSE, plot_graph = FALSE){
+                                          threshold = -2, deletion = TRUE, time_of_death_column, 
+                                          death_event_column, column_start = 11, start = TRUE, 
+                                          remove_NA = TRUE, Cytoband = FALSE, print_to_screen = FALSE, 
+                                          plot_graph = FALSE){
 
   
 ##########
@@ -320,7 +336,18 @@ return(deletion_category_survival_target_gene_list)
 
 }
 
-test_function<- survival_analysis_of_gene_list(target_gene_list, survival_time_list, cnv.table, distance = 2.5e+06, threshold = -2, deletion = TRUE, column_start = 11, time_of_death_column = 5, death_event_column = 6, start = TRUE, remove_NA = TRUE, Cytoband = FALSE)
+test_function<- survival_analysis_of_gene_list(target_gene_list,
+                                               survival_time_list,
+                                               cnv.table,
+                                               distance = 2.5e+06,
+                                               threshold = -2,
+                                               deletion = TRUE,
+                                               column_start = 11,
+                                               time_of_death_column = 5,
+                                               death_event_column = 6,
+                                               start = TRUE,
+                                               remove_NA = TRUE,
+                                               Cytoband = FALSE)
 length(test_function)
 test_function[[1]]
 dim(test_function[[1]])
@@ -409,12 +436,15 @@ for (i in 1:nrow(survival_stats_table)){
 
 ########
 ### test function:
-deletion_category_survival_target_gene<- test_function[[1]]
+deletion_category_survival_target_gene<- test_function[[2]]
+target_gene<- gene_information_list[[2]][[1]]
+target_gene
+
 test_stats<- survival_statistics(deletion_category_survival_target_gene, print_to_screen = print_to_screen, plot_graph = plot_graph)
 test_stats
 
 ## Test function in apply:
-test_stats<-lapply(test_function, function(x) survival_statistics(x, print_to_screen = print_to_screen, plot_graph = plot_graph))
+#test_stats<-lapply(test_function, function(x) survival_statistics(x, print_to_screen = print_to_screen, plot_graph = plot_graph))
 
 
 
