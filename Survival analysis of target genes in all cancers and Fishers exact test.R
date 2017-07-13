@@ -26,29 +26,105 @@ gene_information_list
 
 ###############
 ### Attach the table of all the tumours combined into the per cancer CNV list
-length(threshold_short_cnv_list_loc)
-length(threshold_cnv_list_loc)
-length(threshold_CNV_all_table_loc)
-length(list(threshold_CNV_all_table_loc))
-threshold_CNV_all_table_loc[1:2, 1:12]
+# length(threshold_short_cnv_list_loc)
+# length(threshold_cnv_list_loc)
+# length(threshold_CNV_all_table_loc)
+# length(list(threshold_CNV_all_table_loc))
+# threshold_CNV_all_table_loc[1:2, 1:12]
+# 
+# threshold_cnv_list_plus_all_loc<- c(threshold_cnv_list_loc, ALL=list(threshold_CNV_all_table_loc))
+# length(threshold_cnv_list_plus_all_loc)
+# dim(threshold_cnv_list_plus_all_loc[[38]])
+# 
+# names(threshold_cnv_list_plus_all_loc)
+# threshold_selected_cnv_list_plus_all_loc<- threshold_cnv_list_plus_all_loc[c(1,2,3,4,5,7,8,9,10,12,13,15,16,17,18,19,20,21,22,23,24,25,26,28,29,30,32,33,34,35,36,37,38)]
+# names(threshold_selected_cnv_list_plus_all_loc)
+# names(clinical_survival_long_list)
+# length(threshold_selected_cnv_list_plus_all_loc)
 
-threshold_cnv_list_plus_all_loc<- c(threshold_cnv_list_loc, ALL=list(threshold_CNV_all_table_loc))
-length(threshold_cnv_list_plus_all_loc)
-dim(threshold_cnv_list_plus_all_loc[[38]])
+##Create one large table with all cancer information CNV information in it:
+names(clinical_survival_long_list)
+CNV_all_table<-join.cnv.datasets(threshold_cnv_list, column = 4, data.sets = c("ACC", "BLCA", "BRCA", "CESC",
+                                                                               "CHOL", "COADREAD", "DLBC", "ESCA",
+                                                                               "GBM", "HNSC", "KICH", "KIRC",
+                                                                               "KIRP", "LAML", "LGG", "LIHC",
+                                                                               "LUAD", "LUSC", "MESO", "OV",
+                                                                               "PAAD", "PCPG", "PRAD", "SARC",
+                                                                               "SKCM", "STAD", "TGCT", "THCA",
+                                                                               "THYM", "UCEC", "UCS", "UVM"))
+dim(CNV_all_table)
+CNV_all_table[1:2, 1:10]
 
-names(threshold_cnv_list_plus_all_loc)
-threshold_selected_cnv_list_plus_all_loc<- threshold_cnv_list_plus_all_loc[c(1,2,3,4,5,7,8,9,10,12,13,15,16,17,18,19,20,21,22,23,24,25,26,28,29,30,32,33,34,35,36,37,38)]
+##Append chromosomal location information to it:
+CNV_all_table_selected_loc<- chromosomal_location(CNV_all_table)
+dim(CNV_all_table_selected_loc)
+CNV_all_table_selected_loc[1:2, 1:12]
+
+## Create list of CNV data matching survival data list (clinical_survival_long_list)
+threshold_selected_cnv_list_loc<- threshold_cnv_list_loc[c(1,2,3,4,5,7,8,9,10,12,13,15,16,17,18,19,20,21,22,23,24,25,26,28,29,30,32,33,34,35,36,37)]
+length(threshold_selected_cnv_list_loc)
+names(threshold_selected_cnv_list_loc)
+
+## Append ALL Cancer CNV table onto list of cancer CNVs
+threshold_selected_cnv_list_plus_all_loc<- c(threshold_selected_cnv_list_loc, ALL=list(CNV_all_table_selected_loc))
+length(threshold_selected_cnv_list_plus_all_loc)
 names(threshold_selected_cnv_list_plus_all_loc)
+
 #############
-### Make a table of all the tumours survival analysis combined and to the end of clinical_survival_list
+### Make a table of all the tumours survival analysis combined and add to the end of clinical_survival_list
 #COAD and READ combined into COADREAD
 
-length(clinical_survival_list)
+length(clinical_survival_long_list)
+names(clinical_survival_long_list)
+
+clinical_survival_long_all_table<-do.call(rbind, clinical_survival_long_list)
+lapply(clinical_survival_long_list, function(x) ncol(x))
+
+##Comment: UCS, PCPG, MESO, ACC do not have disease free survival?!
+clinical_survival_long_list$ACC_clinical.tsv[1:2,]
+clinical_survival_long_list$BRCA_clinical.tsv[1:2,]
+
+##Add blank columns to these dataframes
+clinical_survival_long_list$ACC_clinical.tsv<- cbind(patient_IDs = clinical_survival_long_list$ACC_clinical.tsv[,1],
+      new_tumor_days = rep(NA,nrow(clinical_survival_long_list$ACC_clinical.tsv)),
+      clinical_survival_long_list$ACC_clinical.tsv[,2:6])
+
+clinical_survival_long_list$MESO_clinical.tsv<- cbind(patient_IDs = clinical_survival_long_list$MESO_clinical.tsv[,1],
+                                                     new_tumor_days = rep(NA,nrow(clinical_survival_long_list$MESO_clinical.tsv)),
+                                                     clinical_survival_long_list$MESO_clinical.tsv[,2:6])
+
+clinical_survival_long_list$PCPG_clinical.tsv<- cbind(patient_IDs = clinical_survival_long_list$PCPG_clinical.tsv[,1],
+                                                     new_tumor_days = rep(NA,nrow(clinical_survival_long_list$PCPG_clinical.tsv)),
+                                                     clinical_survival_long_list$PCPG_clinical.tsv[,2:6])
+clinical_survival_long_list$UCS_clinical.tsv<- cbind(patient_IDs = clinical_survival_long_list$UCS_clinical.tsv[,1],
+                                                     new_tumor_days = rep(NA,nrow(clinical_survival_long_list$UCS_clinical.tsv)),
+                                                     clinical_survival_long_list$UCS_clinical.tsv[,2:6])
 
 
+sapply(clinical_survival_long_list, function(x) ncol(x))
+
+clinical_survival_long_all_table<-do.call(rbind, clinical_survival_long_list)
+dim(clinical_survival_long_all_table)
+length(unique(clinical_survival_long_all_table$patient_IDs))
+
+##Remove non-unique patient IDS:
+duplicated_patient_IDs<- !duplicated(clinical_survival_long_all_table$patient_IDs)
+clinical_survival_long_all_table<- clinical_survival_long_all_table[duplicated_patient_IDs,]
+dim(clinical_survival_long_all_table)
+
+##Append clinical data for all tumours to list:
+clinical_long_plus_all_survival<- c(clinical_long_survival, ALL=list(clinical_survival_long_all_table))
+length(clinical_long_plus_all_survival)
+names(clinical_long_plus_all_survival)
+
+length(threshold_cnv_list_plus_all_loc)
+names(threshold_cnv_list_plus_all_loc)
 
 ################
 ### Create a for loop to go through all cancers and perform survival analysis on target genes and co-deletions:
+
+##CNV list = threshold_selected_cnv_list_plus_all_loc
+## clinical list = clinical_long_plus_all_survival
 
 ##Create an empty list
 survival_stats_cancer_list<- vector("list", length(threshold_short_cnv_list_loc))
@@ -56,15 +132,15 @@ survival_stats_cancer_list<- vector("list", length(threshold_short_cnv_list_loc)
 for (i in 1:2){
   
   ##Get CNV table
-  cnv.table<- threshold_short_cnv_list_loc[[i]]
+  cnv.table<- threshold_selected_cnv_list_plus_all_loc[[i]]
   
   
   ##Get survival data
-  survival_time_list<- clinical_survival_list[[i]]
+  survival_time_list<- clinical_long_plus_all_survival[[i]]
   
   
   ## Perform survival analysis of co-deletions:
-  print(paste(names(threshold_short_cnv_list_loc[i]), "Cancer type:"))
+  print(paste(names(threshold_selected_cnv_list_plus_all_loc[i]), "Cancer type:"))
   survival_stats_list<- lapply(gene_information_list, function(x) survival_analysis_of_gene_list(target_gene_list = x, survival_time_list = survival_time_list, cnv.table = cnv.table, distance = 2.5e+06,
                                                                                                  threshold = -2, deletion = TRUE, time_of_death_column = 5, 
                                                                                                  death_event_column = 6, column_start = 11, start = TRUE, 
