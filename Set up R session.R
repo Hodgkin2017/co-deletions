@@ -27,27 +27,27 @@ setwd("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletion
 ### Load data
 #load("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/R workspaces/co-deletions workspace.RData")
 load("./R workspaces/co-deletions workspace.RData")
-co.deletions.per.cytoband.circle.plots.table <- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/total.co-deletion.events.per.cytoband.rds")
-deletions.per.cytoband.circle.plots.table<- readRDS( "/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/total.deletion.events.per.cytoband.rds")
-short.cnv.list<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/target.cancer.list.rds")
-co_deletions_removed_zeros_plot_table2<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/BRCA_co_deletion_distance_plot_table.rds")
-gene_information_list<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/target_gene_information_list.rds")
+co.deletions.per.cytoband.circle.plots.table <- readRDS("./R workspaces/total.co-deletion.events.per.cytoband.rds")
+deletions.per.cytoband.circle.plots.table<- readRDS( "./R workspaces/total.deletion.events.per.cytoband.rds")
+short.cnv.list<- readRDS("./R workspaces/target.cancer.list.rds")
+co_deletions_removed_zeros_plot_table2<- readRDS(".R workspaces/BRCA_co_deletion_distance_plot_table.rds")
+gene_information_list<- readRDS("./R workspaces/target_gene_information_list.rds")
 ## Table of distance from target gene and proportion of deletions
-co_deletions_distance_from_target_gene_plot_table<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/BRCA_co_deletion_distance_from_target_gene_plot_table.rds")
+co_deletions_distance_from_target_gene_plot_table<- readRDS("./R workspaces/BRCA_co_deletion_distance_from_target_gene_plot_table.rds")
 ## List containing dataframes with each dataframe corresponding to CNVs for one cancer using gistic thresholded values 
-threshold_cnv_list<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/threshold_cnv_list.rds")
+threshold_cnv_list<- readRDS("./R workspaces/threshold_cnv_list.rds")
 ## Dataframe containing gistic thresholded CNV values for all cancer types.
-threshold_CNV_all_table<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/threshold_CNV_all_table.rds")
+threshold_CNV_all_table<- readRDS("./R workspaces/threshold_CNV_all_table.rds")
 ## Dataframe containing gistic thresholded CNV values for all cancer types and gene chromosomal location information
-threshold_CNV_all_table_loc<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/threshold_CNV_all_table_loc.rds")
+threshold_CNV_all_table_loc<- readRDS("./R workspaces/threshold_CNV_all_table_loc.rds")
 ## List containing dataframes with each dataframe corresponding to CNVs for one cancer using gistic thresholded values and containing chromosomal location
-threshold_cnv_list_loc<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/threshold_cnv_list_loc.rds")
+threshold_cnv_list_loc<- readRDS("./R workspaces/threshold_cnv_list_loc.rds")
 ## List of CNV Dataframes of gistic thresholded CNV scores for specific cancers of interest 
-threshold_short_cnv_list<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/threshold_short_cnv_list.rds")
+threshold_short_cnv_list<- readRDS(".R workspaces/threshold_short_cnv_list.rds")
 ## List of CNV Dataframes of gistic thresholded CNV scores with chromosomal location information for specific cancers of interest 
-threshold_short_cnv_list_loc<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/threshold_short_cnv_list_loc.rds")
+threshold_short_cnv_list_loc<- readRDS("./R workspaces/threshold_short_cnv_list_loc.rds")
 ## List of target genes 1:
-target_genes<- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/target_genes1.rds")
+target_genes<- readRDS(".R workspaces/target_genes1.rds")
 ## Comprehensive clinical data from firehose using fbget
 clinical_fbget_list<- readRDS(file = "./R workspaces/clinical_fbget_list.rds")
 ## Concise clinical data from cbioportal
@@ -60,10 +60,12 @@ clinical_fbget_long_list<- readRDS(file = "./R workspaces/clinical_fbget_long_li
 clinical_cbioportal_long_list<- readRDS(file = "./R workspaces/clinical_cbioportal_long_list")
 ## List of overall survival and disease free survival for all cancer types available
 clinical_survival_long_list<- readRDS(file = "./R workspaces/clinical_survival_long_list")
-
-
-
-
+## List of target genes and their start and stop sites from Maria (compiled from Christophe)
+gene_information_long_list<- readRDS(file = "./R workspaces/gene_information_long_list")
+## List of non-replicated survival data used for survival analysis
+clinical_long_plus_all_survival<- readRDS(file = "./R workspaces/clinical_long_plus_all_survival")
+## List of non-replicated CNV data for survival analysis
+threshold_selected_cnv_list_plus_all_loc<- readRDS(file = "./R workspaces/threshold_selected_cnv_list_plus_all_loc")
 
 
 
