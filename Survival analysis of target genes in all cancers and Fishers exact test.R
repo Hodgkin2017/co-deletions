@@ -81,6 +81,7 @@ clinical_survival_long_all_table<-do.call(rbind, clinical_survival_long_list)
 lapply(clinical_survival_long_list, function(x) ncol(x))
 
 ##Comment: UCS, PCPG, MESO, ACC do not have disease free survival?!
+##Fix by adding empty new_tumor_days column to tables with missing data
 clinical_survival_long_list$ACC_clinical.tsv[1:2,]
 clinical_survival_long_list$BRCA_clinical.tsv[1:2,]
 
@@ -103,6 +104,7 @@ clinical_survival_long_list$UCS_clinical.tsv<- cbind(patient_IDs = clinical_surv
 
 sapply(clinical_survival_long_list, function(x) ncol(x))
 
+##Make one large survival table:
 clinical_survival_long_all_table<-do.call(rbind, clinical_survival_long_list)
 dim(clinical_survival_long_all_table)
 length(unique(clinical_survival_long_all_table$patient_IDs))
@@ -113,21 +115,19 @@ clinical_survival_long_all_table<- clinical_survival_long_all_table[duplicated_p
 dim(clinical_survival_long_all_table)
 
 ##Append clinical data for all tumours to list:
-clinical_long_plus_all_survival<- c(clinical_long_survival, ALL=list(clinical_survival_long_all_table))
+clinical_long_plus_all_survival<- c(clinical_survival_long_list, ALL=list(clinical_survival_long_all_table))
 length(clinical_long_plus_all_survival)
 names(clinical_long_plus_all_survival)
-
-length(threshold_cnv_list_plus_all_loc)
-names(threshold_cnv_list_plus_all_loc)
 
 ################
 ### Create a for loop to go through all cancers and perform survival analysis on target genes and co-deletions:
 
 ##CNV list = threshold_selected_cnv_list_plus_all_loc
 ## clinical list = clinical_long_plus_all_survival
+short_gene_information_list<- gene_information_list[1]
 
 ##Create an empty list
-survival_stats_cancer_list<- vector("list", length(threshold_short_cnv_list_loc))
+survival_stats_cancer_list<- vector("list", length(threshold_selected_cnv_list_plus_all_loc))
 
 for (i in 1:2){
   
@@ -141,7 +141,7 @@ for (i in 1:2){
   
   ## Perform survival analysis of co-deletions:
   print(paste(names(threshold_selected_cnv_list_plus_all_loc[i]), "Cancer type:"))
-  survival_stats_list<- lapply(gene_information_list, function(x) survival_analysis_of_gene_list(target_gene_list = x, survival_time_list = survival_time_list, cnv.table = cnv.table, distance = 2.5e+06,
+  survival_stats_list<- lapply(short_gene_information_list, function(x) survival_analysis_of_gene_list(target_gene_list = x, survival_time_list = survival_time_list, cnv.table = cnv.table, distance = 2.5e+06,
                                                                                                  threshold = -2, deletion = TRUE, time_of_death_column = 5, 
                                                                                                  death_event_column = 6, column_start = 11, start = TRUE, 
                                                                                                  remove_NA = TRUE, Cytoband = FALSE, print_to_screen = FALSE, 
@@ -153,7 +153,7 @@ for (i in 1:2){
   #survival_stats_list_table[1:100, c(1,2,5,6,8,9)]
   
   ##Save file as .csv
-  write.csv(survival_stats_list_table, file = paste0(names(threshold_short_cnv_list_loc[i]),"_co-deletion_survival_stats.csv"), quote = FALSE)
+  write.csv(survival_stats_list_table, file = paste0(names(threshold_selected_cnv_list_plus_all_loc[i]),"_co-deletion_overall_survival_stats.csv"), quote = FALSE)
   
   ##Add to list
   survival_stats_cancer_list[[i]]<- survival_stats_list_table
@@ -163,22 +163,110 @@ for (i in 1:2){
 }
 
 ## Save object:
-saveRDS(survival_stats_cancer_list, file = "./R workspaces/survival_stats_cancer_list")
+saveRDS(survival_stats_cancer_list, file = "./R workspaces/survival_stats_overall_survival_cancer_list")
+
+
+#########################
+### Repeat loop but perform disease free survival analysis:
+
+##Create an empty list
+survival_stats_cancer_list2<- vector("list", length(threshold_selected_cnv_list_plus_all_loc))
+
+for (i in 1:2){
+  
+  ##Get CNV table
+  cnv.table<- threshold_selected_cnv_list_plus_all_loc[[i]]
+  
+  
+  ##Get survival data
+  survival_time_list<- clinical_long_plus_all_survival[[i]]
+  
+  
+  ## Perform survival analysis of co-deletions:
+  ##Disease free survival = column 7!!!
+  print(paste(names(threshold_selected_cnv_list_plus_all_loc[i]), "Cancer type:"))
+  survival_stats_list<- lapply(short_gene_information_list, function(x) survival_analysis_of_gene_list(target_gene_list = x, survival_time_list = survival_time_list, cnv.table = cnv.table, distance = 2.5e+06,
+                                                                                                       threshold = -2, deletion = TRUE, time_of_death_column = 7, 
+                                                                                                       death_event_column = 6, column_start = 11, start = TRUE, 
+                                                                                                       remove_NA = TRUE, Cytoband = FALSE, print_to_screen = FALSE, 
+                                                                                                       plot_graph = FALSE))
+  
+  ##Combine survival stats together and order by log-rank test p-value
+  survival_stats_list_table<- do.call(rbind, survival_stats_list)
+  survival_stats_list_table<- survival_stats_list_table[order(survival_stats_list_table$`p-value_logrank_test`, decreasing = FALSE),]
+  #survival_stats_list_table[1:100, c(1,2,5,6,8,9)]
+  
+  ##Save file as .csv
+  write.csv(survival_stats_list_table, file = paste0(names(threshold_selected_cnv_list_plus_all_loc[i]),"_co-deletion_disease_free_survival_stats.csv"), quote = FALSE)
+  
+  ##Add to list
+  survival_stats_cancer_list2[[i]]<- survival_stats_list_table
+  
+  
+  
+}
+
+## Save object:
+saveRDS(survival_stats_cancer_list2, file = "./R workspaces/survival_stats_disease_free_cancer_list")
+
+
+###########
+###Delete cancers from list that dont have correct disease free survival data:
+# UCS, PCPG, MESO, ACC
+
+
+
+###################
+###Perform fishers exact test per co-deletion and for each co-deletion per cancer.
+
+## Create a vector to store the results of the test:
+
+fishers_test_results_list<- vector("list", length(survival_stats_cancer_list))
+
+for (i in 1: length(survival_stats_cancer_list)){
+  
+  survival_stats_table<- survival_stats_cancer_list[[i]]
+  
+  ##Create an empty table for fishers exact test results:
+  fishers_test_results<- data.frame(matrix(NA, ncol = 6, nrow = nrow(survival_stats_table)))
+  colnames(fishers_test_results)<- c("target_gene", "proximal_gene", "co-deletion_p-value", "co-deletion_Odds",
+                                     "per_cancer_p-value", "per_cancer_Odds")
+  
+  for(j in 1: nrow(survival_stats_table)) {
+    
+    ##Create an empty table for fisher exact test results:
+    fishers_test_input_table<- data.frame(matrix(NA, ncol = 2, nrow = 2))
+    
+    ##Fill table:
+    fishers_test_input_table[2,1]<- survival_stats_table[j,7]
+    fishers_test_input_table[1,1]<- survival_stats_table[j,8]
+    fishers_test_input_table[1,2]<- survival_stats_table[j,9]
+    fishers_test_input_table[2,2]<- survival_stats_table[j,10]
+    
+    ##Perform Fishers exact test:
+    fishers_test_co_deletions<- fisher.test(fishers_test_input_table)
+    
+    ##Store results of fishers test:
+    fishers_test_results[j,1]<- survival_stats_table[j,1]
+    fishers_test_results[j,2]<- survival_stats_table[j,2]
+    fishers_test_results[j,3]<- survival_stats_table[j,2]
+    fishers_test_results[j,4]<- survival_stats_table[j,2]
+  }
+  
+  
+  
+  
+  
+}
 
 
 
 
-# target_gene_list<- gene_information_list[[1]]
-# survival_time_list<- clinical_survival_list[[1]]
-# cnv.table<- threshold_short_cnv_list_loc[[1]]
-# 
-# 
-# test_apply<- lapply(gene_information_list, function(x) survival_analysis_of_gene_list(target_gene_list = x, survival_time_list = survival_time_list, cnv.table = cnv.table, distance = 2.5e+06,
-#                                                                                       threshold = -2, deletion = TRUE, time_of_death_column = 5, 
-#                                                                                       death_event_column = 6, column_start = 11, start = TRUE, 
-#                                                                                       remove_NA = TRUE, Cytoband = FALSE, print_to_screen = FALSE, 
-#                                                                                       plot_graph = FALSE))
-# 
+
+
+
+
+
 
 
 
