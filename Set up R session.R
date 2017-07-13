@@ -54,6 +54,16 @@ clinical_fbget_list<- readRDS(file = "./R workspaces/clinical_fbget_list.rds")
 clinical_cbioportal_list<- readRDS(file = "./R workspaces/clinical_cbioportal_list")
 ## List of Overall survival and disease free survival
 clinical_survival_list<- readRDS(file = "./R workspaces/clinical_survival_list")
+## List of survival data for all cancer types obtained via fget
+clinical_fbget_long_list<- readRDS(file = "./R workspaces/clinical_fbget_long_list.rds")
+## List of survival data for all cancer types available via CBioPortal:
+clinical_cbioportal_long_list<- readRDS(file = "./R workspaces/clinical_cbioportal_long_list")
+## List of overall survival and disease free survival for all cancer types available
+clinical_survival_long_list<- readRDS(file = "./R workspaces/clinical_survival_long_list")
+
+
+
+
 
 
 
