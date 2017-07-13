@@ -1,11 +1,6 @@
 ####################
-### Survival analysis of target genes in all cancers:
+### Survival analysis of target genes in all cancers and Fishers exact test:
 ######################
-
-## To fix before I continue: Hazard ratio not always correct: e.g. Notch1 locus = 4500+!
-
-## Make function add n numbers and eman survival for each category into a separate column to make analysis easier for me!
-
 
 #####################
 ###Survival analysis of ALL Tumour suppressors in all cancers using a for loop:
@@ -28,6 +23,14 @@ gene_information_list
 
 ##Check I have the start and end positions for all Tumour suppressors
 
+
+###############
+### Attach the table of all the tumours combined into the per cancer CNV list
+
+
+
+#############
+### Make a table of all the tumours survival analysis combined and to the end of clinical_survival_list
 
 
 ################

@@ -187,18 +187,18 @@ survival_analysis_of_gene_list<- function(target_gene_list,
   ## Use categorise_deletion_type_function to loop over all genes around target gene and 
   #categorise each tumour into group 1,2,3 or 4.
   deletion_category_table<- lapply(gene_names, function(x) categorise_deletion_type_function(x, gene_names_cnv.matrix))
-
+  
   
   deletion_category_table<- do.call(rbind, deletion_category_table)
   colnames(deletion_category_table)<- colnames(cnv.matrix)
   rownames(deletion_category_table)<- rownames(cnv.matrix)
-
+  
   
   #########################################
   ### Join tumour category table above to tumour survival data:
   
   deletion_category<-t(deletion_category_table)
-
+  
   ##Convert patient IDs in deletion_category so they match with the patient IDS in the clinical table
   deletion_category_patient_ID<- rownames(deletion_category) %>%
     substr(0, 12) %>%
@@ -218,30 +218,38 @@ survival_analysis_of_gene_list<- function(target_gene_list,
   vars<- colnames(deletion_category_patient_ID[-1])
   deletion_category_proximal_genes<- clinical_survival_deletion_category %>%
     dplyr::select(one_of(vars))
-
+  
   clinical_survival_deletion_category<- clinical_survival_deletion_category[complete.cases(deletion_category_proximal_genes), ]
-
+  
   
   
   ################################################
   ### Survival analysis:
   
-  ##Create Surv object
+  ##Create Surv object and remove NA values
   death_time<- clinical_survival_deletion_category[,1]
   death_event<- clinical_survival_deletion_category[,2]
   surv_object<- Surv(death_time, death_event==1)
+  ##Remove entries with NA:
+  NA_object<- !is.na(surv_object)
+  death_time<- death_time[NA_object]
+  death_event<- death_event[NA_object]
+  surv_object<- surv_object[NA_object]
   
   ##Create empty table to store stats:
-  survival_stats_table<- data.frame(matrix(NA, ncol = 9, nrow = ncol(clinical_survival_deletion_category) -2))
+  survival_stats_table<- data.frame(matrix(NA, ncol = 14, nrow = ncol(clinical_survival_deletion_category) -2))
   names(survival_stats_table)<-c("target_gene", "proximal_gene", "p-value_Likelihood_ratio_test",
-                                 "p-value_Wald_test", "p-value_logrank_test", "Hazard_ratio", "Categories",
-                                 "mean_survival", "number_of_samples_per_category")
+                                 "p-value_Wald_test", "p-value_logrank_test", "Hazard_ratio",
+                                 "number_of_samples_cat1", "number_of_samples_cat2", "number_of_samples_cat3",
+                                 "number_of_samples_cat4","mean_survival_cat_1","mean_survival_cat_2","mean_survival_cat_3"
+                                 ,"mean_survival_cat_4")
   
   ## Loop through genes around target gene and calculate survival stats:
   for (i in 1:nrow(survival_stats_table)){
     
     ##Get covariable object for survfit:
     covariable_object<- clinical_survival_deletion_category[,i+2]
+    covariable_object<- covariable_object[NA_object]
     
     ##Fit Kaplain meier graph to one co-variable to compare data with :
     fittedSurv <- survfit(surv_object~covariable_object, na.action = na.exclude)
@@ -256,15 +264,15 @@ survival_analysis_of_gene_list<- function(target_gene_list,
     ##Get category names for one variable
     categNames <- apply(df.categ, 1, function(x) paste0(x[1]," (",x[2],")"))
     
-    # if (plot_graph == TRUE) {
-    #   save as tiff in folder....
-    #   plot(fittedSurv, main=plotTitle,
-    #        xlab="Time (days)", ylab=ylabel, 
-    #        col=brewer.pal(9,"Set1"), mark.time=T)
-    #   legend("topright", legend=categNames, 
-    #          col=brewer.pal(9,"Set1"), 
-    #          lwd=2, cex=0.9)
-    # }
+    if (plot_graph == TRUE) {
+      #save as tiff in folder....
+      plot(fittedSurv, main=plotTitle,
+           xlab="Time (days)", ylab=ylabel,
+           col=brewer.pal(9,"Set1"), mark.time=T)
+      legend("topright", legend=categNames,
+             col=brewer.pal(9,"Set1"),
+             lwd=2, cex=0.9)
+    }
     
     if(print_to_screen == TRUE) {
       print("Chi-sq test:")
@@ -288,24 +296,49 @@ survival_analysis_of_gene_list<- function(target_gene_list,
     survival_stats_table[i, 4]<- round(summary(coxfit)$waldtest[3],2)
     survival_stats_table[i, 5]<- round(summary(coxfit)$sctest[3],2)
     survival_stats_table[i, 6]<- round(summary(coxfit)$coefficients[2],2)
-    
-    ## If less than one category in survival analysis need to adjust values saved:
+    survival_stats_table[i, 7]<- sum(grepl(1, covariable_object))
+    survival_stats_table[i, 8]<- sum(grepl(2, covariable_object))
+    survival_stats_table[i, 9]<- sum(grepl(3, covariable_object))
+    survival_stats_table[i, 10]<- sum(grepl(4, covariable_object))
+    ## If all tumours have the same category then a vector is crteated instead of a table:
     if(is.null(ncol(fittedSurv_mean$matrix))){
-      survival_stats_table[i, 7]<- unique(covariable_object) #categories
-      survival_stats_table[i, 8]<- paste(fittedSurv_mean$matrix[5], collapse = " ") #mean
-      survival_stats_table[i, 9]<-  paste(fittedSurv_mean$matrix[3], collapse = " ") #number of samples
-    } else {
-      survival_stats_table[i, 7]<- paste(rownames(fittedSurv_mean$matrix), collapse = " ") #categories
-      survival_stats_table[i, 8]<- paste(fittedSurv_mean$matrix[,5], collapse = " ") #mean
-      survival_stats_table[i, 9]<-  paste(fittedSurv_mean$matrix[,3], collapse = " ") #number of samples
+      ## Which category does all the tumours have:
+      category<- which(survival_stats_table[i, 7:10] > 0)
+      ## Get mean survival for that category:
+      survival_stats_table[i, 10+category]<- fittedSurv_mean$matrix[5]
+    }else{
+      list_of_mean_survival<- as.list(fittedSurv_mean$matrix[,5])
+      if(!is.null(list_of_mean_survival$`covariable_object=1`)){
+        survival_stats_table[i, 11]<- list_of_mean_survival$`covariable_object=1`
+      }
+      if(!is.null(list_of_mean_survival$`covariable_object=2`)){
+        survival_stats_table[i, 12]<- list_of_mean_survival$`covariable_object=2`
+      }
+      if(!is.null(list_of_mean_survival$`covariable_object=3`)){
+        survival_stats_table[i, 13]<- list_of_mean_survival$`covariable_object=3`
+      }
+      if(!is.null(list_of_mean_survival$`covariable_object=4`)){
+        survival_stats_table[i, 14]<- list_of_mean_survival$`covariable_object=4`
+      }
     }
+    #   ## If less than one category in survival analysis need to adjust values saved:
+    #   if(is.null(ncol(fittedSurv_mean$matrix))){
+    #     #survival_stats_table[i, 7]<- unique(covariable_object) #categories
+    #     survival_stats_table[i, 8]<- paste(fittedSurv_mean$matrix[5], collapse = " ") #mean
+    #   } else {
+    #     #survival_stats_table[i, 7]<- paste(rownames(fittedSurv_mean$matrix), collapse = " ") #categories
+    #     #survival_stats_table[i, 8]<- paste(fittedSurv_mean$matrix[,5], collapse = " ") #mean
+    #     if (survival_stats_table[i, 7] != 0){
+    #       survival_stats_table[i, 11]<- 
+    #   }
+    #   
+    #   
     
-    
-  }
-  
+  } 
   return(survival_stats_table)
   
 }
+
 
 ###########################################
 ### Test function:
