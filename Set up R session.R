@@ -30,7 +30,7 @@ load("./R workspaces/co-deletions workspace.RData")
 co.deletions.per.cytoband.circle.plots.table <- readRDS("./R workspaces/total.co-deletion.events.per.cytoband.rds")
 deletions.per.cytoband.circle.plots.table<- readRDS( "./R workspaces/total.deletion.events.per.cytoband.rds")
 short.cnv.list<- readRDS("./R workspaces/target.cancer.list.rds")
-co_deletions_removed_zeros_plot_table2<- readRDS(".R workspaces/BRCA_co_deletion_distance_plot_table.rds")
+co_deletions_removed_zeros_plot_table2<- readRDS("./R workspaces/BRCA_co_deletion_distance_plot_table.rds")
 gene_information_list<- readRDS("./R workspaces/target_gene_information_list.rds")
 ## Table of distance from target gene and proportion of deletions
 co_deletions_distance_from_target_gene_plot_table<- readRDS("./R workspaces/BRCA_co_deletion_distance_from_target_gene_plot_table.rds")
@@ -43,11 +43,11 @@ threshold_CNV_all_table_loc<- readRDS("./R workspaces/threshold_CNV_all_table_lo
 ## List containing dataframes with each dataframe corresponding to CNVs for one cancer using gistic thresholded values and containing chromosomal location
 threshold_cnv_list_loc<- readRDS("./R workspaces/threshold_cnv_list_loc.rds")
 ## List of CNV Dataframes of gistic thresholded CNV scores for specific cancers of interest 
-threshold_short_cnv_list<- readRDS(".R workspaces/threshold_short_cnv_list.rds")
+threshold_short_cnv_list<- readRDS("./R workspaces/threshold_short_cnv_list.rds")
 ## List of CNV Dataframes of gistic thresholded CNV scores with chromosomal location information for specific cancers of interest 
 threshold_short_cnv_list_loc<- readRDS("./R workspaces/threshold_short_cnv_list_loc.rds")
 ## List of target genes 1:
-target_genes<- readRDS(".R workspaces/target_genes1.rds")
+target_genes<- readRDS("./R workspaces/target_genes1.rds")
 ## Comprehensive clinical data from firehose using fbget
 clinical_fbget_list<- readRDS(file = "./R workspaces/clinical_fbget_list.rds")
 ## Concise clinical data from cbioportal
