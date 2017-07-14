@@ -328,56 +328,116 @@ write.csv(fishers_co_deletion_test_results_list, file = "fishers_co_deletion_tes
 ###################
 ###Perform fishers exact test per co-deletion between different cancers:.
 
+##Data: 
+# survival_stats_overall_survival_cancer_list<- readRDS(file = "./R workspaces/survival_stats_overall_survival_cancer_list")
+# length(survival_stats_overall_survival_cancer_list)
+# dim(survival_stats_overall_survival_cancer_list[[33]])
+# survival_stats_overall_survival_cancer_list[[33]][1:2,]
+# survival_stats_cancer_list<- survival_stats_overall_survival_cancer_list
+
+
 ## Create a vector to store the results of the test:
 
-# fishers_test_per_cancer_results_list<- vector("list", length(survival_stats_cancer_list))
-# 
-# for (i in 1: length(survival_stats_cancer_list)-1){
-#   
-#   survival_stats_table<- survival_stats_cancer_list[[i]]
-#   
-#   ##Create an empty table for fishers exact test results:
-#   fishers_test_results<- data.frame(matrix(NA, ncol = 16, nrow = nrow(survival_stats_table)))
-#   colnames(fishers_test_results)<- c("target_gene", "proximal_gene", "cat1", "cat1", "cat2", "cat2",
-#                                      "cat3", "cat3", "cat4", "cat4","co-deletion_p-value", "co-deletion_Odds", "co-deletion_p-value", "co-deletion_Odds", "co-deletion_p-value", "co-deletion_Odds")
-#   
-#   ##Perform Fishers exact test between target gene and co-deleted gene (deletion categories: 1,2,3,and 4).
-#   for(j in 1: nrow(survival_stats_table)) {
-#     
-#     ##Create an empty table for fisher exact test results:
-#     fishers_test_input_table<- data.frame(matrix(NA, ncol = 2, nrow = 2))
-#     
-#     ##Fill table:
-#     fishers_test_input_table[1,1]<- survival_stats_table[j,8]
-#     fishers_test_input_table[1,2]<- survival_stats_table[j,9]
-#     fishers_test_input_table[2,1]<- survival_stats_table[j,7]
-#     
-#     fishers_test_input_table[2,2]<- survival_stats_table[j,10]
-#     
-#     ##Perform Fishers exact test:
-#     fishers_test_co_deletions<- fisher.test(fishers_test_input_table)
-#     
-#     ##Store results of fishers exact test:
-#     fishers_test_results[j,1]<- survival_stats_table[j,1]
-#     fishers_test_results[j,2]<- survival_stats_table[j,2]
-#     fishers_test_results[j,3]<- fishers_test_co_deletions$p.value
-#     fishers_test_results[j,4]<- fishers_test_co_deletions$estimate
-#   }
-#   
-#   fishers_test_per_cancer_results_list[[i]]<- fishers_test_results
-#   
-# }
-# 
-# 
-# ##Save object
+fishers_test_per_cancer_results_list<- vector("list", length(survival_stats_cancer_list))
 
+for (i in 1: (length(survival_stats_cancer_list)-1)){
+  
+  survival_stats_table<- survival_stats_cancer_list[[i]]
+  
+  ##Create an empty table for fishers exact test results:
+  fishers_test_results<- data.frame(matrix(NA, ncol = 16, nrow = nrow(survival_stats_table)))
+  colnames(fishers_test_results)<- c("target_gene", "proximal_gene", "n_cat1_per_cancer", "n_cat1_all_cancers", 
+                                     "n_cat2_per_cancer", "n_cat2_all_cancers",
+                                     "n_cat3_per_cancer", "n_cat3_all_cancers",
+                                     "n_cat4_per_cancer", "n_cat4_all_cancers",
+                                     "co-deletion_p-value_cat2vs1", "co-deletion_Odds_cat2vs1",
+                                     "co-deletion_p-value_cat2vs3", "co-deletion_Odds_cat2vs3", 
+                                     "co-deletion_p-value_cat2vs4", "co-deletion_Odds_cat2vs4")
+  
+  ##Perform Fishers exact test between target gene and co-deleted gene (deletion categories: 1,2,3,and 4).
+  for(j in 1: nrow(survival_stats_table)) {
+    
+    ##Create an empty table for fisher exact test results:
+    fishers_test_input_table<- data.frame(matrix(NA, ncol = 2, nrow = 2))
+    
+    ##Get category data from other cancers
+    ##Cat1:
+    Cat1_sum<- sapply(survival_stats_cancer_list, function(x) x$number_of_samples_cat1[j]) %>%
+      .[-c(i,33)] %>%
+      sum()
+    ##Cat2:
+    Cat2_sum<- sapply(survival_stats_cancer_list, function(x) x$number_of_samples_cat2[j]) %>%
+      .[-c(i,33)] %>%
+      sum()
+    ##Cat3:
+    Cat3_sum<- sapply(survival_stats_cancer_list, function(x) x$number_of_samples_cat3[j]) %>%
+      .[-c(i,33)] %>%
+      sum()
+    ##Cat4:
+    Cat4_sum<- sapply(survival_stats_cancer_list, function(x) x$number_of_samples_cat4[j]) %>%
+      .[-c(i,33)] %>%
+      sum()
+    
+    ################
+    ###Cat 2 v's Cat1
+    ##Fill table for fishers exact test:
+    fishers_test_input_table[1,1]<- survival_stats_table[j,8]
+    fishers_test_input_table[1,2]<- Cat2_sum
+    
+    fishers_test_input_table[2,1]<- survival_stats_table[j,7]
+    fishers_test_input_table[2,2]<- Cat1_sum
+    
+    ##Perform Fishers exact test:
+    fishers_test_co_deletions<- fisher.test(fishers_test_input_table)
+    
+    ##Store results of fishers exact test:
+    fishers_test_results[j,1]<- survival_stats_table[j,1]
+    fishers_test_results[j,2]<- survival_stats_table[j,2]
+    fishers_test_results[j,3]<- survival_stats_table[j,7]
+    fishers_test_results[j,4]<- Cat1_sum
+    fishers_test_results[j,5]<- survival_stats_table[j,8]
+    fishers_test_results[j,6]<- Cat2_sum
+    fishers_test_results[j,7]<- survival_stats_table[j,9]
+    fishers_test_results[j,8]<- Cat3_sum
+    fishers_test_results[j,9]<- survival_stats_table[j,10]
+    fishers_test_results[j,10]<- Cat4_sum
+    fishers_test_results[j,11]<- fishers_test_co_deletions$p.value
+    fishers_test_results[j,12]<- fishers_test_co_deletions$estimate
+    
+    ###############
+    ###Cat 2 v's Cat 3
+    ##Fill table for fishers exact test:
+    fishers_test_input_table[2,1]<- survival_stats_table[j,9]
+    fishers_test_input_table[2,2]<- Cat3_sum
+    
+    ##Perform Fishers exact test:
+    fishers_test_co_deletions<- fisher.test(fishers_test_input_table)
+    
+    ##Store results of fishers exact test:
+    fishers_test_results[j,13]<- fishers_test_co_deletions$p.value
+    fishers_test_results[j,14]<- fishers_test_co_deletions$estimate
+    
+    ###############
+    ###Cat 2 v's Cat 4
+    ##Fill table for fishers exact test:
+    fishers_test_input_table[2,1]<- survival_stats_table[j,10]
+    fishers_test_input_table[2,2]<- Cat4_sum
+    
+    ##Perform Fishers exact test:
+    fishers_test_co_deletions<- fisher.test(fishers_test_input_table)
+    
+    ##Store results of fishers exact test:
+    fishers_test_results[j,15]<- fishers_test_co_deletions$p.value
+    fishers_test_results[j,16]<- fishers_test_co_deletions$estimate
+    
+    
+    
+  }
+  
+  fishers_test_per_cancer_results_list[[i]]<- fishers_test_results
+  
+}
 
-
-
-
-
-
-
-
-
-
+names(fishers_test_per_cancer_results_list)<- names(threshold_selected_cnv_list_plus_all_loc)
+##Save object
+saveRDS(fishers_test_per_cancer_results_list, file = "./R workspaces/fishers_test_per_cancer_results_list")
