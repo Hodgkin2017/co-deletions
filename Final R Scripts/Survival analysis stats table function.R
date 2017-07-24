@@ -579,11 +579,21 @@ survival_analysis_of_gene_list_cat1_and_2<- function(target_gene_list,
     ##Keep only entries with 1 and 2
     covariable_object_cat1_and_2<- which(covariable_object %in% c(1,2))
     covariable_object<- covariable_object[covariable_object_cat1_and_2]
+    ##Remove values with death_time = NA
+    death_time<- clinical_survival_deletion_category[covariable_object_cat1_and_2,1]
+    death_event<- clinical_survival_deletion_category[covariable_object_cat1_and_2,2]
+    death_time<- death_time[which(!is.na(death_time))]
+    death_event<- death_event[which(!is.na(death_time))]
+    covariable_object<- covariable_object[which(!is.na(death_time))]
+    ##Remove values with death_event = NA
+    death_time<- death_time[which(!is.na(death_event))]
+    death_event<- death_event[which(!is.na(death_event))]
+    covariable_object<- covariable_object[which(!is.na(death_event))]
     
     ##Create Surv object if there are any tumours in catagory 1 and 2
-    if(length(covariable_object) > 0){
-      death_time<- clinical_survival_deletion_category[covariable_object_cat1_and_2,1]
-      death_event<- clinical_survival_deletion_category[covariable_object_cat1_and_2,2]
+    if(length(covariable_object) > 1){
+      # death_time<- clinical_survival_deletion_category[covariable_object_cat1_and_2,1]
+      # death_event<- clinical_survival_deletion_category[covariable_object_cat1_and_2,2]
       surv_object<- Surv(death_time, death_event==1)
       
       ##Fit Kaplain meier graph to one co-variable to compare data with :
@@ -675,6 +685,7 @@ survival_analysis_of_gene_list_cat1_and_2<- function(target_gene_list,
   return(survival_stats_table)
   
 }
+
 
 
 ###########################################
