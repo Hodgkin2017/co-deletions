@@ -300,7 +300,53 @@ test<- immune_cell_infiltrate(target_gene_list = list1,
 dim(test)
 identical(test, tcia_immune_infiltrate_table)
 
+list2<- gene_information_list[1:2]
+
+test_lapply<- lapply(list2, function(x) immune_cell_infiltrate(target_gene_list = x,
+                                                          immune_cell_infiltrate_table = table1,
+                                                          cnv.table = table2, 
+                                                          distance = 2.5e+06,
+                                                          threshold = -2,
+                                                          deletion = TRUE,
+                                                          infiltrate_column = 4,  
+                                                          column_start = 11,
+                                                          start = TRUE, 
+                                                          remove_NA = TRUE,
+                                                          Cytoband = FALSE,
+                                                          print_to_screen = FALSE, 
+                                                          plot_graph = FALSE,
+                                                          path = "./")
+                     )
+
+length(test_lapply)
+dim(test_lapply[[1]])
+test_lapply[[1]][1:5, 1:10]
+identical(test, test_lapply[[2]])
+
+##need to add column for tumour suppresor gene!
 ###########
 ###ANOVA analysis?....
 
+newtable<- test_lapply[[2]] %>%
+  dplyr::filter(cell_type == "Activated dendritic cell")
 
+
+#explanatory_variable<-as.factor(test_lapply[[2]][,6])
+aov_cont<- aov(newtable$cibersort_LM22 ~ as.factor(newtable[,6]))
+#aov_cont<- aov(newtable$cibersort_LM22 ~ newtable[,6])
+summary(aov_cont) # here I see results for my ANOVA test
+
+##Perform Tukeys test:
+tuk<- TukeyHSD(aov_cont)
+tuk
+tuk$`gapCleaned$continent`[,4]
+
+##Plot ANOVA results
+plot(tuk)
+
+##Get mean CIBERSORT:
+means<- round(tapply(newtable$cibersort_LM22, as.factor(newtable[,6]), mean), digits=4)  # note that I I round values to just 2 decimal places
+means
+
+##number per catagory
+table(newtable[,6])
