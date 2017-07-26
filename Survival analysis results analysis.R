@@ -282,6 +282,6 @@ survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20 %>%
 write.csv(survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20, file = "survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20.csv", quote = FALSE)
 
 ##Draw venn diagrams to compare gene pairs identified on overall 
-#survival and disease free survival
+#survival and disease free survival?
 
 
