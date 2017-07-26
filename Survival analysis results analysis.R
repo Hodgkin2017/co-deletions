@@ -285,3 +285,23 @@ write.csv(survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20,
 #survival and disease free survival?
 
 
+########################################################
+
+#####################
+###Stratify survival curves for significance hits
+####################
+
+##################
+### Overall survival
+
+
+
+
+
+
+
+##################
+### Draw survival curves
+###################
+
+

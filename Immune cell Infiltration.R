@@ -54,35 +54,65 @@ length(which(CNV_patient_ids %in% tcia_immune_infiltrate$patientBarcode))
 length(which( unique(tcia_immune_infiltrate$patientBarcode) %in% CNV_patient_ids))
 # Total = 7045! All tcia TCGA samples have a matching CNV bar code.
 
+###########
+###Is cancer type CRC = COADREAD? (coloreactal cancer)
+CNV_patient_ids<- colnames(threshold_selected_cnv_list_plus_all_loc$COADREAD)
+head(CNV_patient_ids,11)
+CNV_patient_ids<- CNV_patient_ids[11:length(CNV_patient_ids)]
+head(CNV_patient_ids,11)
+
+##Convert CNV_patient_ids patient barcode to the same format as tcia_immune_infiltrate
+CNV_patient_ids<- CNV_patient_ids %>%
+  substr(0, 12) %>%
+  gsub("\\.", "-", .)
+
+CNV_patient_ids
+
+CNV_patient_ids_CRC<- tcia_immune_infiltrate %>%
+  dplyr::filter(disease == "CRC") %>%
+  dplyr::select(patientBarcode) %>%
+  .$patientBarcode
+
+length(which(CNV_patient_ids %in% CNV_patient_ids_CRC))
+# Total = 613
+length(which( unique(CNV_patient_ids_CRC) %in% unique(CNV_patient_ids)))
+# Total = 613!
+
+
+
+
+
 ##########
 ##Create a list of dataframes?
 
 
 ######################################
 ### Function to perform Immune cell infiltration analysis.
+## Function takes a CNV table, immune_infiltrate table and a Tumour suppressor gene
+
 
 #####
 ##Parameters:
-target_gene_list<- gene_information_list[[2]]
-immune_cell_infiltrate_table<- tcia_immune_infiltrate
-cnv.table<- threshold_selected_cnv_list_plus_all_loc$ALL
-dim(cnv.table)
-distance = 2.5e+06
-threshold = -2
-deletion = TRUE
-infiltrate_column = 4  
-column_start = 11
-start = TRUE 
-remove_NA = TRUE
-Cytoband = FALSE
-print_to_screen = FALSE 
-plot_graph = FALSE
-path = "./"
-
-
-target_gene_list = list1
-immune_cell_infiltrate_table = table1
-cnv.table = table2
+# target_gene_list<- gene_information_list[[2]]
+# immune_cell_infiltrate_table<- tcia_immune_infiltrate
+# cnv.table<- threshold_selected_cnv_list_plus_all_loc$ALL
+# dim(cnv.table)
+# distance = 2.5e+06
+# threshold = -2
+# deletion = TRUE
+# infiltrate_column = 4  
+# column_start = 11
+# start = TRUE 
+# remove_NA = TRUE
+# Cytoband = FALSE
+# print_to_screen = FALSE 
+# plot_graph = FALSE
+# path = "./"
+# 
+# 
+# target_gene_list = list1
+# immune_cell_infiltrate_table = table1
+# cnv.table = table2
 
 immune_cell_infiltrate<- function(target_gene_list,
                                           immune_cell_infiltrate_table,
@@ -259,12 +289,10 @@ immune_cell_infiltrate<- function(target_gene_list,
     tcia_immune_infiltrate_list[[i]]<- small_immune_cell_infiltrate_table
   }
   
+  ## Join immun cell type list together and add column for target gene
   tcia_immune_infiltrate_table<- do.call(rbind, tcia_immune_infiltrate_list)
-
-  
-  ################################################
-  ###  analysis:
-  
+  target_gene_column<-rep(target_gene, nrow(tcia_immune_infiltrate_table))
+  tcia_immune_infiltrate_table<- cbind(target_gene = target_gene_column, tcia_immune_infiltrate_table)
 
   return(tcia_immune_infiltrate_table)
   
@@ -298,9 +326,32 @@ test<- immune_cell_infiltrate(target_gene_list = list1,
                               path = "./")
 
 dim(test)
-identical(test, tcia_immune_infiltrate_table)
+#identical(test, tcia_immune_infiltrate_table)
+test[1:10,]
+
+table2<- threshold_selected_cnv_list_plus_all_loc$BRCA
+
+test2<- immune_cell_infiltrate(target_gene_list = list1,
+                              immune_cell_infiltrate_table = table1,
+                              cnv.table = table2, 
+                              distance = 2.5e+06,
+                              threshold = -2,
+                              deletion = TRUE,
+                              infiltrate_column = 4,  
+                              column_start = 11,
+                              start = TRUE, 
+                              remove_NA = TRUE,
+                              Cytoband = FALSE,
+                              print_to_screen = FALSE, 
+                              plot_graph = FALSE,
+                              path = "./")
+
+dim(test2)
+test2[1:10,]
 
 list2<- gene_information_list[1:2]
+table2<- threshold_selected_cnv_list_plus_all_loc$ALL
+table2<- threshold_selected_cnv_list_plus_all_loc$BRCA
 
 test_lapply<- lapply(list2, function(x) immune_cell_infiltrate(target_gene_list = x,
                                                           immune_cell_infiltrate_table = table1,
@@ -321,32 +372,226 @@ test_lapply<- lapply(list2, function(x) immune_cell_infiltrate(target_gene_list 
 length(test_lapply)
 dim(test_lapply[[1]])
 test_lapply[[1]][1:5, 1:10]
-identical(test, test_lapply[[2]])
-
-##need to add column for tumour suppresor gene!
-###########
-###ANOVA analysis?....
-
-newtable<- test_lapply[[2]] %>%
-  dplyr::filter(cell_type == "Activated dendritic cell")
+identical(test2, test_lapply[[2]])
 
 
-#explanatory_variable<-as.factor(test_lapply[[2]][,6])
-aov_cont<- aov(newtable$cibersort_LM22 ~ as.factor(newtable[,6]))
-#aov_cont<- aov(newtable$cibersort_LM22 ~ newtable[,6])
-summary(aov_cont) # here I see results for my ANOVA test
+###################
+###ANOVA analysis of immune cell infiltrate:
+########################
 
-##Perform Tukeys test:
-tuk<- TukeyHSD(aov_cont)
-tuk
-tuk$`gapCleaned$continent`[,4]
 
-##Plot ANOVA results
-plot(tuk)
 
-##Get mean CIBERSORT:
-means<- round(tapply(newtable$cibersort_LM22, as.factor(newtable[,6]), mean), digits=4)  # note that I I round values to just 2 decimal places
-means
 
-##number per catagory
-table(newtable[,6])
+col_start = 7
+#ALL_immune_infiltrate_table<- test_lapply[[2]]
+
+immune_infiltrate_table<- test_lapply[[2]]
+immune_infiltrate_table<- ALL_immune_infiltrate_table
+immune_infiltrate_table<- test_lapply[[1]]
+
+immune_cell_infiltrate_annova<- function(immune_infiltrate_table, col_start, join_genes = TRUE){
+
+## Get immune cell types
+cell_types_names<- unique(immune_infiltrate_table$cell_type) 
+
+##Remove NA
+cell_types_names<- cell_types_names[complete.cases(cell_types_names)]
+
+##Create an empty list:
+annova_immune_infiltration_list<- vector("list", ncol(immune_infiltrate_table) - col_start + 1)
+
+for (j in col_start:ncol(immune_infiltrate_table)){
+
+
+##Create an empty vector:
+annova_immune_infiltration_results<- data.frame(matrix(NA, ncol = 19, nrow = length(cell_types_names)))
+colnames(annova_immune_infiltration_results)<- c("cancer", "target_gene", "proximal_gene", "cell_type",
+                                                 "number_cat1", "number_cat2",
+                                                 "number_cat3", "number_cat4",
+                                                 "mean_cibersort_cat1", "mean_cibersort_cat2",
+                                                 "mean_cibersort_cat3", "mean_cibersort_cat4",
+                                                 "ANOVA_p_value", "p_value_cat2_1", "p_value3_1", 
+                                                 "p_value4_1", "p_value3_2", "p_value4_2", "p_value4_3")
+
+for (i in 1: length(cell_types_names)){
+  
+  ##Filter by immune cell type
+  cell_type_name<- cell_types_names[i]
+  
+  cell_type_immune_table<- immune_infiltrate_table %>%
+    dplyr::filter(cell_type == cell_type_name)
+  
+  ##Perform ANNOVA
+  if(length(levels(as.factor(cell_type_immune_table[,j]))) > 1){
+  anova_test<- aov(cell_type_immune_table$cibersort_LM22 ~ as.factor(cell_type_immune_table[,j]))
+  anova_summary<- summary(anova_test)
+  
+  ##Perform TUKEY test
+  tukey_test<- TukeyHSD(anova_test)
+  
+  }
+  
+  ##Get mean cibersort value per deletion category
+  means<- round(tapply(cell_type_immune_table$cibersort_LM22, factor(cell_type_immune_table[,7], levels = c(1,2,3,4)), mean), digits=4)
+  
+  ##number per catagory
+  number_per_category<- table(factor(cell_type_immune_table[,j], levels = c(1,2,3,4)))
+  
+  ##Fill in table
+  annova_immune_infiltration_results[i,1]<- immune_infiltrate_table$disease[1]
+  annova_immune_infiltration_results[i,2]<- as.character(immune_infiltrate_table$target_gene[1])
+  annova_immune_infiltration_results[i,3]<- colnames(immune_infiltrate_table)[j]
+  annova_immune_infiltration_results[i,4]<- cell_type_name
+  annova_immune_infiltration_results[i,5]<- number_per_category[1]
+  annova_immune_infiltration_results[i,6]<- number_per_category[2]
+  annova_immune_infiltration_results[i,7]<- number_per_category[3]
+  annova_immune_infiltration_results[i,8]<- number_per_category[4]
+  annova_immune_infiltration_results[i,9]<- means[1]
+  annova_immune_infiltration_results[i,10]<- means[2]
+  annova_immune_infiltration_results[i,11]<- means[3]
+  annova_immune_infiltration_results[i,12]<- means[4]
+  
+  if(length(levels(as.factor(cell_type_immune_table[,j]))) > 1){
+  annova_immune_infiltration_results[i,13]<- anova_summary[[1]]$`Pr(>F)`[1]
+
+  index<- grep("2-1", rownames(tukey_test$`as.factor(cell_type_immune_table[, j])`))
+  if(length(index) == 1){
+  annova_immune_infiltration_results[i,14]<- tukey_test$`as.factor(cell_type_immune_table[, j])`["2-1",4]
+  }
+  index<- grep("3-1", rownames(tukey_test$`as.factor(cell_type_immune_table[, j])`))
+  if(length(index) == 1){
+  annova_immune_infiltration_results[i,15]<- tukey_test$`as.factor(cell_type_immune_table[, j])`["3-1",4]
+  }
+  index<- grep("4-1", rownames(tukey_test$`as.factor(cell_type_immune_table[, j])`))
+  if(length(index) == 1){
+  annova_immune_infiltration_results[i,16]<- tukey_test$`as.factor(cell_type_immune_table[, j])`["4-1",4]
+  }
+  index<- grep("3-2", rownames(tukey_test$`as.factor(cell_type_immune_table[, j])`))
+  if(length(index) == 1){
+  annova_immune_infiltration_results[i,17]<- tukey_test$`as.factor(cell_type_immune_table[, j])`["3-2",4]
+  }
+  index<- grep("4-2", rownames(tukey_test$`as.factor(cell_type_immune_table[, j])`))
+  if(length(index) == 1){
+  annova_immune_infiltration_results[i,18]<- tukey_test$`as.factor(cell_type_immune_table[, j])`["4-2",4]
+  }
+  index<- grep("4-3", rownames(tukey_test$`as.factor(cell_type_immune_table[, j])`))
+  if(length(index) == 1){
+  annova_immune_infiltration_results[i,19]<- tukey_test$`as.factor(cell_type_immune_table[, j])`["4-3",4]
+  
+  }
+  
+  }
+  
+}
+
+print(paste("Cancer:", annova_immune_infiltration_results[i,1],
+            "Target gene:", annova_immune_infiltration_results[i,2],
+            "Proximal gene:", annova_immune_infiltration_results[i,3]), sep = " ")
+
+
+annova_immune_infiltration_list[[j]]<- annova_immune_infiltration_results
+
+}
+
+if(join_genes == TRUE){
+  
+  annova_immune_infiltration_list<- do.call(rbind, annova_immune_infiltration_list)
+  
+}
+
+return(annova_immune_infiltration_list)
+
+}
+
+###################
+### test function
+
+test_annova<- immune_cell_infiltrate_annova(immune_infiltrate_table = test_lapply[[2]], col_start = 7, join_genes = TRUE)
+
+test_annova_apply<- lapply(test_lapply, function(x) immune_cell_infiltrate_annova(x, col_start = 7, join_genes = TRUE))
+
+length(test_annova_apply)
+test_annova_apply[[1]]
+
+###########################
+### Test all cancers and all Tumour suppressor genes to see if they have 
+#significant immune cell infiltration 
+#########################
+
+
+##########
+##How many cancer types are there?
+unique(tcia_immune_infiltrate$disease)
+length(unique(tcia_immune_infiltrate$disease))
+
+names(threshold_selected_cnv_list_plus_all_loc)
+
+##CRC = COADREAD
+
+############
+### Create list of CNV tables that I have immune infiltration data for
+
+threshold_immune_selected_cnv_list_plus_all_loc<- threshold_selected_cnv_list_plus_all_loc[c(2,3,4,6,9,10,11,12,13,16,17,18,20,21,23,25,26,28,30,33)]
+length(threshold_immune_selected_cnv_list_plus_all_loc)
+identical(names(threshold_immune_selected_cnv_list_plus_all_loc[1:19]), unique(tcia_immune_infiltrate$disease))
+
+#############
+
+###create empty list
+immune_cell_infiltrate_annova_per_cancer_list<- vector("list", length(threshold_immune_selected_cnv_list_plus_all_loc))
+
+###loop through each cancer
+for ( i in 1: length(threshold_immune_selected_cnv_list_plus_all_loc)){
+  
+  cnv_table<-threshold_immune_selected_cnv_list_plus_all_loc[[i]]
+  
+  ##Determine immune cell infiltration and type od deletion present per 
+  #tumour and per target gene - proximal gene pair
+  immune_cell_infiltrate_list<- lapply(gene_information_long_list[1:2], function(x) immune_cell_infiltrate(target_gene_list = x,
+                                                                 immune_cell_infiltrate_table = tcia_immune_infiltrate,
+                                                                 cnv.table = cnv_table, 
+                                                                 distance = 2.5e+06,
+                                                                 threshold = -2,
+                                                                 deletion = TRUE,
+                                                                 infiltrate_column = 4,  
+                                                                 column_start = 11,
+                                                                 start = TRUE, 
+                                                                 remove_NA = TRUE,
+                                                                 Cytoband = FALSE,
+                                                                 print_to_screen = FALSE, 
+                                                                 plot_graph = FALSE,
+                                                                 path = "./")
+  )
+  
+  ##Name each item in list with target gene name
+  names(immune_cell_infiltrate_list)<- lapply(gene_information_long_list[1:2], function(x) x[[1]])
+  
+  ##Perform ANNOVA within each immune cell type for each target gene and proximal gene:
+  immune_cell_infiltrate_annova_list<- lapply(immune_cell_infiltrate_list, function(x) immune_cell_infiltrate_annova(x, col_start = 7, join_genes = TRUE))
+  
+  ##Join target gene ANNOVA tables in list together and add to final results list
+  immune_cell_infiltrate_annova_long_table<- do.call(rbind, immune_cell_infiltrate_annova_list)
+  immune_cell_infiltrate_annova_per_cancer_list[[i]]<- immune_cell_infiltrate_annova_long_table
+  
+}
+
+names(immune_cell_infiltrate_annova_per_cancer_list)<- names(threshold_immune_selected_cnv_list_plus_all_loc)
+
+## Save object:
+saveRDS(immune_cell_infiltrate_annova_per_cancer_list, file = "./R workspaces/immune_cell_infiltrate_annova_per_cancer_list")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
