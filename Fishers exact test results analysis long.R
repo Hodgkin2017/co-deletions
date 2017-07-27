@@ -188,12 +188,33 @@ fishers_co_deletion_per_gene_long_table_significanct_p0.1_more_than_20 %>%
   dim()
 
 fishers_co_deletion_per_gene_long_table_significanct_p0.1_more_than_20 %>%
+  dplyr::filter(cancer == "ALL") %>%
+  dplyr::select(target_gene) %>%
+  unique()
+
+fishers_co_deletion_per_gene_ALL<- fishers_co_deletion_per_gene_long_table_significanct_p0.1_more_than_20 %>%
+  dplyr::filter(cancer == "ALL") %>%
+  dplyr::arrange(BH_adjust)
+
+fishers_co_deletion_per_gene_ALL
+
+write.csv(fishers_co_deletion_per_gene_ALL, file = "fishers_co_deletion_per_gene_ALL.csv", quote = FALSE)
+
+
+fishers_co_deletion_per_gene_long_table_significanct_p0.1_more_than_20 %>%
   dplyr::filter(cancer == "BRCA") %>%
   dplyr::select(target_gene) %>%
   unique() %>%
   dim()
 
-##Sort by BH p-value and cancer type?
+fishers_co_deletion_per_gene_BRCA<- fishers_co_deletion_per_gene_long_table_significanct_p0.1_more_than_20 %>%
+  dplyr::filter(cancer == "BRCA") %>%
+  dplyr::arrange(BH_adjust)
+
+fishers_co_deletion_per_gene_BRCA
+
+write.csv(fishers_co_deletion_per_gene_BRCA, file = "fishers_co_deletion_per_gene_BRCA.csv", quote = FALSE)
+
 
 write.csv(fishers_co_deletion_per_gene_long_table_significanct_p0.1_more_than_20, file = "fishers_co_deletion_per_gene_long_table_significanct_p0.1_more_than_20.csv", quote = FALSE)
 
@@ -425,7 +446,25 @@ fishers_test_per_cancer_long_table_significant_p0_05_more_than_20 %>%
   dplyr::select(proximal_gene) %>%
   do.call(rbind, .)
 
+## Create csv for BRCA
+fishers_co_deletion_per_cancer_BRCA<- fishers_test_per_cancer_long_table_significant_p0_05_more_than_20 %>%
+  dplyr::filter(cancer == "BRCA") %>%
+  dplyr::arrange(BH_adjust_cat2vs1)
+
+fishers_co_deletion_per_cancer_BRCA
+
+write.csv(fishers_co_deletion_per_cancer_BRCA, file = "fishers_co_deletion_per_cancer_BRCA.csv", quote = FALSE)
+
+## Create csv for SKCM
+fishers_co_deletion_per_cancer_SKCM<- fishers_test_per_cancer_long_table_significant_p0_05_more_than_20 %>%
+  dplyr::filter(cancer == "SKCM") %>%
+  dplyr::arrange(BH_adjust_cat2vs1)
+
+fishers_co_deletion_per_cancer_SKCM
+
+write.csv(fishers_co_deletion_per_cancer_SKCM, file = "fishers_co_deletion_per_cancer_SKCM.csv", quote = FALSE)
 
 
+write.csv(fishers_test_per_cancer_long_table_significant_p0_05_more_than_20, file = "fishers_test_per_cancer_long_table_significant_p0_05_more_than_20.csv", quote = FALSE)
 
 

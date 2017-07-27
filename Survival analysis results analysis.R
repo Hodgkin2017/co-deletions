@@ -149,6 +149,28 @@ survival_stats_ovsurv_cat1_2_significant_table_p0_05_more_than_20 %>%
 
 write.csv(survival_stats_ovsurv_cat1_2_significant_table_p0_05_more_than_20, file = "survival_stats_ovsurv_cat1_2_significant_table_p0_05_more_than_20.csv", quote = FALSE)
 
+##########
+### Export data tables:
+
+## Create csv for LUAD
+survival_stats_ovsurv_cat1_2_LUAD<- survival_stats_ovsurv_cat1_2_significant_table_p0_05_more_than_20 %>%
+  dplyr::filter(cancer == "LUAD") %>%
+  dplyr::arrange(BH_adjust_logrank)
+
+survival_stats_ovsurv_cat1_2_LUAD
+
+write.csv(survival_stats_ovsurv_cat1_2_LUAD, file = "survival_stats_ovsurv_cat1_2_LUAD.csv", quote = FALSE)
+
+## Create csv for ALL
+survival_stats_ovsurv_cat1_2_ALL<- survival_stats_ovsurv_cat1_2_significant_table_p0_05_more_than_20 %>%
+  dplyr::filter(cancer == "ALL") %>%
+  dplyr::arrange(BH_adjust_logrank)
+
+survival_stats_ovsurv_cat1_2_ALL
+
+write.csv(survival_stats_ovsurv_cat1_2_ALL, file = "survival_stats_ovsurv_cat1_2_ALL.csv", quote = FALSE)
+
+
 
 
 ###################################################################
@@ -281,6 +303,33 @@ survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20 %>%
 
 write.csv(survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20, file = "survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20.csv", quote = FALSE)
 
+##########
+### Export data tables:
+
+## Create csv for GBM
+survival_stats_disefreeSurv_cat1_2_GBM<- survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20 %>%
+  dplyr::filter(cancer == "GBM") %>%
+  dplyr::arrange(BH_adjust_logrank)
+
+survival_stats_disefreeSurv_cat1_2_GBM
+
+write.csv(survival_stats_disefreeSurv_cat1_2_GBM, file = "survival_stats_disefreeSurv_cat1_2_GBM.csv", quote = FALSE)
+
+## Create csv for ALL
+survival_stats_disefreeSurv_cat1_2_ALL<- survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20 %>%
+  dplyr::filter(cancer == "ALL") %>%
+  dplyr::arrange(BH_adjust_logrank)
+
+survival_stats_disefreeSurv_cat1_2_ALL
+
+write.csv(survival_stats_disefreeSurv_cat1_2_ALL, file = "survival_stats_disefreeSurv_cat1_2_ALL.csv", quote = FALSE)
+
+
+
+
+
+
+
 ##Draw venn diagrams to compare gene pairs identified on overall 
 #survival and disease free survival?
 
@@ -293,10 +342,72 @@ write.csv(survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20,
 
 ##################
 ### Overall survival
+###################
+
+#################
+### What genes do I need to stratify?
+unique(survival_stats_ovsurv_cat1_2_LUAD$target_gene)
+unique(survival_stats_ovsurv_cat1_2_LUAD$proximal_gene)
+
+unique(survival_stats_ovsurv_cat1_2_ALL$target_gene)
+unique(survival_stats_ovsurv_cat1_2_ALL$proximal_gene)
+
+#################
+### Stratify LUAD: CDKN2A
+
+##############
+### Create a for loop to go through all cancers and perform survival analysis on target genes and co-deletions:
+
+
+##Create an empty list
+survival_stats_cancer_list_LUAD<- vector("list", 1)
+  
+  ##Get CNV table
+  cnv.table<- threshold_selected_cnv_list_plus_all_loc$LUAD
+  
+  
+  ##Get survival data
+  survival_time_list<- clinical_long_plus_all_survival$LUAD_clinical.tsv
+  
+  # target_gene_names<- sapply(gene_information_long_list, function(x) x[[1]])
+  # which(target_gene_names %in%  "CDKN2A" )
+  
+  ## Perform survival analysis of co-deletions:
+  survival_stats<- survival_analysis_of_gene_list_cat1_and_2(target_gene_list = gene_information_long_list[[16]], survival_time_list = survival_time_list, cnv.table = cnv.table, distance = 2.5e+06,
+                                                                                                                 threshold = -2, deletion = TRUE, time_of_death_column = 5, 
+                                                                                                                 death_event_column = 6, column_start = 11, start = TRUE, 
+                                                                                                                 remove_NA = TRUE, Cytoband = FALSE, print_to_screen = FALSE, 
+                                                                                                                 plot_graph = FALSE)
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  ##Combine survival stats together and order by log-rank test p-value
+  survival_stats_list_table<- do.call(rbind, survival_stats_list)
+  survival_stats_list_table<- survival_stats_list_table[order(survival_stats_list_table$`p-value_logrank_test`, decreasing = FALSE),]
+  #survival_stats_list_table[1:100, c(1,2,5,6,8,9)]
+  
+  
+  
+  
+  
+  
+  
+  ##Save file as .csv
+  write.csv(survival_stats_list_table, file = paste0(names(threshold_selected_cnv_list_plus_all_loc[i]),"_co-deletion_overall_survival_stats_cat1_and_2.csv"), quote = FALSE)
+  
+
+  
 
 
 
-
+## Save object:
+saveRDS(survival_stats_cancer_list3, file = "./R workspaces/survival_stats_overall_survival_cancer_list_cat1_and_2")
 
 
 
