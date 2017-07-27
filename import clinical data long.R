@@ -9,7 +9,7 @@
 
 #####################
 ##Import BRCA clinical data
-BRCA_clinical<- read.delim("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/clinical/BRCA_clinical.tsv", header = TRUE, stringsAsFactors = FALSE)
+BRCA_clinical<- read.delim("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/clinical/fbget/BRCA_clinical.tsv", header = TRUE, stringsAsFactors = FALSE)
 BRCA_clinical[1:5, 1:10]
 colnames(threshold_short_cnv_list[[1]])
 BRCA_cnv_names<- threshold_short_cnv_list$BRCA %>% 
@@ -42,7 +42,7 @@ BRCA_cnv_names[518]
 
 ######################
 ##Import COADREAD clinical data
-COADREAD_clinical<- read.delim("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/clinical/COADREAD_clinical.tsv", header = TRUE, stringsAsFactors = FALSE)
+COADREAD_clinical<- read.delim("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/clinical/fbget/COADREAD_clinical.tsv", header = TRUE, stringsAsFactors = FALSE)
 # COADREAD_clinical[1:5, 1:10]
 # colnames(threshold_short_cnv_list$COADREAD)
 
@@ -73,7 +73,7 @@ length(which(!(cnv_tumour_ID %in% clinical_tumour_ID)))
 
 ######################
 ##Import ESCA clinical data
-ESCA_clinical<- read.delim("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/clinical/ESCA_clinical.tsv", header = TRUE, stringsAsFactors = FALSE)
+ESCA_clinical<- read.delim("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/clinical/fbget/ESCA_clinical.tsv", header = TRUE, stringsAsFactors = FALSE)
 
 clinical_tumour_ID<-ESCA_clinical$tcga_participant_barcode 
 
@@ -102,7 +102,7 @@ length(which(!(cnv_tumour_ID %in% clinical_tumour_ID)))
 
 ######################
 ##Import HNSC clinical data
-HNSC_clinical<- read.delim("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/clinical/HNSC_clinical.tsv", header = TRUE, stringsAsFactors = FALSE)
+HNSC_clinical<- read.delim("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/clinical/fbget/HNSC_clinical.tsv", header = TRUE, stringsAsFactors = FALSE)
 
 clinical_tumour_ID<-HNSC_clinical$tcga_participant_barcode 
 
@@ -132,7 +132,7 @@ length(which(!(cnv_tumour_ID %in% clinical_tumour_ID)))
 
 ######################
 ##Import LUAD clinical data
-LUAD_clinical<- read.delim("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/clinical/LUAD_clinical.tsv", header = TRUE, stringsAsFactors = FALSE)
+LUAD_clinical<- read.delim("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/clinical/fbget/LUAD_clinical.tsv", header = TRUE, stringsAsFactors = FALSE)
 
 clinical_tumour_ID<-LUAD_clinical$tcga_participant_barcode 
 
@@ -161,7 +161,7 @@ length(which(!(cnv_tumour_ID %in% clinical_tumour_ID)))
 
 ######################
 ##Import LUSC clinical data
-LUSC_clinical<- read.delim("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/clinical/LUSC_clinical.tsv", header = TRUE, stringsAsFactors = FALSE)
+LUSC_clinical<- read.delim("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/clinical/fbget/LUSC_clinical.tsv", header = TRUE, stringsAsFactors = FALSE)
 
 clinical_tumour_ID<-LUSC_clinical$tcga_participant_barcode 
 
@@ -190,7 +190,7 @@ length(which(!(cnv_tumour_ID %in% clinical_tumour_ID)))
 
 ######################
 ##Import OV clinical data
-OV_clinical<- read.delim("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/clinical/OV_clinical.tsv", header = TRUE, stringsAsFactors = FALSE)
+OV_clinical<- read.delim("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/clinical/fbget/OV_clinical.tsv", header = TRUE, stringsAsFactors = FALSE)
 
 clinical_tumour_ID<-OV_clinical$tcga_participant_barcode 
 
@@ -219,7 +219,7 @@ length(which(!(cnv_tumour_ID %in% clinical_tumour_ID)))
 
 ######################
 ##Import PAAD clinical data
-PAAD_clinical<- read.delim("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/clinical/PAAD_clinical.tsv", header = TRUE, stringsAsFactors = FALSE)
+PAAD_clinical<- read.delim("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/clinical/fbget/PAAD_clinical.tsv", header = TRUE, stringsAsFactors = FALSE)
 
 clinical_tumour_ID<-PAAD_clinical$tcga_participant_barcode 
 
@@ -248,7 +248,7 @@ length(which(!(cnv_tumour_ID %in% clinical_tumour_ID)))
 
 ######################
 ##Import PRAD clinical data
-PRAD_clinical<- read.delim("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/clinical/PRAD_clinical.tsv", header = TRUE, stringsAsFactors = FALSE)
+PRAD_clinical<- read.delim("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/clinical/fbget/PRAD_clinical.tsv", header = TRUE, stringsAsFactors = FALSE)
 
 clinical_tumour_ID<-PRAD_clinical$tcga_participant_barcode 
 
@@ -278,7 +278,7 @@ length(which(!(cnv_tumour_ID %in% clinical_tumour_ID)))
 
 ######################
 ##Import SKCM clinical data
-SKCM_clinical<- read.delim("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/clinical/SKCM_clinical.tsv", header = TRUE, stringsAsFactors = FALSE)
+SKCM_clinical<- read.delim("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/clinical/fbget/SKCM_clinical.tsv", header = TRUE, stringsAsFactors = FALSE)
 
 clinical_tumour_ID<-SKCM_clinical$tcga_participant_barcode 
 
@@ -307,7 +307,7 @@ length(which(!(cnv_tumour_ID %in% clinical_tumour_ID)))
 
 ######################
 ##Import STAD clinical data
-STAD_clinical<- read.delim("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/clinical/STAD_clinical.tsv", header = TRUE, stringsAsFactors = FALSE)
+STAD_clinical<- read.delim("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Input data/clinical/fbget/STAD_clinical.tsv", header = TRUE, stringsAsFactors = FALSE)
 
 clinical_tumour_ID<-STAD_clinical$tcga_participant_barcode 
 
@@ -500,9 +500,9 @@ sapply(threshold_short_cnv_list_loc, function(x) ncol(x)-11)
 
 survival_list
 
-clinical_cbioportal_list[[1]]$Patient.ID
+clinical_cbioportal_list[[3]]$Patient.ID
 
-x<- clinical_cbioportal_list[[1]]
+x<- clinical_cbioportal_list[[3]]
 x$Patient.ID
 
   
@@ -988,6 +988,73 @@ head(clinical_long_survival[[32]], 40)
 clinical_survival_long_list<- clinical_long_survival
 saveRDS(clinical_survival_long_list, file = "./R workspaces/clinical_survival_long_list")
 
+###############################
 
 
+#################
+###Add Tumour stage to clinical_survival_long_list:
+##################
+
+##########
+### Do all Cancers have pathological stage?
+#http://gdac.broadinstitute.org/runs/info/clinical/
+#GBM, LAML, LGG, PCPG, PRAD, SARC do not have cancer staging!
+#THYM has masaoka_stage which is a specific dtaging measure for Thymus cancer as it is so rare.
+#Clinical stage = assessment of stage from test
+#Pathological stage = assessment from surgery (at least for prostate surgery)?
+#Cbioportal has prostate scoring system but, it is slighlty different from the classical clinical staging system.
+
+names(clinical_fbget_list)
+dim(clinical_fbget_list$ACC_clinical.tsv)
+colnames(clinical_fbget_list$ACC_clinical.tsv)
+clinical_fbget_list$ACC_clinical.tsv[,"pathologic_stage"]
+colnames(clinical_fbget_list$BRCA_clinical.tsv)
+
+##Create an empty vector:
+pathologic_stage_column<-data.frame(matrix(NA, ncol = 3, nrow = length(clinical_fbget_list)))
+
+##loop through cancers to find index of pathologic_stage
+for (i in 1: length(clinical_fbget_list)){
+  
+ 
+  column_names<- colnames(clinical_fbget_list[[i]])
+  index<- grep("pathologic_stage", column_names)
+  if(length(index) > 0){
+    pathologic_stage_column[i,2]<- grep("pathologic_stage", column_names)
+  }
+  index<- grep("clinical_stage", column_names)
+  if(length(index) > 0){
+  pathologic_stage_column[i,3]<- grep("clinical_stage", column_names)
+  }
+  pathologic_stage_column[i,1]<- names(clinical_fbget_list[i])
+}
+
+colnames(pathologic_stage_column)<- c("cancer", "pathologic_stage_column", "clinical_stage_column")
+pathologic_stage_column
+
+##################
+## Age
+## No age available for STES
+
+##Create an empty vector:
+age_column<-data.frame(matrix(NA, ncol = 3, nrow = length(clinical_fbget_list)))
+
+##loop through cancers to find index of age_at_initial_pathologic_diagnosis
+for (i in 1: length(clinical_fbget_list)){
+  
+  
+  column_names<- colnames(clinical_fbget_list[[i]])
+  index<- grep("age_at_initial_pathologic_diagnosis", column_names)
+  if(length(index) > 0){
+    age_column[i,2]<- grep("age_at_initial_pathologic_diagnosis", column_names)
+  }
+  # index<- grep("clinical_stage", column_names)
+  # if(length(index) > 0){
+  #   age_column[i,3]<- grep("clinical_stage", column_names)
+  # }
+  age_column[i,1]<- names(clinical_fbget_list[i])
+}
+
+colnames(age_column)<- c("cancer", "age_column", "clinical_stage_column")
+age_column
 

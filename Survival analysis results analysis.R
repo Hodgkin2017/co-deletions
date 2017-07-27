@@ -352,6 +352,16 @@ unique(survival_stats_ovsurv_cat1_2_LUAD$proximal_gene)
 unique(survival_stats_ovsurv_cat1_2_ALL$target_gene)
 unique(survival_stats_ovsurv_cat1_2_ALL$proximal_gene)
 
+################
+### ADD Tumour stage to survival_time_list
+
+names(survival_time_list)
+
+
+
+
+
+
 #################
 ### Stratify LUAD: CDKN2A
 
