@@ -32,7 +32,12 @@
 
 ###############
 ###Import data
-survival_stats_overall_survival_cancer_list_cat1_and_2<- readRDS(file = "./R workspaces/survival_stats_overall_survival_cancer_list_cat1_and_2_169genes")
+##old data rounded to 2.d.p
+# survival_stats_overall_survival_cancer_list_cat1_and_2<- readRDS(file = "./R workspaces/survival_stats_overall_survival_cancer_list_cat1_and_2_169genes")
+# survival_stats_overall_survival_cancer_list_cat1_and_2[[1]]
+
+
+survival_stats_overall_survival_cancer_list_cat1_and_2<- readRDS(file = "./R workspaces/survival_stats_overall_survival_cancer_list_cat1_and_2_169genes_2")
 survival_stats_overall_survival_cancer_list_cat1_and_2[[1]]
 
 length(survival_stats_overall_survival_cancer_list_cat1_and_2)
@@ -106,6 +111,16 @@ table(survival_stats_ovsurv_cat1_2_significant_table_p0_05$cancer)
 sum(survival_stats_overall_survival_cancer_cat1_and_2_table$BH_adjust_logrank <= 0.1, na.rm = TRUE)
 sum(survival_stats_overall_survival_cancer_cat1_and_2_all_table$BH_adjust_logrank <= 0.1, na.rm = TRUE)
 
+survival_stats_ovsurv_cat1_2_significant_table_p0_1<- survival_stats_overall_survival_cancer_cat1_and_2_table %>%
+  dplyr::filter(BH_adjust_logrank <= 0.1)
+# survival_stats_ovsurv_cat1_2_significant_table_p0_05<- survival_stats_overall_survival_cancer_cat1_and_2_table$BH_adjust_logrank <= 0.05
+# survival_stats_ovsurv_cat1_2_significant_table_p0_05<- survival_stats_overall_survival_cancer_cat1_and_2_table[survival_stats_ovsurv_cat1_2_significant_table_p0_05,]
+dim(survival_stats_overall_survival_cancer_cat1_and_2_table)
+dim(survival_stats_ovsurv_cat1_2_significant_table_p0_1)
+head(survival_stats_ovsurv_cat1_2_significant_table_p0_1)
+
+##number of significance genes per cancer type:
+table(survival_stats_ovsurv_cat1_2_significant_table_p0_1$cancer)
 
 ####################
 ### Identify significant genes with greater than 20 values in cat 1 and 2.
@@ -153,13 +168,13 @@ write.csv(survival_stats_ovsurv_cat1_2_significant_table_p0_05_more_than_20, fil
 ### Export data tables:
 
 ## Create csv for LUAD
-survival_stats_ovsurv_cat1_2_LUAD<- survival_stats_ovsurv_cat1_2_significant_table_p0_05_more_than_20 %>%
-  dplyr::filter(cancer == "LUAD") %>%
-  dplyr::arrange(BH_adjust_logrank)
-
-survival_stats_ovsurv_cat1_2_LUAD
-
-write.csv(survival_stats_ovsurv_cat1_2_LUAD, file = "survival_stats_ovsurv_cat1_2_LUAD.csv", quote = FALSE)
+# survival_stats_ovsurv_cat1_2_LUAD<- survival_stats_ovsurv_cat1_2_significant_table_p0_05_more_than_20 %>%
+#   dplyr::filter(cancer == "LUAD") %>%
+#   dplyr::arrange(BH_adjust_logrank)
+# 
+# survival_stats_ovsurv_cat1_2_LUAD
+# 
+# write.csv(survival_stats_ovsurv_cat1_2_LUAD, file = "survival_stats_ovsurv_cat1_2_LUAD.csv", quote = FALSE)
 
 ## Create csv for ALL
 survival_stats_ovsurv_cat1_2_ALL<- survival_stats_ovsurv_cat1_2_significant_table_p0_05_more_than_20 %>%
@@ -170,6 +185,67 @@ survival_stats_ovsurv_cat1_2_ALL
 
 write.csv(survival_stats_ovsurv_cat1_2_ALL, file = "survival_stats_ovsurv_cat1_2_ALL.csv", quote = FALSE)
 
+##########################
+
+########
+##pvalue <= 0.1
+survival_stats_ovsurv_cat1_2_significant_table_p0_1[1:10,]
+dim(survival_stats_ovsurv_cat1_2_significant_table_p0_1)
+
+survival_stats_ovsurv_cat1_2_significant_table_p0_1_more_than_20<- 
+  survival_stats_ovsurv_cat1_2_significant_table_p0_1 %>% 
+  dplyr::filter(number_of_samples_cat1 >= 20 & number_of_samples_cat2 >= 20)
+
+dim(survival_stats_ovsurv_cat1_2_significant_table_p0_1_more_than_20)
+
+##number of significance genes per cancer type:
+table(survival_stats_ovsurv_cat1_2_significant_table_p0_1_more_than_20$cancer)
+
+survival_stats_ovsurv_cat1_2_significant_table_p0_1_more_than_20 %>%
+  dplyr::group_by(cancer) %>%
+  dplyr::summarise(total = n())
+
+
+survival_stats_ovsurv_cat1_2_significant_table_p0_1_more_than_20 %>%
+  dplyr::filter(cancer == "ALL") %>%
+  dplyr::select(target_gene) %>%
+  unique()
+
+survival_stats_ovsurv_cat1_2_significant_table_p0_1_more_than_20 %>%
+  dplyr::filter(cancer == "LUAD") %>%
+  dplyr::select(target_gene) %>%
+  unique() 
+
+survival_stats_ovsurv_cat1_2_significant_table_p0_1_more_than_20 %>%
+  dplyr::filter(cancer == "LUAD")
+
+survival_stats_ovsurv_cat1_2_significant_table_p0_1_more_than_20 %>%
+  dplyr::filter(cancer == "ALL")
+
+##Sort by BH p-value and cancer type?
+
+write.csv(survival_stats_ovsurv_cat1_2_significant_table_p0_1_more_than_20, file = "survival_stats_ovsurv_cat1_2_significant_table_p0_1_more_than_20.csv", quote = FALSE)
+
+##########
+### Export data tables:
+
+## Create csv for LUAD
+# survival_stats_ovsurv_cat1_2_LUAD<- survival_stats_ovsurv_cat1_2_significant_table_p0_05_more_than_20 %>%
+#   dplyr::filter(cancer == "LUAD") %>%
+#   dplyr::arrange(BH_adjust_logrank)
+# 
+# survival_stats_ovsurv_cat1_2_LUAD
+# 
+# write.csv(survival_stats_ovsurv_cat1_2_LUAD, file = "survival_stats_ovsurv_cat1_2_LUAD.csv", quote = FALSE)
+
+## Create csv for ALL
+survival_stats_ovsurv_cat1_2_ALL<- survival_stats_ovsurv_cat1_2_significant_table_p0_1_more_than_20 %>%
+  dplyr::filter(cancer == "ALL") %>%
+  dplyr::arrange(BH_adjust_logrank)
+
+survival_stats_ovsurv_cat1_2_ALL
+
+write.csv(survival_stats_ovsurv_cat1_2_ALL, file = "survival_stats_ovsurv_cat1_2_ALL_p=0_1.csv", quote = FALSE)
 
 
 
@@ -181,7 +257,11 @@ write.csv(survival_stats_ovsurv_cat1_2_ALL, file = "survival_stats_ovsurv_cat1_2
 
 ###############
 ###Import data
-survival_stats_DiseFreeSurv_cancer_list_cat1_and_2<- readRDS(file = "./R workspaces/survival_stats_disease_free_cancer_list_cat1_and_2_169genes")
+##old data rounded to 2.d.p
+# survival_stats_DiseFreeSurv_cancer_list_cat1_and_2<- readRDS(file = "./R workspaces/survival_stats_disease_free_cancer_list_cat1_and_2_169genes")
+# survival_stats_DiseFreeSurv_cancer_list_cat1_and_2[[1]]
+
+survival_stats_DiseFreeSurv_cancer_list_cat1_and_2<- readRDS(file = "./R workspaces/survival_stats_disease_free_cancer_list_cat1_and_2_169genes_2")
 survival_stats_DiseFreeSurv_cancer_list_cat1_and_2[[1]]
 
 length(survival_stats_DiseFreeSurv_cancer_list_cat1_and_2)
@@ -260,6 +340,14 @@ table(survival_stats_DiseFreeSurv_cancer_list_cat1_2_table_p0_05$cancer)
 sum(survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table$BH_adjust_logrank <= 0.1, na.rm = TRUE)
 sum(survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_all_table$BH_adjust_logrank <= 0.1, na.rm = TRUE)
 
+survival_stats_DiseFreeSurv_cancer_list_cat1_2_table_p0_1<- survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table %>%
+  dplyr::filter(BH_adjust_logrank <= 0.1)
+# survival_stats_ovsurv_cat1_2_significant_table_p0_05<- survival_stats_overall_survival_cancer_cat1_and_2_table$BH_adjust_logrank <= 0.05
+# survival_stats_ovsurv_cat1_2_significant_table_p0_05<- survival_stats_overall_survival_cancer_cat1_and_2_table[survival_stats_ovsurv_cat1_2_significant_table_p0_05,]
+dim(survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table)
+dim(survival_stats_DiseFreeSurv_cancer_list_cat1_2_table_p0_1)
+head(survival_stats_DiseFreeSurv_cancer_list_cat1_2_table_p0_1)
+
 
 ####################
 ### Identify significant genes with greater than 20 values in cat 1 and 2.
@@ -288,13 +376,13 @@ survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20 %>%
   dplyr::select(target_gene) %>%
   unique()
 
-survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20 %>%
-  dplyr::filter(cancer == "GBM") %>%
-  dplyr::select(target_gene) %>%
-  unique() 
-
-survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20 %>%
-  dplyr::filter(cancer == "GBM")
+# survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20 %>%
+#   dplyr::filter(cancer == "GBM") %>%
+#   dplyr::select(target_gene) %>%
+#   unique() 
+# 
+# survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20 %>%
+#   dplyr::filter(cancer == "GBM")
 
 survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20 %>%
   dplyr::filter(cancer == "ALL")
@@ -307,13 +395,13 @@ write.csv(survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20,
 ### Export data tables:
 
 ## Create csv for GBM
-survival_stats_disefreeSurv_cat1_2_GBM<- survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20 %>%
-  dplyr::filter(cancer == "GBM") %>%
-  dplyr::arrange(BH_adjust_logrank)
-
-survival_stats_disefreeSurv_cat1_2_GBM
-
-write.csv(survival_stats_disefreeSurv_cat1_2_GBM, file = "survival_stats_disefreeSurv_cat1_2_GBM.csv", quote = FALSE)
+# survival_stats_disefreeSurv_cat1_2_GBM<- survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20 %>%
+#   dplyr::filter(cancer == "GBM") %>%
+#   dplyr::arrange(BH_adjust_logrank)
+# 
+# survival_stats_disefreeSurv_cat1_2_GBM
+# 
+# write.csv(survival_stats_disefreeSurv_cat1_2_GBM, file = "survival_stats_disefreeSurv_cat1_2_GBM.csv", quote = FALSE)
 
 ## Create csv for ALL
 survival_stats_disefreeSurv_cat1_2_ALL<- survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20 %>%
@@ -325,6 +413,66 @@ survival_stats_disefreeSurv_cat1_2_ALL
 write.csv(survival_stats_disefreeSurv_cat1_2_ALL, file = "survival_stats_disefreeSurv_cat1_2_ALL.csv", quote = FALSE)
 
 
+###################
+########
+##pvalue <= 0.1
+survival_stats_DiseFreeSurv_cancer_list_cat1_2_table_p0_1[1:10,]
+dim(survival_stats_DiseFreeSurv_cancer_list_cat1_2_table_p0_1)
+
+survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20<- 
+  survival_stats_DiseFreeSurv_cancer_list_cat1_2_table_p0_1 %>% 
+  dplyr::filter(number_of_samples_cat1 >= 20 & number_of_samples_cat2 >= 20)
+
+dim(survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20)
+
+##number of significance genes per cancer type:
+table(survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20$cancer)
+
+survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20 %>%
+  dplyr::group_by(cancer) %>%
+  dplyr::summarise(total = n())
+
+
+survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20 %>%
+  dplyr::filter(cancer == "ALL") %>%
+  dplyr::select(target_gene) %>%
+  unique()
+
+# survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20 %>%
+#   dplyr::filter(cancer == "GBM") %>%
+#   dplyr::select(target_gene) %>%
+#   unique() 
+# 
+# survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20 %>%
+#   dplyr::filter(cancer == "GBM")
+
+survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20 %>%
+  dplyr::filter(cancer == "ALL")
+
+##Sort by BH p-value and cancer type?
+
+write.csv(survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20, file = "survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20_p=0_1.csv", quote = FALSE)
+
+##########
+### Export data tables:
+
+## Create csv for GBM
+# survival_stats_disefreeSurv_cat1_2_GBM<- survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20 %>%
+#   dplyr::filter(cancer == "GBM") %>%
+#   dplyr::arrange(BH_adjust_logrank)
+# 
+# survival_stats_disefreeSurv_cat1_2_GBM
+# 
+# write.csv(survival_stats_disefreeSurv_cat1_2_GBM, file = "survival_stats_disefreeSurv_cat1_2_GBM.csv", quote = FALSE)
+
+## Create csv for ALL
+survival_stats_disefreeSurv_cat1_2_ALL_0_1<- survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20 %>%
+  dplyr::filter(cancer == "ALL") %>%
+  dplyr::arrange(BH_adjust_logrank)
+
+survival_stats_disefreeSurv_cat1_2_ALL
+
+write.csv(survival_stats_disefreeSurv_cat1_2_ALL_0_1, file = "survival_stats_disefreeSurv_cat1_2_ALL_0_1.csv", quote = FALSE)
 
 
 
@@ -906,7 +1054,8 @@ test_plot2<- lapply(target_gene_list, function (x) survival_analysis_of_gene_lis
 
 setwd("../../../../Code/co-deletions/")
 
-
+#######################
+##Venn diagram to show intersection of genes between overall survival and disease free survival
 
 
 
