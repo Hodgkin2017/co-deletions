@@ -147,182 +147,34 @@ lapply(immune_cell_infiltrate_annova_per_cell_type_list, function(x) unique(x$ca
 sapply(immune_cell_infiltrate_annova_per_cell_type_list, function(x) unique(x$cell_type))
 ##  "Resting Natural killer cell" = 12, "Activated Natural killer cell" = 13, "CD8 T cell" = 19
 
+###########
+### Find the number of significant genes per cell type:
+colnames(immune_cell_infiltrate_annova_per_cell_type_list[[1]])
+##p<= 0.05
+sapply(immune_cell_infiltrate_annova_per_cell_type_list, function(x) sum(x$BH_adjust_cat2_1 <= 0.05, na.rm = TRUE))
+##p<= 0.1
+sapply(immune_cell_infiltrate_annova_per_cell_type_list, function(x) sum(x$BH_adjust_cat2_1 <= 0.1, na.rm = TRUE))
+##p<= 0.1 n>20
 
-#########here!!
+##Make a function to select significant gene pairs using sapply
+input_table = immune_cell_infiltrate_annova_per_cell_type_list[[1]]
+p_value = 0.05
+# filter1 = "BH_adjust_cat2_1"
+# select1 = "number_cat1"
+# select2 = "number_cat2"
+#significant_selection<- function(input_table, p_value, select1, select2)
+significant_selection<- function(input_table, p_value){
+  
+  output_table<- input_table %>%
+    #dplyr::filter(as.name(filter1) <= p_value) %>%
+    dplyr::filter(BH_adjust_cat2_1 <= p_value) %>%
+    dplyr::filter(number_cat1 >= 20 & number_cat2 >= 20) %>%
+    dplyr::arrange(BH_adjust_cat2_1)
+}
 
-
-## Identify the number of significantly co-deleted genes NOT BH adjusted with p-value < 0.05
-sum(survival_stats_overall_survival_cancer_cat1_and_2_table$`p-value_logrank_test` <= 0.05, na.rm = TRUE)
-sum(survival_stats_overall_survival_cancer_cat1_and_2_all_table$`p-value_logrank_test` <= 0.05, na.rm = TRUE)
-
-## Identify the number of significantly co-deleted genes WITH BH adjusted with p-value < 0.05
-sum(survival_stats_overall_survival_cancer_cat1_and_2_table$BH_adjust_logrank <= 0.05, na.rm = TRUE)
-sum(survival_stats_overall_survival_cancer_cat1_and_2_all_table$BH_adjust_logrank <= 0.05, na.rm = TRUE)
-
-survival_stats_ovsurv_cat1_2_significant_table_p0_05<- survival_stats_overall_survival_cancer_cat1_and_2_table %>%
-  dplyr::filter(BH_adjust_logrank <= 0.05)
-# survival_stats_ovsurv_cat1_2_significant_table_p0_05<- survival_stats_overall_survival_cancer_cat1_and_2_table$BH_adjust_logrank <= 0.05
-# survival_stats_ovsurv_cat1_2_significant_table_p0_05<- survival_stats_overall_survival_cancer_cat1_and_2_table[survival_stats_ovsurv_cat1_2_significant_table_p0_05,]
-dim(survival_stats_overall_survival_cancer_cat1_and_2_table)
-dim(survival_stats_ovsurv_cat1_2_significant_table_p0_05)
-head(survival_stats_ovsurv_cat1_2_significant_table_p0_05)
-
-##number of significance genes per cancer type:
-table(survival_stats_ovsurv_cat1_2_significant_table_p0_05$cancer)
-
-## Identify the number of significantly co-deleted genes with p-value = 0.1
-sum(survival_stats_overall_survival_cancer_cat1_and_2_table$BH_adjust_logrank <= 0.1, na.rm = TRUE)
-sum(survival_stats_overall_survival_cancer_cat1_and_2_all_table$BH_adjust_logrank <= 0.1, na.rm = TRUE)
-
-survival_stats_ovsurv_cat1_2_significant_table_p0_1<- survival_stats_overall_survival_cancer_cat1_and_2_table %>%
-  dplyr::filter(BH_adjust_logrank <= 0.1)
-# survival_stats_ovsurv_cat1_2_significant_table_p0_05<- survival_stats_overall_survival_cancer_cat1_and_2_table$BH_adjust_logrank <= 0.05
-# survival_stats_ovsurv_cat1_2_significant_table_p0_05<- survival_stats_overall_survival_cancer_cat1_and_2_table[survival_stats_ovsurv_cat1_2_significant_table_p0_05,]
-dim(survival_stats_overall_survival_cancer_cat1_and_2_table)
-dim(survival_stats_ovsurv_cat1_2_significant_table_p0_1)
-head(survival_stats_ovsurv_cat1_2_significant_table_p0_1)
-
-##number of significance genes per cancer type:
-table(survival_stats_ovsurv_cat1_2_significant_table_p0_1$cancer)
-
-####################
-### Identify significant genes with greater than 20 values in cat 1 and 2.
-
-########
-##pvalue <= 0.05
-survival_stats_ovsurv_cat1_2_significant_table_p0_05[1:10,]
-dim(survival_stats_ovsurv_cat1_2_significant_table_p0_05)
-
-survival_stats_ovsurv_cat1_2_significant_table_p0_05_more_than_20<- 
-  survival_stats_ovsurv_cat1_2_significant_table_p0_05 %>% 
-  dplyr::filter(number_of_samples_cat1 >= 20 & number_of_samples_cat2 >= 20)
-
-dim(survival_stats_ovsurv_cat1_2_significant_table_p0_05_more_than_20)
-
-##number of significance genes per cancer type:
-table(survival_stats_ovsurv_cat1_2_significant_table_p0_05_more_than_20$cancer)
-
-survival_stats_ovsurv_cat1_2_significant_table_p0_05_more_than_20 %>%
-  dplyr::group_by(cancer) %>%
-  dplyr::summarise(total = n())
-
-
-survival_stats_ovsurv_cat1_2_significant_table_p0_05_more_than_20 %>%
-  dplyr::filter(cancer == "ALL") %>%
-  dplyr::select(target_gene) %>%
-  unique()
-
-survival_stats_ovsurv_cat1_2_significant_table_p0_05_more_than_20 %>%
-  dplyr::filter(cancer == "LUAD") %>%
-  dplyr::select(target_gene) %>%
-  unique() 
-
-survival_stats_ovsurv_cat1_2_significant_table_p0_05_more_than_20 %>%
-  dplyr::filter(cancer == "LUAD")
-
-survival_stats_ovsurv_cat1_2_significant_table_p0_05_more_than_20 %>%
-  dplyr::filter(cancer == "ALL")
-
-##Sort by BH p-value and cancer type?
-
-write.csv(survival_stats_ovsurv_cat1_2_significant_table_p0_05_more_than_20, file = "survival_stats_ovsurv_cat1_2_significant_table_p0_05_more_than_20.csv", quote = FALSE)
-
-##########
-### Export data tables:
-
-## Create csv for LUAD
-# survival_stats_ovsurv_cat1_2_LUAD<- survival_stats_ovsurv_cat1_2_significant_table_p0_05_more_than_20 %>%
-#   dplyr::filter(cancer == "LUAD") %>%
-#   dplyr::arrange(BH_adjust_logrank)
-# 
-# survival_stats_ovsurv_cat1_2_LUAD
-# 
-# write.csv(survival_stats_ovsurv_cat1_2_LUAD, file = "survival_stats_ovsurv_cat1_2_LUAD.csv", quote = FALSE)
-
-## Create csv for ALL
-survival_stats_ovsurv_cat1_2_ALL<- survival_stats_ovsurv_cat1_2_significant_table_p0_05_more_than_20 %>%
-  dplyr::filter(cancer == "ALL") %>%
-  dplyr::arrange(BH_adjust_logrank)
-
-survival_stats_ovsurv_cat1_2_ALL
-
-write.csv(survival_stats_ovsurv_cat1_2_ALL, file = "survival_stats_ovsurv_cat1_2_ALL.csv", quote = FALSE)
-
-##########################
-
-########
-##pvalue <= 0.1
-survival_stats_ovsurv_cat1_2_significant_table_p0_1[1:10,]
-dim(survival_stats_ovsurv_cat1_2_significant_table_p0_1)
-
-survival_stats_ovsurv_cat1_2_significant_table_p0_1_more_than_20<- 
-  survival_stats_ovsurv_cat1_2_significant_table_p0_1 %>% 
-  dplyr::filter(number_of_samples_cat1 >= 20 & number_of_samples_cat2 >= 20)
-
-dim(survival_stats_ovsurv_cat1_2_significant_table_p0_1_more_than_20)
-
-##number of significance genes per cancer type:
-table(survival_stats_ovsurv_cat1_2_significant_table_p0_1_more_than_20$cancer)
-
-survival_stats_ovsurv_cat1_2_significant_table_p0_1_more_than_20 %>%
-  dplyr::group_by(cancer) %>%
-  dplyr::summarise(total = n())
-
-
-survival_stats_ovsurv_cat1_2_significant_table_p0_1_more_than_20 %>%
-  dplyr::filter(cancer == "ALL") %>%
-  dplyr::select(target_gene) %>%
-  unique()
-
-survival_stats_ovsurv_cat1_2_significant_table_p0_1_more_than_20 %>%
-  dplyr::filter(cancer == "LUAD") %>%
-  dplyr::select(target_gene) %>%
-  unique() 
-
-survival_stats_ovsurv_cat1_2_significant_table_p0_1_more_than_20 %>%
-  dplyr::filter(cancer == "LUAD")
-
-survival_stats_ovsurv_cat1_2_significant_table_p0_1_more_than_20 %>%
-  dplyr::filter(cancer == "ALL")
-
-##Sort by BH p-value and cancer type?
-
-write.csv(survival_stats_ovsurv_cat1_2_significant_table_p0_1_more_than_20, file = "survival_stats_ovsurv_cat1_2_significant_table_p0_1_more_than_20.csv", quote = FALSE)
-
-##########
-### Export data tables:
-
-## Create csv for LUAD
-# survival_stats_ovsurv_cat1_2_LUAD<- survival_stats_ovsurv_cat1_2_significant_table_p0_05_more_than_20 %>%
-#   dplyr::filter(cancer == "LUAD") %>%
-#   dplyr::arrange(BH_adjust_logrank)
-# 
-# survival_stats_ovsurv_cat1_2_LUAD
-# 
-# write.csv(survival_stats_ovsurv_cat1_2_LUAD, file = "survival_stats_ovsurv_cat1_2_LUAD.csv", quote = FALSE)
-
-## Create csv for ALL
-survival_stats_ovsurv_cat1_2_ALL<- survival_stats_ovsurv_cat1_2_significant_table_p0_1_more_than_20 %>%
-  dplyr::filter(cancer == "ALL") %>%
-  dplyr::arrange(BH_adjust_logrank)
-
-survival_stats_ovsurv_cat1_2_ALL
-
-write.csv(survival_stats_ovsurv_cat1_2_ALL, file = "survival_stats_ovsurv_cat1_2_ALL_p=0_1.csv", quote = FALSE)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+immune_cell_infiltrate_annova_per_cell_type_significant_list<- lapply(immune_cell_infiltrate_annova_per_cell_type_list, function(x) significant_selection(x, 0.05))
+sapply(immune_cell_infiltrate_annova_per_cell_type_significant_list, function(x) nrow(x))
+sapply(immune_cell_infiltrate_annova_per_cell_type_list, function(x) unique(x$cell_type))
 
 
 
@@ -332,15 +184,27 @@ write.csv(survival_stats_ovsurv_cat1_2_ALL, file = "survival_stats_ovsurv_cat1_2
 
 #########################
 ### Genes identified in previous analysis
+##"CD8 T cell" = 19 CDKN2A
+colnames(immune_cell_infiltrate_annova_per_cell_type_list[[19]])
+immune_cell_infiltrate_annova_per_cell_type_list[[19]] %>%
+  dplyr::filter(target_gene == "CDKN2A") %>%
+  dplyr::filter(p_value_cat2_1 <= 0.05) %>%
+  dplyr::filter(number_cat1 >= 20 & number_cat2 >= 20)
 
+## Create a function to use with lapply:
+significant_gene_selection<- function(x, gene){
+x %>%
+  dplyr::filter(target_gene == gene) %>%
+  dplyr::filter(p_value_cat2_1 <= 0.05) %>%
+  dplyr::filter(number_cat1 >= 20 & number_cat2 >= 20)
+}
 
+CDKN2A_significant_immune_infiltration<- lapply(immune_cell_infiltrate_annova_per_cell_type_list, function(x)significant_gene_selection(x, "CDKN2A"))
+names(CDKN2A_significant_immune_infiltration)<- immune_cell_types
+sapply(CDKN2A_significant_immune_infiltration, function(x) nrow(x))
 
-
-
-
-
-
-
+CDKN2A_significant_immune_infiltration$`Activated Natural killer cell`
+CDKN2A_significant_immune_infiltration$`CD8 T cell`
 
 
 
