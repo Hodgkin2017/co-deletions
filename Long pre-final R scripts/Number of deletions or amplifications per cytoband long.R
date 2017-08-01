@@ -249,16 +249,21 @@ pheatmap(my.matrix,
 
 ##Use apply function to creates matrix where each row is a cytoband and each column is a canter type:
 
-CNV.data<-cnv.list
+# CNV.data<-cnv.list
+# 
+# CNV.data[[38]]<- CNV.all.table
+# 
+# length(CNV.data)
 
-CNV.data[[38]]<- CNV.all.table
-
-length(CNV.data)
+CNV.data<- threshold_selected_cnv_list_plus_all_loc
+names(threshold_selected_cnv_list_plus_all_loc)
+acc.cnv.chr.location<- threshold_selected_cnv_list_plus_all_loc[[1]]
+colnames(acc.cnv.chr.location)[1:11]
 
 cytoband.del.matrix<- function(x,y){
   
-  z<- dplyr::full_join(y[,1:8],x, by = "Locus.ID")
-  cytoband.list<- events.per.cytoband(z, threshold = -1, cytoband_column = 10, column_data_start = 11, chromosome_interval = 0,  deletion = TRUE)
+  z<- x
+  cytoband.list<- events.per.cytoband(z, threshold = -2, cytoband_column = 10, column_data_start = 11, chromosome_interval = 0,  deletion = TRUE)
   return(cytoband.list[[2]]$proportion.of.deletions)
   
 }
@@ -268,7 +273,8 @@ test4<- do.call(cbind, test3) %>%as.matrix
 
 ##Add row and column names
 rownames(test4)<- test1[[2]]$cytoband
-colnames(test4)<- c(names(cnv.list), "ALL")
+#colnames(test4)<- c(names(cnv.list), "ALL")
+colnames(test4)<- names(CNV.data)
 
 ##Make annotation row dataframe
 annotation_row<- data.frame(chromosome = test1[[2]]$chromosome)
@@ -649,12 +655,15 @@ pheatmap(test6,
 ##################
 ### Sum of deletions for all tumour types together:
 ##Comment: Could make an array to store all chromosomes for each tumour.
+test2<- events.per.cytoband(acc.cnv.chr.location, threshold = -1, cytoband_column = 10, column_data_start = 11 , select_chromosome = 1, chromosome_interval = 10,  deletion = TRUE)
 
 chromosome_interval_1MB<- ceiling(test2[[3]]$intervals_for_Mb)
 chromosome_interval_1MB
 ##Create one large dataframe with all CNV data in it:
 #x<-join.cnv.datasets(cnv.list, 4)
-x<- chromosomal_location(CNV.all.table)
+#x<- chromosomal_location(CNV.all.table)
+names(threshold_selected_cnv_list_plus_all_loc)
+x<- threshold_selected_cnv_list_plus_all_loc[[33]]
 dim(x)
 
 ##Matrix to store results per chromosome:
@@ -683,10 +692,10 @@ print(length(cytoband.list[[4]]$proportion.of.deletions))
 }
 
 
-a.function<- function(object_name, ){
-  
-###.........make above loop into function...
-}
+# a.function<- function(object_name, ){
+#   
+# ###.........make above loop into function...
+# }
 
 colnames(heatmap.matrix.chr.interval250)<- c("Interval", paste0("Chromosome ", seq(1:22)), "Chromosome X")
 
