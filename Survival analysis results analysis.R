@@ -1217,7 +1217,52 @@ test_plot2<- lapply(target_gene_list, function (x) survival_analysis_of_gene_lis
 
 #######################
 ##Venn diagram to show intersection of genes between overall survival and disease free survival
+## Intersection of Tumour suppressors
 
+venn.plot <- venn.diagram(
+  x = list(
+    fisher_codeletions = fishers_co_deletion_per_gene_long_table_significanct_p0.05_more_than_20$target_gene,
+    overall_survival = survival_stats_ovsurv_cat1_2_significant_table_p0_1_more_than_20$target_gene,
+    diseasefree_survival = survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20$target_gene
+  ),
+  euler.d = TRUE,
+  scaled = TRUE,
+  filename = "Euler_3set_scaled.tiff",
+  cex = 2.5,
+  cat.cex = 1.5,
+  fill=c("white", "white", "white"),
+  col= c("blue", "green", "purple"), 
+  alpha=c(0.5,0.5, 0.5),
+  cat.col = c("blue", "green", "purple"),
+  cat.pos = c(0,0,180),
+  cat.fontface=4,
+  ext.text = TRUE,
+  category.names=c("Fisher's Exact Test", "Overall Survival", "Disease Free Survival"),
+  main="Significant Tumour suppressors")
+
+###########
+##Intersection of co-deletions
+  
+venn.plot <- venn.diagram(
+  x = list(
+    fisher_codeletions = fishers_co_deletion_per_gene_long_table_significanct_p0.05_more_than_20$proximal_gene,
+    overall_survival = survival_stats_ovsurv_cat1_2_significant_table_p0_1_more_than_20$proximal_gene,
+    diseasefree_survival = survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20$proximal_gene
+  ),
+  euler.d = TRUE,
+  scaled = TRUE,
+  filename = "Euler_3set_scaled.tiff",
+  cex = 2.5,
+  cat.cex = 1.5,
+  fill=c("white", "white", "white"),
+  col= c("blue", "green", "purple"), 
+  alpha=c(0.5,0.5, 0.5),
+  cat.col = c("blue", "green", "purple"),
+  cat.pos = c(0,0,180),
+  cat.fontface=4,
+  ext.text = TRUE,
+  category.names=c("Fisher's Exact Test", "Overall Survival", "Disease Free Survival"),
+  main="Significant Co-deletions")
 
 
 

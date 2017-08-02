@@ -630,7 +630,63 @@ p +geom_bar(stat = "identity") +
   ##Save plot
   ggsave("bar_fishers_SignifCodel_perCancer_codeletion.tiff")
 
-###################
+
+
+
+
+
+
+
+
+##########################
+### Venn diagrams to compare results between Fishers exact tests
+
+## Intersection of Tumour suppressors
+
+venn.plot <- venn.diagram(
+  x = list(
+    fisher_codeletions = fishers_co_deletion_per_gene_long_table_significanct_p0.05_more_than_20$target_gene,
+    fisher_cancer = fishers_test_per_cancer_long_table_significant_p0_05_more_than_20$target_gene
+  ),
+  euler.d = TRUE,
+  scaled = TRUE,
+  filename = "Euler_3set_scaled.tiff",
+  cex = 2.5,
+  cat.cex = 1.5,
+  fill=c("white", "white"),
+  col= c("blue", "green"), 
+  alpha=c(0.5,0.5),
+  cat.col = c("blue", "green"),
+  cat.pos = c(0,0),
+  cat.fontface=4,
+  ext.text = TRUE,
+  category.names=c("Significant co-deletions", "Significant co-deletions between cancers"),
+  main="Significant Tumour suppressors")
+
+###########
+##Intersection of co-deletions
+
+venn.plot <- venn.diagram(
+  x = list(
+    fisher_codeletions = fishers_co_deletion_per_gene_long_table_significanct_p0.05_more_than_20$proximal_gene,
+    fisher_cancer = fishers_test_per_cancer_long_table_significant_p0_05_more_than_20$proximal_gene
+  ),
+  euler.d = TRUE,
+  scaled = TRUE,
+  filename = "Euler_3set_scaled.tiff",
+  cex = 2.5,
+  cat.cex = 1.5,
+  fill=c("white", "white"),
+  col= c("blue", "green"), 
+  alpha=c(0.5,0.5),
+  cat.col = c("blue", "green"),
+  cat.pos = c(0,0),
+  cat.fontface=4,
+  ext.text = TRUE,
+  category.names=c("Significant co-deletions", "Significant co-deletions between cancers"),
+  main="Significant Co-deletions")
+
+
 
 
 
