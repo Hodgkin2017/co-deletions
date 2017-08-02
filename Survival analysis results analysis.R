@@ -248,6 +248,40 @@ survival_stats_ovsurv_cat1_2_ALL
 write.csv(survival_stats_ovsurv_cat1_2_ALL, file = "survival_stats_ovsurv_cat1_2_ALL_p=0_1.csv", quote = FALSE)
 
 
+##############
+###Bar plot for ALL cancer target genes
+
+## p<= 0.1
+
+head(survival_stats_ovsurv_cat1_2_significant_table_p0_1_more_than_20)
+dim(survival_stats_ovsurv_cat1_2_significant_table_p0_1_more_than_20)
+table(survival_stats_ovsurv_cat1_2_significant_table_p0_1_more_than_20$target_gene)
+
+bar_plot<- survival_stats_ovsurv_cat1_2_ALL %>%
+  dplyr::group_by(target_gene) %>%
+  dplyr::summarise(total = n())
+
+
+bar_plot<- data.frame(cbind(bar_plot[,1], cbind(bar_plot[,2])))
+bar_plot
+colnames(bar_plot)<- c("target_gene", "values")
+
+sum(as.numeric(bar_plot$values))
+
+p <-ggplot(bar_plot, aes(x = factor(target_gene), y = as.numeric(values)))
+p +geom_bar(stat = "identity") +
+  xlab("Tummour Suppressor") + ylab("Number of Significant co-deletions") +
+  ggtitle("Number of Significant Co-deletions per Tummour Suppressor") +
+  theme_bw() +
+  theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5),
+        plot.title = element_text(hjust = 0.5)
+  ) +
+  ##Save plot
+  ggsave("bar_Overall_survival_codeletions.tiff")
+
+
+
+
 
 ###################################################################
 
@@ -476,10 +510,64 @@ write.csv(survival_stats_disefreeSurv_cat1_2_ALL_0_1, file = "survival_stats_dis
 
 
 
+######################
+##############
+###Bar plot for ALL cancer target genes
 
+## p<= 0.1
+
+head(survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20)
+dim(survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20)
+table(survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20$target_gene)
+
+bar_plot<- survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20 %>%
+  dplyr::group_by(target_gene) %>%
+  dplyr::summarise(total = n())
+
+
+bar_plot<- data.frame(cbind(bar_plot[,1], cbind(bar_plot[,2])))
+bar_plot
+colnames(bar_plot)<- c("target_gene", "values")
+
+sum(as.numeric(bar_plot$values))
+
+p <-ggplot(bar_plot, aes(x = factor(target_gene), y = as.numeric(values)))
+p +geom_bar(stat = "identity") +
+  xlab("Tummour Suppressor") + ylab("Number of Significant co-deletions") +
+  ggtitle("Number of Significant Co-deletions per Tummour Suppressor") +
+  theme_bw() +
+  theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5),
+        plot.title = element_text(hjust = 0.5)
+  ) +
+  ##Save plot
+  ggsave("bar_Disease_Free_survival_codeletions.tiff")
+
+
+
+
+
+##########################
 
 ##Draw venn diagrams to compare gene pairs identified on overall 
 #survival and disease free survival?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ########################################################
@@ -950,36 +1038,64 @@ survival_analysis_of_gene_list_cat1_and_2<- function(target_gene_list,
 ###########################################
 ### Test function:
 
-setwd("../../../Code/co-deletions/")
+# setwd("../../../Code/co-deletions/")
+# 
+# ##Get CNV table
+# cnv.table<- threshold_selected_cnv_list_plus_all_loc$LUAD
+# ##Get survival data
+# survival_time_list<- clinical_long_plus_all_survival$LUAD_clinical.tsv
+# ## Get Target gene
+# target_gene_names<- sapply(gene_information_long_list, function(x) x[[1]])
+# which(target_gene_names %in%  "CDKN2A" )
+# target_gene_list<- gene_information_long_list[[16]]
+# 
+# ##O3:
+# test_plot1<- survival_analysis_of_gene_list_cat1_and_2(target_gene_list = target_gene_list, survival_time_list = survival_time_list, cnv.table = cnv.table, distance = 2.5e+06,
+#                                                        threshold = -2, deletion = TRUE, time_of_death_column = 5, 
+#                                                        death_event_column = 6, column_start = 11, start = TRUE, 
+#                                                        remove_NA = TRUE, Cytoband = FALSE, print_to_screen = FALSE, 
+#                                                        plot_graph = TRUE, ylabel = "Overall survival",
+#                                                        path = ("../../Output/Survival analysis/survival_curves"))
+# 
+# 
+# 
+# ############################
+# 
+# ##Get CNV table
+# cnv.table<- threshold_selected_cnv_list_plus_all_loc$ALL
+# ##Get survival data
+# survival_time_list<- clinical_long_plus_all_survival$ALL
+# ## Get Target gene
+# target_gene_names<- sapply(gene_information_long_list, function(x) x[[1]])
+# selected_target_genes<- which(target_gene_names %in%  c("NF1", "RB1", "TP53", "CAMTA1", "CDKN1B", "LRP1B", "TGFBR2", "ZFHX3") )
+# target_gene_list<- gene_information_long_list[selected_target_genes]
+# length(target_gene_list)
+# 
+# ##O3:
+# test_plot2<- lapply(target_gene_list, function (x) survival_analysis_of_gene_list_cat1_and_2(target_gene_list = x, survival_time_list = survival_time_list, cnv.table = cnv.table, distance = 2.5e+06,
+#                                                                                              threshold = -2, deletion = TRUE, time_of_death_column = 5, 
+#                                                                                              death_event_column = 6, column_start = 11, start = TRUE, 
+#                                                                                              remove_NA = TRUE, Cytoband = FALSE, print_to_screen = FALSE, 
+#                                                                                              plot_graph = TRUE, ylabel = "Overall survival",
+#                                                                                              path = ("../../Output/Survival analysis/survival_curves/ALL")
+# )
+# )
 
-##Get CNV table
-cnv.table<- threshold_selected_cnv_list_plus_all_loc$LUAD
-##Get survival data
-survival_time_list<- clinical_long_plus_all_survival$LUAD_clinical.tsv
-## Get Target gene
-target_gene_names<- sapply(gene_information_long_list, function(x) x[[1]])
-which(target_gene_names %in%  "CDKN2A" )
-target_gene_list<- gene_information_long_list[[16]]
-
-##O3:
-test_plot1<- survival_analysis_of_gene_list_cat1_and_2(target_gene_list = target_gene_list, survival_time_list = survival_time_list, cnv.table = cnv.table, distance = 2.5e+06,
-                                                       threshold = -2, deletion = TRUE, time_of_death_column = 5, 
-                                                       death_event_column = 6, column_start = 11, start = TRUE, 
-                                                       remove_NA = TRUE, Cytoband = FALSE, print_to_screen = FALSE, 
-                                                       plot_graph = TRUE, ylabel = "Overall survival",
-                                                       path = ("../../Output/Survival analysis/survival_curves"))
 
 
-####################
+setwd("../../../../Code/co-deletions/")
 
 
+#######################
+######################
 ##Get CNV table
 cnv.table<- threshold_selected_cnv_list_plus_all_loc$ALL
 ##Get survival data
 survival_time_list<- clinical_long_plus_all_survival$ALL
 ## Get Target gene
 target_gene_names<- sapply(gene_information_long_list, function(x) x[[1]])
-selected_target_genes<- which(target_gene_names %in%  c("NF1", "RB1", "TP53", "CAMTA1", "CDKN1B", "LRP1B", "TGFBR2", "ZFHX3") )
+selected_target_genes<- which(target_gene_names %in%  c("CDKN1B","LRP1B","RB1", "TGFBR2", "TP53", "ZFHX3") )
+selected_target_genes
 target_gene_list<- gene_information_long_list[selected_target_genes]
 length(target_gene_list)
 
@@ -995,7 +1111,12 @@ test_plot2<- lapply(target_gene_list, function (x) survival_analysis_of_gene_lis
 
 
 
-setwd("../../../../Code/co-deletions/")
+
+
+
+
+
+
 
 
 ##############
@@ -1006,26 +1127,60 @@ setwd("../../../../Code/co-deletions/")
 ### GBM significant gene
 
 
-##Get CNV table
-cnv.table<- threshold_selected_cnv_list_plus_all_loc$GBM
-##Get survival data
-survival_time_list<- clinical_long_plus_all_survival$GBM_clinical.tsv
-## Get Target gene
-target_gene_names<- sapply(gene_information_long_list, function(x) x[[1]])
-which(target_gene_names %in%  "CDKN2A" )
-target_gene_list<- gene_information_long_list[[16]]
+# ##Get CNV table
+# cnv.table<- threshold_selected_cnv_list_plus_all_loc$GBM
+# ##Get survival data
+# survival_time_list<- clinical_long_plus_all_survival$GBM_clinical.tsv
+# ## Get Target gene
+# target_gene_names<- sapply(gene_information_long_list, function(x) x[[1]])
+# which(target_gene_names %in%  "CDKN2A" )
+# target_gene_list<- gene_information_long_list[[16]]
+# 
+# ##O3:
+# test_plot1<- survival_analysis_of_gene_list_cat1_and_2(target_gene_list = target_gene_list, survival_time_list = survival_time_list, cnv.table = cnv.table, distance = 2.5e+06,
+#                                                        threshold = -2, deletion = TRUE, time_of_death_column = 5, 
+#                                                        death_event_column = 6, column_start = 11, start = TRUE, 
+#                                                        remove_NA = TRUE, Cytoband = FALSE, print_to_screen = FALSE, 
+#                                                        plot_graph = TRUE, ylabel = "Disease Free Survival",
+#                                                        path = ("../../Output/Survival analysis/survival_curves/Disease_free/GBM"))
+# 
+# 
+# ##################
+# ### pan-cancer significant genes
+# 
+# 
+# ##Get CNV table
+# cnv.table<- threshold_selected_cnv_list_plus_all_loc$ALL
+# ##Get survival data
+# survival_time_list<- clinical_long_plus_all_survival$ALL
+# ## Get Target gene
+# target_gene_names<- sapply(gene_information_long_list, function(x) x[[1]])
+# selected_target_genes<- which(target_gene_names %in%  c("RB1", "TP53", "NCOR1","CAMTA1", "CDKN1B", "LRP1B", "TGFBR2", "ZFHX3") )
+# target_gene_list<- gene_information_long_list[selected_target_genes]
+# length(target_gene_list)
+# target_gene_list
+# 
+# 
+# ##O3:
+# test_plot2<- lapply(target_gene_list, function (x) survival_analysis_of_gene_list_cat1_and_2(target_gene_list = x, survival_time_list = survival_time_list, cnv.table = cnv.table, distance = 2.5e+06,
+#                                                                                              threshold = -2, deletion = TRUE, time_of_death_column = 5, 
+#                                                                                              death_event_column = 6, column_start = 11, start = TRUE, 
+#                                                                                              remove_NA = TRUE, Cytoband = FALSE, print_to_screen = FALSE, 
+#                                                                                              plot_graph = TRUE, ylabel = "Disease Free Survival",
+#                                                                                              path = ("../../Output/Survival analysis/survival_curves/Disease_free/ALL")
+# )
+# )
+# 
 
-##O3:
-test_plot1<- survival_analysis_of_gene_list_cat1_and_2(target_gene_list = target_gene_list, survival_time_list = survival_time_list, cnv.table = cnv.table, distance = 2.5e+06,
-                                                       threshold = -2, deletion = TRUE, time_of_death_column = 5, 
-                                                       death_event_column = 6, column_start = 11, start = TRUE, 
-                                                       remove_NA = TRUE, Cytoband = FALSE, print_to_screen = FALSE, 
-                                                       plot_graph = TRUE, ylabel = "Disease Free Survival",
-                                                       path = ("../../Output/Survival analysis/survival_curves/Disease_free/GBM"))
 
+setwd("../../../../Code/co-deletions/")
+
+
+######################
+######################
 
 ##################
-### pan-cancer significant genes
+### pan-cancer significant genes2
 
 
 ##Get CNV table
@@ -1034,7 +1189,7 @@ cnv.table<- threshold_selected_cnv_list_plus_all_loc$ALL
 survival_time_list<- clinical_long_plus_all_survival$ALL
 ## Get Target gene
 target_gene_names<- sapply(gene_information_long_list, function(x) x[[1]])
-selected_target_genes<- which(target_gene_names %in%  c("RB1", "TP53", "NCOR1","CAMTA1", "CDKN1B", "LRP1B", "TGFBR2", "ZFHX3") )
+selected_target_genes<- which(target_gene_names %in%  c("CDKN1B","RB1", "TGFBR2", "ZFHX3") )
 target_gene_list<- gene_information_long_list[selected_target_genes]
 length(target_gene_list)
 target_gene_list
@@ -1042,7 +1197,7 @@ target_gene_list
 
 ##O3:
 test_plot2<- lapply(target_gene_list, function (x) survival_analysis_of_gene_list_cat1_and_2(target_gene_list = x, survival_time_list = survival_time_list, cnv.table = cnv.table, distance = 2.5e+06,
-                                                                                             threshold = -2, deletion = TRUE, time_of_death_column = 5, 
+                                                                                             threshold = -2, deletion = TRUE, time_of_death_column = 7, 
                                                                                              death_event_column = 6, column_start = 11, start = TRUE, 
                                                                                              remove_NA = TRUE, Cytoband = FALSE, print_to_screen = FALSE, 
                                                                                              plot_graph = TRUE, ylabel = "Disease Free Survival",
@@ -1052,7 +1207,13 @@ test_plot2<- lapply(target_gene_list, function (x) survival_analysis_of_gene_lis
 
 
 
-setwd("../../../../Code/co-deletions/")
+
+
+
+
+
+
+
 
 #######################
 ##Venn diagram to show intersection of genes between overall survival and disease free survival

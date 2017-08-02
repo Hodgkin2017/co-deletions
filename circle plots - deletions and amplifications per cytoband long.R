@@ -21,7 +21,7 @@ df
 
 df3<-cbind(x = cytoband.name, y = letters[1:10], proportion_deletions = proportion.of.deletions.per.cytoband)
 df3<- as.data.frame(df3)
-
+df3
 
 ################
 ###Trial plotting dummy data
@@ -277,3 +277,169 @@ saveRDS(short.cnv.list, "/Users/Matt/Documents/Masters_Bioinformatics/Internship
 target.genes.co.deletions.per.cytoband.circle.plots.table2 <- readRDS("/Users/Matt/Documents/Masters_Bioinformatics/Internships/Code/co-deletions/R workspaces/total.co-deletion.events.per.cytoband.rds")
 identical(target.genes.co.deletions.per.cytoband.circle.plots.table, target.genes.co.deletions.per.cytoband.circle.plots.table2, ignore.environment = TRUE)
 identical(target.genes.co.deletions.per.cytoband.circle.plots.table, target.genes.co.deletions.per.cytoband.circle.plots.table2)
+
+
+###########################
+### Circle plots using new thresholded GISTIC scores
+
+################
+### Circle plot: Proportion of co-deletions per cytoband
+###############
+
+cytoband.table<- unique(threshold_selected_cnv_list_plus_all_loc[[1]]$Cytoband)
+length(cytoband.table)
+cytoband.table
+
+co.deletions.per.cytoband.circle.plots.table<- data.frame(cytoband = NA, cancer = NA, proportion_deletions = NA)
+co.deletions.per.cytoband.circle.plots.table
+
+for (i in 1:length(threshold_selected_cnv_list_plus_all_loc)){
+  
+  cancer.type<- names(threshold_selected_cnv_list_plus_all_loc)[i]
+  cancer.table<- threshold_selected_cnv_list_plus_all_loc[[i]]
+  cancer.list<- sapply(cytoband.table, function(x) co.deletion_co.amplification_matrix(cancer.table, column_start = 11, threshold = -2, Cytoband = TRUE, selection_criteria = x, deletion = TRUE, normalisation = "frequency.for.whole.sample", remove_NA = FALSE))
+  #cancer.list2<-unlist(cancer.list)
+  cancer.deletions.per.cytoband<- cbind(cytoband = cytoband.table, cancer = rep(cancer.type, 806), proportion_deletions = cancer.list)
+  co.deletions.per.cytoband.circle.plots.table<-rbind(co.deletions.per.cytoband.circle.plots.table, cancer.deletions.per.cytoband) 
+  print(cancer.type)
+}
+
+## delete first row of deletions.per.cytoband.circle.plots.table
+dim(co.deletions.per.cytoband.circle.plots.table)
+co.deletions.per.cytoband.circle.plots.table<-co.deletions.per.cytoband.circle.plots.table[-1,]
+head(co.deletions.per.cytoband.circle.plots.table)
+tail(co.deletions.per.cytoband.circle.plots.table)
+nrow(co.deletions.per.cytoband.circle.plots.table)
+
+## Plot circle plot
+
+#df2<- co.deletions.per.cytoband.circle.plots.table[c(1:10, 807:817),]
+
+ggplot(co.deletions.per.cytoband.circle.plots.table, aes(y = factor(cancer),
+                                                         x = factor(cytoband))) +
+  xlab("Cytoband") +
+  ylab("Cancer") +
+  geom_point(aes(size = as.numeric(proportion_deletions))) + 
+  scale_size_area("Proportion of\nco-deletion\nevents") +
+  
+  ##Save plot
+  ggsave("co_deletions_per_cytoband_circle_plots.tiff")
+
+ggplot(co.deletions.per.cytoband.circle.plots.table, aes(y = factor(cytoband),
+                                                         x = factor(cancer))) +
+  xlab("Cancer") +
+  ylab("Cytoband") +
+  geom_point(aes(size = as.numeric(proportion_deletions))) + 
+  scale_size_area("Proportion of\nco-deletion\nevents") +
+  theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5),
+        #panel.grid.major = element_blank(), 
+        #panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black")) +
+  
+  ##Save plot
+  ggsave("co_deletions_per_cytoband_circle_plots.tiff")
+
+
+
+#############
+### Repeat co-deltion plot for target gene cytobands only:
+
+##Get cytobands of target genes
+# target.genes.cytoband <- short.cnv.list[[1]] %>% 
+#   dplyr::filter(Gene.Symbol %in% target.genes) %>%
+#   dplyr::select(Cytoband) %>%
+#   t() %>% #required to convert output from data.frame to vector
+#   as.character()
+
+length(gene_information_long_list)
+gene_information_long_list[[1]]
+target_genes_names<- sapply(gene_information_long_list, function(x) x[[1]])
+target_genes_names
+target_genes_names_order<- order(target_genes_names)
+target_genes_names_order
+target_genes_names<- target_genes_names[target_genes_names_order]
+target_genes_names
+target_genes_cytobands<- sapply(gene_information_long_list, function(x) x[[3]])
+target_genes_cytobands
+length(target_genes_cytobands)
+target_genes_cytobands<- target_genes_cytobands[target_genes_names_order]
+target_genes_cytobands
+
+
+head(co.deletions.per.cytoband.circle.plots.table)
+
+##create table of proportion of tumours with deletions per cytoband for target genes
+target.genes.co.deletions.per.cytoband.circle.plots.table<- co.deletions.per.cytoband.circle.plots.table %>% 
+  dplyr::filter(cytoband %in% target_genes_cytobands)
+
+dim(target.genes.co.deletions.per.cytoband.circle.plots.table)
+# (target_genes_cytobands %in% co.deletions.per.cytoband.circle.plots.table$cytoband)
+
+
+# target.genes.co.deletions.per.cytoband.circle.plots.table<- co.deletions.per.cytoband.circle.plots.table[co.deletions.per.cytoband.circle.plots.table$cytoband %in% target_genes_cytobands,]
+# dim(target.genes.co.deletions.per.cytoband.circle.plots.table)
+
+##Plot:
+##Comment: in order to get the cytobands to be in numerical order need to use levels =
+ggplot(target.genes.co.deletions.per.cytoband.circle.plots.table, aes(y = factor(cancer, levels = names(threshold_selected_cnv_list_plus_all_loc)),
+                                                                      x = factor(cytoband, levels = mixedsort(target_genes_cytobands)))) +
+  xlab("Cytoband") +
+  ylab("Cancer") +
+  geom_point(aes(size = as.numeric(proportion_deletions))) + 
+  scale_size_area("Proportion of\nco-deletion\nevents")+
+  theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5),
+        #panel.grid.major = element_blank(), 
+        #panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black")
+  ) + #theme_bw()
+  
+  ##Save plot
+  ggsave("target_genes_co_deletions_per_cytoband_circle_plots.tiff")
+
+########
+
+##Plot:
+##Comment: in order to get the cytobands to be in numerical order need to use levels =
+ggplot(target.genes.co.deletions.per.cytoband.circle.plots.table, aes(y = factor(cytoband, levels = mixedsort(target_genes_cytobands)) ,
+                                                                      x = factor(cancer, levels = names(threshold_selected_cnv_list_plus_all_loc)))) +
+  xlab("Cancer") +
+  ylab("Cytoband") +
+  geom_point(aes(size = as.numeric(proportion_deletions))) + 
+  scale_size_area("Proportion of\nco-deletion\nevents")+
+  theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5),
+        #panel.grid.major = element_blank(), 
+        #panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black")
+  ) + #theme_bw()
+  
+  ##Save plot
+  ggsave("target_genes_co_deletions_per_cytoband_circle_plots.tiff", width = 8, height = 16)
+
+##########
+which(unique(target.genes.co.deletions.per.cytoband.circle.plots.table$cytoband) %in% target_genes_cytobands)
+length(target_genes_cytobands)
+
+
+target.genes.co.deletions.per.cytoband.circle.plots.table2<- cbind(rep( ,33), target.genes.co.deletions.per.cytoband.circle.plots.table)
+
+
+##Plot:
+##Comment: in order to get the cytobands to be in numerical order need to use levels =
+ggplot(target.genes.co.deletions.per.cytoband.circle.plots.table, aes(y = factor(cytoband, levels = target_genes_names) ,
+                                                                      x = factor(cancer, levels = names(threshold_selected_cnv_list_plus_all_loc)))) +
+  xlab("Cancer") +
+  ylab("Cytoband") +
+  geom_point(aes(size = as.numeric(proportion_deletions))) + 
+  scale_size_area("Proportion of\nco-deletion\nevents")+
+  theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5),
+        #panel.grid.major = element_blank(), 
+        #panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black")
+  ) + #theme_bw()
+  
+  ##Save plot
+  ggsave("target_genes_co_deletions_per_cytoband_circle_plots2.tiff", width = 8, height = 16)

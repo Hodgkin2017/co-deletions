@@ -198,7 +198,7 @@ fishers_co_deletion_per_gene_ALL<- fishers_co_deletion_per_gene_long_table_signi
 
 fishers_co_deletion_per_gene_ALL
 
-write.csv(fishers_co_deletion_per_gene_ALL, file = "fishers_co_deletion_per_gene_ALL.csv", quote = FALSE)
+#write.csv(fishers_co_deletion_per_gene_ALL, file = "fishers_co_deletion_per_gene_ALL.csv", quote = FALSE)
 
 
 fishers_co_deletion_per_gene_long_table_significanct_p0.1_more_than_20 %>%
@@ -213,10 +213,107 @@ fishers_co_deletion_per_gene_BRCA<- fishers_co_deletion_per_gene_long_table_sign
 
 fishers_co_deletion_per_gene_BRCA
 
-write.csv(fishers_co_deletion_per_gene_BRCA, file = "fishers_co_deletion_per_gene_BRCA.csv", quote = FALSE)
+#write.csv(fishers_co_deletion_per_gene_BRCA, file = "fishers_co_deletion_per_gene_BRCA.csv", quote = FALSE)
 
 
-write.csv(fishers_co_deletion_per_gene_long_table_significanct_p0.1_more_than_20, file = "fishers_co_deletion_per_gene_long_table_significanct_p0.1_more_than_20.csv", quote = FALSE)
+#write.csv(fishers_co_deletion_per_gene_long_table_significanct_p0.1_more_than_20, file = "fishers_co_deletion_per_gene_long_table_significanct_p0.1_more_than_20.csv", quote = FALSE)
+
+
+########################
+### Bar plot of number of significant genes:
+##https://www.r-bloggers.com/make-a-bar-plot-with-ggplot/
+
+## p<= 0.05
+dim(fishers_co_deletion_per_gene_long_table_significanct_p0.05_more_than_20)
+head(fishers_co_deletion_per_gene_long_table_significanct_p0.05_more_than_20)
+
+table(fishers_co_deletion_per_gene_long_table_significanct_p0.05_more_than_20$cancer)
+bar_plot_3<- fishers_co_deletion_per_gene_long_table_significanct_p0.05_more_than_20 %>%
+  dplyr::group_by(cancer) %>%
+  dplyr::summarise(total = n())
+
+bar_plot_1<- fishers_co_deletion_per_gene_long_table_significanct_p0.05_more_than_20 %>%
+  dplyr::group_by(cancer, target_gene) %>%
+  dplyr::summarise(total = n())
+
+bar_plot_2<- bar_plot_1 %>%
+  dplyr::group_by(cancer) %>%
+  dplyr::summarise(total = n())
+
+bar_plot<- data.frame(cancer = rep(bar_plot_2$cancer,2), genes =  rbind(bar_plot_2[,2], bar_plot_3[,2]))
+bar_plot$cancer<- factor(bar_plot$cancer, levels = bar_plot$cancer)
+bar_plot
+dim(bar_plot)
+
+Key<- c(rep("Significant Tumour Suppressors",14), rep("Significant co-deletions",14))
+Key
+
+ggplot(bar_plot, aes(cancer, c(target_genes, total))) + 
+  geom_bar(stat = "identity", aes(fill = type), position = "dodge") +
+  xlab("Months") + ylab("Count") +
+  ggtitle("Chickens & Eggs") +
+  theme_bw()
+
+############
+months <-rep(c("jan", "feb", "mar", "apr", "may", "jun", 
+               "jul", "aug", "sep", "oct", "nov", "dec"), 2)
+chickens <-c(1, 2, 3, 3, 3, 4, 5, 4, 3, 4, 2, 2)
+eggs <-c(0, 8, 10, 13, 16, 20, 25, 20, 18, 16, 10, 8)
+values <-c(chickens, eggs)
+type <-c(rep("chickens", 12), rep("eggs", 12))
+mydata <-data.frame(months, values)
+mydata
+type <-c(rep("chickens", 14), rep("eggs", 14))
+
+mydata<- bar_plot
+colnames(mydata)<- c("months", "values")
+mydata$months<- factor(mydata$months, levels = mydata$months)
+
+p <-ggplot(mydata, aes(months, values))
+p +geom_bar(stat = "identity", aes(fill = type), position = "dodge") +
+  xlab("Months") + ylab("Count") +
+  ggtitle("Chickens & Eggs") +
+  theme_bw()
+
+bar_plot<- data.frame(cancer = bar_plot_2$cancer, as.numeric(bar_plot_2[,2]), bar_plot_3[,2])
+bar_plot$cancer<- factor(bar_plot$cancer, levels = bar_plot$cancer)
+colnames(bar_plot)<- c("cancer", "Significant_Tumour_Suppressor", "Significant_codeletions")
+bar_plot
+dim(bar_plot)
+class(bar_plot$Significant_Tumour_Suppressor)
+
+p <-ggplot(bar_plot, aes(x = cancer, y = Significant_Tumour_Suppressor))
+p +geom_bar(stat = "identity") +
+  xlab("Cancer") + ylab("Number of Significant Tumour suppressors") +
+  ggtitle("Number of Significant Tumour suppressors per Cancer") +
+  theme_bw() +
+  theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5),
+        plot.title = element_text(hjust = 0.5)
+        ) +
+##Save plot
+ggsave("bar_fishers_SignifCodel_tumour_suppressors.tiff")
+
+
+p <-ggplot(bar_plot, aes(x = cancer, y = Significant_codeletions))
+p +geom_bar(stat = "identity") +
+  xlab("Cancer") + ylab("Number of Significant Co-deletions") +
+  ggtitle("Number of Significant Co-deletions per Cancer") +
+  theme_bw() +
+  theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5),
+        plot.title = element_text(hjust = 0.5)
+  ) +
+  
+  ##Save plot
+  ggsave("bar_fishers_SignifCodel_codeletion.tiff")
+
+
+
+
+
+###################
+## Table of significant genes
+
+
 
 
 ####################
@@ -453,7 +550,7 @@ fishers_co_deletion_per_cancer_BRCA<- fishers_test_per_cancer_long_table_signifi
 
 fishers_co_deletion_per_cancer_BRCA
 
-write.csv(fishers_co_deletion_per_cancer_BRCA, file = "fishers_co_deletion_per_cancer_BRCA.csv", quote = FALSE)
+#write.csv(fishers_co_deletion_per_cancer_BRCA, file = "fishers_co_deletion_per_cancer_BRCA.csv", quote = FALSE)
 
 ## Create csv for SKCM
 fishers_co_deletion_per_cancer_SKCM<- fishers_test_per_cancer_long_table_significant_p0_05_more_than_20 %>%
@@ -462,9 +559,79 @@ fishers_co_deletion_per_cancer_SKCM<- fishers_test_per_cancer_long_table_signifi
 
 fishers_co_deletion_per_cancer_SKCM
 
-write.csv(fishers_co_deletion_per_cancer_SKCM, file = "fishers_co_deletion_per_cancer_SKCM.csv", quote = FALSE)
+#write.csv(fishers_co_deletion_per_cancer_SKCM, file = "fishers_co_deletion_per_cancer_SKCM.csv", quote = FALSE)
 
 
-write.csv(fishers_test_per_cancer_long_table_significant_p0_05_more_than_20, file = "fishers_test_per_cancer_long_table_significant_p0_05_more_than_20.csv", quote = FALSE)
+#write.csv(fishers_test_per_cancer_long_table_significant_p0_05_more_than_20, file = "fishers_test_per_cancer_long_table_significant_p0_05_more_than_20.csv", quote = FALSE)
+
+###################
+### Bar plot of Fishers exact test results for co-deletions between cancers
+##bar_fishers_SignifCodel_perCancer
+
+## p<= 0.05
+dim(fishers_test_per_cancer_long_table_significant_p0_05_more_than_20)
+head(fishers_test_per_cancer_long_table_significant_p0_05_more_than_20)
+
+table(fishers_test_per_cancer_long_table_significant_p0_05_more_than_20$cancer)
+bar_plot_3<- fishers_test_per_cancer_long_table_significant_p0_05_more_than_20 %>%
+  dplyr::group_by(cancer) %>%
+  dplyr::summarise(total = n())
+
+bar_plot_3
+
+bar_plot_1<- fishers_test_per_cancer_long_table_significant_p0_05_more_than_20 %>%
+  dplyr::group_by(cancer, target_gene) %>%
+  dplyr::summarise(total = n())
+
+bar_plot_1
+
+bar_plot_2<- bar_plot_1 %>%
+  dplyr::group_by(cancer) %>%
+  dplyr::summarise(total = n())
+
+bar_plot_2
+
+bar_plot<- data.frame(cancer = rep(bar_plot_2$cancer,2), genes =  rbind(bar_plot_2[,2], bar_plot_3[,2]))
+bar_plot$cancer<- factor(bar_plot$cancer, levels = bar_plot$cancer)
+bar_plot
+dim(bar_plot)
+
+# Key<- c(rep("Significant Tumour Suppressors",14), rep("Significant co-deletions",14))
+# Key
+
+bar_plot<- data.frame(cancer = bar_plot_2$cancer, bar_plot_2[,2], bar_plot_3[,2])
+bar_plot$cancer<- factor(bar_plot$cancer, levels = bar_plot$cancer)
+colnames(bar_plot)<- c("cancer", "Significant_Tumour_Suppressor", "Significant_codeletions")
+bar_plot
+dim(bar_plot)
+class(bar_plot$Significant_Tumour_Suppressor)
+
+p <-ggplot(bar_plot, aes(x = cancer, y = Significant_Tumour_Suppressor))
+p +geom_bar(stat = "identity") +
+  xlab("Cancer") + ylab("Number of Significant Tumour suppressors") +
+  ggtitle("Number of Significant Tumour suppressors per Cancer") +
+  theme_bw() +
+  theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5),
+        plot.title = element_text(hjust = 0.5)
+  ) +
+  ##Save plot
+  ggsave("bar_fishers_SignifCodel_perCancer_tumour_suppressors.tiff")
+
+
+p <-ggplot(bar_plot, aes(x = cancer, y = Significant_codeletions))
+p +geom_bar(stat = "identity") +
+  xlab("Cancer") + ylab("Number of Significant Co-deletions") +
+  ggtitle("Number of Significant Co-deletions per Cancer") +
+  theme_bw() +
+  theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5),
+        plot.title = element_text(hjust = 0.5)
+  ) +
+  
+  ##Save plot
+  ggsave("bar_fishers_SignifCodel_perCancer_codeletion.tiff")
+
+###################
+
+
 
 

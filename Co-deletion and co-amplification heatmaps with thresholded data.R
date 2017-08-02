@@ -116,9 +116,98 @@ for (i in 1:length(list.CNV.all.table.co.amp)){
 
 ##Comment: Maybe also do co-amplifications using a threshold of +1?
 
+
+
+
+
+
+
+
 ####################
-###Identification of top co-deletion and co-amplification genes.
+###Identification of top co-deleted genes
 ####################
+length(threshold_selected_cnv_list_plus_all_loc)
+names(threshold_selected_cnv_list_plus_all_loc)
+
+###########
+##Create an empty list
+codeletion_list<- vector("list", length(threshold_selected_cnv_list_plus_all_loc))
+
+
+
+##############
+##Create co-deletion matrix
+
+for (i in 1: length(threshold_selected_cnv_list_plus_all_loc)) {
+cnv_table<- threshold_selected_cnv_list_plus_all_loc[[i]]
+codeletion_matrix<- co.deletion_co.amplification_matrix(threshold_selected_cnv_list_plus_all_loc[[1]], column_start = 11, threshold = 2, 
+                                                                        deletion = FALSE, normalisation = "total.tumour.number")
+
+# dim(codeletion_matrix)
+# codeletion_matrix[1:10, 1:10]
+
+############
+##Create a three column table with gene1, gene2 and % co-deleted
+
+codeletion_per_target_gene<- as.data.frame(cbind(Gene.Symbol.row = rownames(codeletion_matrix), codeletion_matrix))
+# codeletion_per_target_gene[1:10, 1:10]
+
+gathered<- tidyr::gather(codeletion_per_target_gene, Gene.Symbol.col,proportion, 2:ncol(codeletion_per_target_gene))
+# head(gathered)
+# tail(gathered)
+# dim(gathered)
+
+##Arrange table by top-codeleted genes
+codeletion_table<- gathered %>%
+  dplyr::arrange(desc(proportion))
+
+# head(codeletion_table)
+
+##Add to list
+codeletion_list[[i]]<- codeletion_table
+print(names(threshold_selected_cnv_list_plus_all_loc[i]))
+
+}
+
+##Save object
+saveRDS(codeletion_list, file = "./R workspaces/proportion_codeletion_list_per_cancer")
+
+
+
+###############
+##Identify top co-deleted genes
+
+##Load R object:
+
+
+
+
+
+#################
+###Find top co-deleted genes amongst Tumour suppressors:
+## Get Tumour suppressor genes
+
+
+
+##Filter for each target gene
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

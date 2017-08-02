@@ -679,7 +679,7 @@ chr
 for (i in 1:23) {
   j<-chr[i]
   chromosome_interval<-chromosome_interval_1MB[i]
-cytoband.list<- events.per.cytoband(x, threshold = -1, cytoband_column = 10, column_data_start = 11, select_chromosome = j , chromosome_interval = chromosome_interval,  deletion = TRUE)
+cytoband.list<- events.per.cytoband(x, threshold = -2, cytoband_column = 10, column_data_start = 11, select_chromosome = j , chromosome_interval = chromosome_interval,  deletion = TRUE)
 y<-data.frame(intervals = seq(1:length(cytoband.list[[4]]$proportion.of.deletions)), chr = cytoband.list[[4]]$proportion.of.deletions)
 # glimpse(cytoband.list[[1]])
 # glimpse(cytoband.list[[2]])
