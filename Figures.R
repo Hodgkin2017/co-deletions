@@ -314,6 +314,10 @@ dev.off()
 
 
 
+
+
+
+
 #######################
 ######################
 ###Circle_perCancer_perCytoband
@@ -468,7 +472,9 @@ ggplot(target.genes.co.deletions.per.cytoband.circle.plots.table, aes(y = factor
 ### Bar plot of Fishers exact test results for co-deletions
 ##bar_fishers_SignifCodel_codeletion
 
+#####################
 ## p<= 0.05
+
 dim(fishers_co_deletion_per_gene_long_table_significanct_p0.05_more_than_20)
 head(fishers_co_deletion_per_gene_long_table_significanct_p0.05_more_than_20)
 
@@ -477,30 +483,23 @@ bar_plot_3<- fishers_co_deletion_per_gene_long_table_significanct_p0.05_more_tha
   dplyr::group_by(cancer) %>%
   dplyr::summarise(total = n())
 
+bar_plot_3
+
 bar_plot_1<- fishers_co_deletion_per_gene_long_table_significanct_p0.05_more_than_20 %>%
   dplyr::group_by(cancer, target_gene) %>%
   dplyr::summarise(total = n())
+
+bar_plot_1
 
 bar_plot_2<- bar_plot_1 %>%
   dplyr::group_by(cancer) %>%
   dplyr::summarise(total = n())
 
-bar_plot<- data.frame(cancer = rep(bar_plot_2$cancer,2), genes =  rbind(bar_plot_2[,2], bar_plot_3[,2]))
-bar_plot$cancer<- factor(bar_plot$cancer, levels = bar_plot$cancer)
-bar_plot
-dim(bar_plot)
-
-Key<- c(rep("Significant Tumour Suppressors",14), rep("Significant co-deletions",14))
-Key
-
-ggplot(bar_plot, aes(cancer, c(target_genes, total))) + 
-  geom_bar(stat = "identity", aes(fill = type), position = "dodge") +
-  xlab("Months") + ylab("Count") +
-  ggtitle("Chickens & Eggs") +
-  theme_bw()
+bar_plot_2
 
 
-bar_plot<- data.frame(cancer = bar_plot_2$cancer, as.numeric(bar_plot_2[,2]), bar_plot_3[,2])
+
+bar_plot<- data.frame(cancer = bar_plot_2$cancer, bar_plot_2[,2], bar_plot_3[,2])
 bar_plot$cancer<- factor(bar_plot$cancer, levels = bar_plot$cancer)
 colnames(bar_plot)<- c("cancer", "Significant_Tumour_Suppressor", "Significant_codeletions")
 bar_plot
@@ -530,6 +529,7 @@ p +geom_bar(stat = "identity") +
   
   ##Save plot
   ggsave("bar_fishers_SignifCodel_codeletion.tiff")
+
 
 
 ####################
@@ -864,5 +864,29 @@ venn.plot <- venn.diagram(
   ext.text = TRUE,
   category.names=c("Fisher's Exact Test", "Overall Survival", "Disease Free Survival"),
   main="Significant Co-deletions")
+
+
+#############################
+#############################
+###Immune cell infiltration
+##Immune cell infiltration Results analysis.R
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

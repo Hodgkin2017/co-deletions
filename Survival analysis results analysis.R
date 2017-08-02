@@ -1201,7 +1201,7 @@ test_plot2<- lapply(target_gene_list, function (x) survival_analysis_of_gene_lis
                                                                                              death_event_column = 6, column_start = 11, start = TRUE, 
                                                                                              remove_NA = TRUE, Cytoband = FALSE, print_to_screen = FALSE, 
                                                                                              plot_graph = TRUE, ylabel = "Disease Free Survival",
-                                                                                             path = ("../../Output/Survival analysis/survival_curves/Disease_free/ALL")
+                                                                                             path = ("../../Output/Survival analysis/survival_curves/ALL")
 )
 )
 

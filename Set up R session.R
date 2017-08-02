@@ -502,11 +502,11 @@ distance_from_target_gene_co_deletion_co_amplification_function<- function(cnv.t
   
   ##Keep rows relating to MET v's all genes only and not all genes v's all genes
   if (compare_all_genes == FALSE){
-    gathered_target_genes<- vector("list", length(target_genes))
+    gathered_target_genes<- vector("list", length(gene_information_list))
     
-    for(i in 1: length(target_genes)){
+    for(i in 1: length(gene_information_list)){
       
-      gene<- target_genes[[i]][1]
+      gene<- gene_information_list[[i]][1]
       
       gathered_target_genes[[i]]<- gathered[[i]] %>% 
         dplyr::filter(Gene.Symbol.col == gene)
