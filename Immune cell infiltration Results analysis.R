@@ -155,6 +155,7 @@ sapply(immune_cell_infiltrate_annova_per_cell_type_list, function(x) sum(x$BH_ad
 ##p<= 0.1
 sapply(immune_cell_infiltrate_annova_per_cell_type_list, function(x) sum(x$BH_adjust_cat2_1 <= 0.1, na.rm = TRUE))
 ##p<= 0.1 n>20
+sapply(immune_cell_infiltrate_annova_per_cell_type_list, function(x) sum(x$BH_adjust_cat2_1 <= 0.1 & x$number_cat1 >= 20 & x$number_cat2 >= 20, na.rm = TRUE))
 
 ##Make a function to select significant gene pairs using sapply
 input_table = immune_cell_infiltrate_annova_per_cell_type_list[[1]]
@@ -172,13 +173,50 @@ significant_selection<- function(input_table, p_value){
     dplyr::arrange(BH_adjust_cat2_1)
 }
 
-immune_cell_infiltrate_annova_per_cell_type_significant_list<- lapply(immune_cell_infiltrate_annova_per_cell_type_list, function(x) significant_selection(x, 0.05))
+immune_cell_infiltrate_annova_per_cell_type_significant_list<- lapply(immune_cell_infiltrate_annova_per_cell_type_list, function(x) significant_selection(x, 0.1))
 sapply(immune_cell_infiltrate_annova_per_cell_type_significant_list, function(x) nrow(x))
 sapply(immune_cell_infiltrate_annova_per_cell_type_list, function(x) unique(x$cell_type))
+sapply(immune_cell_infiltrate_annova_per_cell_type_significant_list, function(x) unique(x$cancer))
+
+immune_cell_infiltrate_annova_per_cell_type_significant_table<- do.call(rbind, immune_cell_infiltrate_annova_per_cell_type_significant_list)
+immune_cell_infiltrate_annova_per_cell_type_significant_table<- immune_cell_infiltrate_annova_per_cell_type_significant_table %>%
+  dplyr::arrange(cancer, target_gene, cell_type, BH_adjust_cat2_1)
+
+head(immune_cell_infiltrate_annova_per_cell_type_significant_table)
+write.csv(immune_cell_infiltrate_annova_per_cell_type_significant_table, file = "immune_cell_infiltrate_annova_per_cell_type_significant_table_p0_1_greather_than_20.csv")
+
+immune_cell_infiltrate_annova_per_cell_type_significant_table<- immune_cell_infiltrate_annova_per_cell_type_significant_table %>%
+  dplyr::arrange(cell_type, cancer, target_gene, BH_adjust_cat2_1)
+
+head(immune_cell_infiltrate_annova_per_cell_type_significant_table)
+write.csv(immune_cell_infiltrate_annova_per_cell_type_significant_table, file = "immune_cell_infiltrate_annova_per_cell_type_significant_table_p0_1_greather_than_20_by_celltype.csv")
 
 
+#########################
+### Bar plot of number of significant co-deletions per cell type:
 
 
+bar_plot1<- sapply(immune_cell_infiltrate_annova_per_cell_type_significant_list, function(x) nrow(x))
+bar_plot2<- sapply(immune_cell_infiltrate_annova_per_cell_type_list, function(x) unique(x$cell_type))
+
+barplot<-data.frame(cell_type = bar_plot2, value = bar_plot1)
+barplot<- barplot %>%
+  dplyr::filter(value > 0)
+barplot
+
+p <-ggplot(barplot, aes(x = cell_type, y = value))
+p +geom_bar(stat = "identity") +
+  xlab("Immune Cell Type") + ylab("Number of Significant Co-deletions") +
+  ggtitle("Number of Significant Co-deletions per Immune Cell Type") +
+  theme_bw() +
+  theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5),
+        plot.title = element_text(hjust = 0.5)
+  ) +
+  ##Save plot
+  ggsave("bar_all_immune_codeletions.tiff")
+
+#######
+#Bar plot of intersections with significant co-deleted genes?
 
 
 
@@ -199,12 +237,110 @@ x %>%
   dplyr::filter(number_cat1 >= 20 & number_cat2 >= 20)
 }
 
+
+###############
+##CDKN2A
+
 CDKN2A_significant_immune_infiltration<- lapply(immune_cell_infiltrate_annova_per_cell_type_list, function(x)significant_gene_selection(x, "CDKN2A"))
 names(CDKN2A_significant_immune_infiltration)<- immune_cell_types
+CDKN2A_significant_immune_infiltration_table<- do.call(rbind, CDKN2A_significant_immune_infiltration) %>%
+  dplyr::arrange(cell_type, cancer, target_gene, p_value_cat2_1)
+
+head(CDKN2A_significant_immune_infiltration_table)
+write.csv(CDKN2A_significant_immune_infiltration_table, file = "CDKN2A_significant_immune_infiltration_table.csv")
+
 sapply(CDKN2A_significant_immune_infiltration, function(x) nrow(x))
 
 CDKN2A_significant_immune_infiltration$`Activated Natural killer cell`
 CDKN2A_significant_immune_infiltration$`CD8 T cell`
+
+
+
+##########
+##CDKN1B
+CDKN1B_significant_immune_infiltration<- lapply(immune_cell_infiltrate_annova_per_cell_type_list, function(x)significant_gene_selection(x, "CDKN1B"))
+names(CDKN1B_significant_immune_infiltration)<- immune_cell_types
+CDKN1B_significant_immune_infiltration_table<- do.call(rbind, CDKN1B_significant_immune_infiltration) %>%
+  dplyr::arrange(cell_type, cancer, target_gene, p_value_cat2_1)
+
+sapply(CDKN1B_significant_immune_infiltration, function(x) nrow(x))
+head(CDKN1B_significant_immune_infiltration_table)
+write.csv(CDKN1B_significant_immune_infiltration_table, file = "CDKN1B_significant_immune_infiltration_table.csv")
+
+##########
+##LRP1B
+LRP1B_significant_immune_infiltration<- lapply(immune_cell_infiltrate_annova_per_cell_type_list, function(x)significant_gene_selection(x, "LRP1B"))
+names(LRP1B_significant_immune_infiltration)<- immune_cell_types
+LRP1B_significant_immune_infiltration_table<- do.call(rbind, LRP1B_significant_immune_infiltration) %>%
+  dplyr::arrange(cell_type, cancer, target_gene, p_value_cat2_1)
+
+sapply(LRP1B_significant_immune_infiltration, function(x) nrow(x))
+head(LRP1B_significant_immune_infiltration_table)
+write.csv(LRP1B_significant_immune_infiltration_table, file = "LRP1B_significant_immune_infiltration_table.csv")
+
+
+##########
+##RB1
+RB1_significant_immune_infiltration<- lapply(immune_cell_infiltrate_annova_per_cell_type_list, function(x)significant_gene_selection(x, "RB1"))
+names(RB1_significant_immune_infiltration)<- immune_cell_types
+RB1_significant_immune_infiltration_table<- do.call(rbind, RB1_significant_immune_infiltration) %>%
+  dplyr::arrange(cell_type, cancer, target_gene, p_value_cat2_1)
+
+sapply(RB1_significant_immune_infiltration, function(x) nrow(x))
+head(RB1_significant_immune_infiltration_table)
+write.csv(RB1_significant_immune_infiltration_table, file = "RB1_significant_immune_infiltration_table.csv")
+
+##########
+##TGFBR2
+TGFBR2_significant_immune_infiltration<- lapply(immune_cell_infiltrate_annova_per_cell_type_list, function(x)significant_gene_selection(x, "TGFBR2"))
+names(TGFBR2_significant_immune_infiltration)<- immune_cell_types
+TGFBR2_significant_immune_infiltration_table<- do.call(rbind, TGFBR2_significant_immune_infiltration) %>%
+  dplyr::arrange(cell_type, cancer, target_gene, p_value_cat2_1)
+
+sapply(TGFBR2_significant_immune_infiltration, function(x) nrow(x))
+head(TGFBR2_significant_immune_infiltration_table)
+write.csv(TGFBR2_significant_immune_infiltration_table, file = "TGFBR2_significant_immune_infiltration_table.csv")
+
+##########
+##TP53
+TP53_significant_immune_infiltration<- lapply(immune_cell_infiltrate_annova_per_cell_type_list, function(x)significant_gene_selection(x, "TP53"))
+names(TP53_significant_immune_infiltration)<- immune_cell_types
+TP53_significant_immune_infiltration_table<- do.call(rbind, TP53_significant_immune_infiltration) %>%
+  dplyr::arrange(cell_type, cancer, target_gene, p_value_cat2_1)
+
+sapply(TP53_significant_immune_infiltration, function(x) nrow(x))
+head(TP53_significant_immune_infiltration_table)
+write.csv(TP53_significant_immune_infiltration_table, file = "TP53_significant_immune_infiltration_table.csv")
+
+
+##########
+##ZFHX3
+ZFHX3_significant_immune_infiltration<- lapply(immune_cell_infiltrate_annova_per_cell_type_list, function(x)significant_gene_selection(x, "ZFHX3"))
+names(ZFHX3_significant_immune_infiltration)<- immune_cell_types
+ZFHX3_significant_immune_infiltration_table<- do.call(rbind, ZFHX3_significant_immune_infiltration) %>%
+  dplyr::arrange(cell_type, cancer, target_gene, p_value_cat2_1)
+
+sapply(ZFHX3_significant_immune_infiltration, function(x) nrow(x))
+head(ZFHX3_significant_immune_infiltration_table)
+write.csv(ZFHX3_significant_immune_infiltration_table, file = "ZFHX3_significant_immune_infiltration_table.csv")
+
+##############
+###Venn diagram of significant co-deleted genes and significant immune genes
+
+
+
+
+#################
+###Boxplots
+##http://ggplot2.tidyverse.org/reference/geom_boxplot.html
+## Will I need to create tables of co-deletion catagories again?
+mpg
+p <- ggplot(mpg, aes(class, hwy))
+p + geom_boxplot()
+
+
+
+
 
 
 
