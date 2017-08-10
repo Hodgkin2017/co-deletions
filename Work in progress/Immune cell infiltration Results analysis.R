@@ -218,6 +218,35 @@ p +geom_bar(stat = "identity") +
 #######
 #Bar plot of intersections with significant co-deleted genes?
 
+immune_cell_infiltrate_intersection<- read.csv("../../Output/Immune_Infiltration/immune_cell_infiltration_intersection.csv", header = TRUE, stringsAsFactors = FALSE)
+dim(immune_cell_infiltrate_intersection)
+head(immune_cell_infiltrate_intersection)
+
+bar_plot1<- unique(immune_cell_infiltrate_intersection$cell_type)
+bar_plot1
+bar_plot2<- immune_cell_infiltrate_intersection %>%
+  dplyr::group_by(cell_type) %>%
+  dplyr::summarise(n())
+bar_plot2
+bar_plot2[,2]
+
+barplot<-data.frame(cell_type = bar_plot1, value = bar_plot2[,2])
+colnames(barplot)<- c("cell_type", "value")
+barplot
+
+p <-ggplot(barplot, aes(x = cell_type, y = value))
+p +geom_bar(stat = "identity") +
+  xlab("Immune Cell Type") + ylab("Number of Significant Co-deletions") +
+  ggtitle("Number of Significant Co-deletions per Immune Cell Type") +
+  theme_bw() +
+  theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5),
+        plot.title = element_text(hjust = 0.5)
+  ) +
+  ##Save plot
+  ggsave("bar_significant_selected_immune_codeletions.tiff")
+
+
+
 
 
 #########################
@@ -324,8 +353,6 @@ sapply(ZFHX3_significant_immune_infiltration, function(x) nrow(x))
 head(ZFHX3_significant_immune_infiltration_table)
 write.csv(ZFHX3_significant_immune_infiltration_table, file = "ZFHX3_significant_immune_infiltration_table.csv")
 
-##############
-###Venn diagram of significant co-deleted genes and significant immune genes
 
 
 
@@ -339,12 +366,118 @@ p <- ggplot(mpg, aes(class, hwy))
 p + geom_boxplot()
 
 
+immune_cell_infiltrate_signif<- read.csv("../../Output/Immune_Infiltration/immune_cell_infiltrate_annova_per_cell_type_significant_table_p0_1_greather_than_20.csv", header = TRUE, stringsAsFactors = FALSE)
+immune_cell_infiltrate_signif
 
+df<- immune_cell_infiltrate_signif %>%
+  dplyr::select(cell_type, mean_cibersort_cat1, mean_cibersort_cat2)
+df3<- cbind(df[,1:2], rep("cat_1", nrow(df)))
+df4<- cbind(df[,c(1,3)], rep("cat_2", nrow(df)))
+colnames(df3)<- c("cell_type", "mean_CIBERSORT", "category")
+colnames(df4)<- c("cell_type", "mean_CIBERSORT", "category")
+df2<-rbind(df3, df4)
+  
+##############
+p <- ggplot(df, aes(cell_type, mean_cibersort_cat1))
+p + geom_boxplot()
+p + geom_boxplot() + geom_jitter(width = 0.2)
+################
+ggplot(df2, aes(cell_type, mean_CIBERSORT)) +
+  geom_boxplot(aes(group = category))
+#############
+ggplot(aes(y = mean_CIBERSORT, x = cell_type, fill = category), data = df2) + 
+  geom_boxplot() + 
+  geom_jitter(width = 0.5) +
+  theme(legend.position="bottom") +
+  xlab("Immune cell type") +
+  ylab("CIBERSORT value") +
+  theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5, size = 10))
 
+  
+ggsave("box_immune_infiltration.tiff",width = 14, height = 10, dpi = 300)
 
+#############
+ggplot(aes(y = mean_CIBERSORT, x = cell_type, fill=factor(category,labels=c("Single deletion","Co-deletion"))), data = df2) + 
+  geom_boxplot() + 
+  #geom_jitter(width = 0.5) +
+  theme(legend.position="bottom") +
+  xlab("Immune cell type") +
+  ylab("CIBERSORT value") +
+  labs(fill="Deletion category") #+
+  theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5, size = 10))
+  
+  ggsave("box_immune_infiltration.tiff",width = 12, height = 8, dpi = 300)
+  
 
-
-
-
-
-
+####################
+# immune_cell_infiltrate_signif_intersection<- read.csv("../../Output/Immune_Infiltration/", header = TRUE, stringsAsFactors = FALSE)
+#   immune_cell_infiltrate_signif_intersection
+#   
+#   df<- immune_cell_infiltrate_signif_all %>%
+#     dplyr::select(cell_type, mean_cibersort_cat1, mean_cibersort_cat2)
+#   df3<- cbind(df[,1:2], rep("cat_1", nrow(df)))
+#   df4<- cbind(df[,c(1,3)], rep("cat_2", nrow(df)))
+#   colnames(df3)<- c("cell_type", "mean_CIBERSORT", "category")
+#   colnames(df4)<- c("cell_type", "mean_CIBERSORT", "category")
+#   df2<-rbind(df3, df4)
+#   
+#   
+#   
+#   #############
+#   ggplot(aes(y = mean_CIBERSORT, x = cell_type, fill=factor(category,labels=c("Single deletion","Co-deletion"))), data = df2) + 
+#     geom_boxplot() + 
+#     geom_jitter(width = 0.5) +
+#     theme(legend.position="bottom") +
+#     xlab("Immune cell type") +
+#     ylab("CIBERSORT value") +
+#     labs(fill="Deletion category") #+
+#   theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5, size = 10))
+#   
+#   ggsave("box_immune_infiltration.tiff",width = 12, height = 8, dpi = 300)
+#   
+##########
+  #######################
+  ##Venn diagram to show intersection of genes between overall survival and disease free survival
+  ## Intersection of Tumour suppressors
+  
+  venn.plot <- venn.diagram(
+    x = list(
+      overall_survival = survival_stats_ovsurv_cat1_2_significant_table_p0_1_more_than_20$target_gene,
+      immune = immune_cell_infiltrate_intersection$target_gene
+    ),
+    euler.d = TRUE,
+    scaled = TRUE,
+    filename = "venn_immune_intersectio_OvSurv_TS.tiff",
+    cex = 2.5,
+    cat.cex = 1.5,
+    fill=c("white", "white"),
+    col= c("blue", "green"), 
+    alpha=c(0.5,0.5),
+    cat.col = c("blue", "green"),
+    cat.pos = c(0,180),
+    cat.fontface=4,
+    ext.text = TRUE,
+    category.names=c("Overall Survival", "Immune cell Infiltration"),
+    main="Significant Tumour suppressors")
+  
+  
+  venn.plot <- venn.diagram(
+    x = list(
+      overall_survival = survival_stats_ovsurv_cat1_2_significant_table_p0_1_more_than_20$proximal_gene,
+      immune = immune_cell_infiltrate_intersection$proximal_gene
+    ),
+    euler.d = TRUE,
+    scaled = TRUE,
+    filename = "venn_immune_intersectio_OvSurv_codel.tiff",
+    cex = 2.5,
+    cat.cex = 1.5,
+    fill=c("white", "white"),
+    col= c("blue", "green"), 
+    alpha=c(0.5,0.5),
+    cat.col = c("blue", "green"),
+    cat.pos = c(0,180),
+    cat.fontface=4,
+    ext.text = TRUE,
+    category.names=c("Overall Survival", "Immune cell Infiltration"),
+    main="Significant Co-deletions")
+  

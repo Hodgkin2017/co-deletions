@@ -179,9 +179,11 @@ pheatmap(heatmap.matrix.chr.interval250[1:205,2:24],
 
 
 
-
+###########################
 ###########################
 ### heatmap_amplification_perMB
+
+
 
 
 ##################
@@ -864,6 +866,262 @@ venn.plot <- venn.diagram(
   ext.text = TRUE,
   category.names=c("Fisher's Exact Test", "Overall Survival", "Disease Free Survival"),
   main="Significant Co-deletions")
+
+
+
+
+############################
+############################
+### Heat maps of specific tumour suppressors
+
+#########################
+###heatmap_deletion_CDKN2A
+
+gene_name<- "CDKN2A"
+gene_names<- sapply(gene_information_long_list, function(x) x[[1]])
+index<- which( gene_names %in% gene_name)
+gene_information_long_list[[index]]
+
+chromosome<- gene_information_long_list[[index]][[2]]
+gene_start<-gene_information_long_list[[index]][[4]]
+gene_end<- gene_information_long_list[[index]][[5]]
+distance = 2.5e+6
+
+
+heatmap_deletion_CDKN2A<- co.deletion_co.amplification_matrix(threshold_selected_cnv_list_plus_all_loc[[33]], column_start = 11, threshold = -2, start = TRUE, Chromosome = chromosome, selection_criteria = c(gene_start - distance, gene_end + distance), 
+                                                              deletion = TRUE, normalisation = "tumours.with.event")
+
+
+
+plot_data<- heatmap_deletion_CDKN2A
+
+tiff(paste(gene_name, "_deletion_unclustered.tiff", sep =""), width = 7, height = 5, units = 'in', res = 200)
+pheatmap(plot_data,
+         cluster_row = F,
+         cluster_cols = F,
+         show_rownames = TRUE,
+         show_colnames = TRUE
+)
+dev.off()
+
+tiff(paste(gene_name, "_deletion_Clustered.tiff", sep =""), width = 7, height = 5, units = 'in', res = 200)
+pheatmap(plot_data,
+         cluster_row = T,
+         cluster_cols = F,
+         show_rownames = TRUE,
+         show_colnames = TRUE
+)
+dev.off()
+
+
+#########################
+###heatmap_deletion_RB1
+
+gene_name<- "RB1"
+gene_names<- sapply(gene_information_long_list, function(x) x[[1]])
+index<- which( gene_names %in% gene_name)
+gene_information_long_list[[index]]
+
+chromosome<- gene_information_long_list[[index]][[2]]
+gene_start<-gene_information_long_list[[index]][[4]]
+gene_end<- gene_information_long_list[[index]][[5]]
+distance = 2.5e+6
+
+
+heatmap_deletion_RB1<- co.deletion_co.amplification_matrix(threshold_selected_cnv_list_plus_all_loc[[33]], column_start = 11, threshold = -2, start = TRUE, Chromosome = chromosome, selection_criteria = c(gene_start - distance, gene_end + distance), 
+                                                           deletion = TRUE, normalisation = "tumours.with.event")
+
+
+
+plot_data<- heatmap_deletion_RB1
+
+tiff(paste(gene_name, "_deletion_unclustered.tiff", sep =""), width = 7, height = 5, units = 'in', res = 200)
+pheatmap(plot_data,
+         cluster_row = F,
+         cluster_cols = F,
+         show_rownames = TRUE,
+         show_colnames = TRUE
+)
+dev.off()
+
+tiff(paste(gene_name, "_deletion_Clustered.tiff", sep =""), width = 7, height = 5, units = 'in', res = 200)
+pheatmap(plot_data,
+         cluster_row = T,
+         cluster_cols = F,
+         show_rownames = TRUE,
+         show_colnames = TRUE
+)
+dev.off()
+
+
+
+#########################
+###heatmap_deletion_TP53
+
+gene_name<- "TP53"
+gene_names<- sapply(gene_information_long_list, function(x) x[[1]])
+index<- which( gene_names %in% gene_name)
+gene_information_long_list[[index]]
+
+chromosome<- gene_information_long_list[[index]][[2]]
+gene_start<-gene_information_long_list[[index]][[4]]
+gene_end<- gene_information_long_list[[index]][[5]]
+distance = 2.5e+6
+
+
+heatmap_deletion_TP53<- co.deletion_co.amplification_matrix(threshold_selected_cnv_list_plus_all_loc[[33]], column_start = 11, threshold = -2, start = TRUE, Chromosome = chromosome, selection_criteria = c(gene_start - distance, gene_end + distance), 
+                                                            deletion = TRUE, normalisation = "tumours.with.event")
+
+
+
+plot_data<- heatmap_deletion_TP53
+
+tiff(paste(gene_name, "_deletion_unclustered.tiff", sep =""), width = 14, height = 12, units = 'in', res = 100)
+pheatmap(plot_data,
+         cluster_row = F,
+         cluster_cols = F,
+         show_rownames = TRUE,
+         show_colnames = TRUE
+)
+dev.off()
+
+tiff(paste(gene_name, "_deletion_Clustered.tiff", sep =""), width = 16, height = 14, units = 'in', res = 100)
+pheatmap(plot_data,
+         cluster_row = T,
+         cluster_cols = F,
+         show_rownames = TRUE,
+         show_colnames = TRUE
+)
+dev.off()
+
+
+#########################
+###heatmap_deletion_TGFBR2
+
+gene_name<- "TGFBR2"
+gene_names<- sapply(gene_information_long_list, function(x) x[[1]])
+index<- which( gene_names %in% gene_name)
+gene_information_long_list[[index]]
+
+chromosome<- gene_information_long_list[[index]][[2]]
+gene_start<-gene_information_long_list[[index]][[4]]
+gene_end<- gene_information_long_list[[index]][[5]]
+distance = 2.5e+6
+
+
+heatmap_deletion_TGFBR2<- co.deletion_co.amplification_matrix(threshold_selected_cnv_list_plus_all_loc[[33]], column_start = 11, threshold = -2, start = TRUE, Chromosome = chromosome, selection_criteria = c(gene_start - distance, gene_end + distance), 
+                                                              deletion = TRUE, normalisation = "tumours.with.event")
+
+
+
+plot_data<- heatmap_deletion_TGFBR2
+
+tiff(paste(gene_name, "_deletion_unclustered.tiff", sep =""), width = 7, height = 5, units = 'in', res = 200)
+pheatmap(plot_data,
+         cluster_row = F,
+         cluster_cols = F,
+         show_rownames = TRUE,
+         show_colnames = TRUE
+)
+dev.off()
+
+tiff(paste(gene_name, "_deletion_Clustered.tiff", sep =""), width = 7, height = 5, units = 'in', res = 200)
+pheatmap(plot_data,
+         cluster_row = T,
+         cluster_cols = F,
+         show_rownames = TRUE,
+         show_colnames = TRUE
+)
+dev.off()
+
+
+#########################
+###heatmap_deletion_CDKN1B
+
+gene_name<- "CDKN1B"
+gene_names<- sapply(gene_information_long_list, function(x) x[[1]])
+index<- which( gene_names %in% gene_name)
+gene_information_long_list[[index]]
+
+chromosome<- gene_information_long_list[[index]][[2]]
+gene_start<-gene_information_long_list[[index]][[4]]
+gene_end<- gene_information_long_list[[index]][[5]]
+distance = 2.5e+6
+
+
+heatmap_deletion_CDKN1B<- co.deletion_co.amplification_matrix(threshold_selected_cnv_list_plus_all_loc[[33]], column_start = 11, threshold = -2, start = TRUE, Chromosome = chromosome, selection_criteria = c(gene_start - distance, gene_end + distance), 
+                                                              deletion = TRUE, normalisation = "tumours.with.event")
+
+
+
+plot_data<- heatmap_deletion_CDKN1B
+
+tiff(paste(gene_name, "_deletion_unclustered.tiff", sep =""), width = 10, height = 8, units = 'in', res = 200)
+pheatmap(plot_data,
+         cluster_row = F,
+         cluster_cols = F,
+         show_rownames = TRUE,
+         show_colnames = TRUE
+)
+dev.off()
+
+tiff(paste(gene_name, "_deletion_Clustered.tiff", sep =""), width = 10, height = 8, units = 'in', res = 200)
+pheatmap(plot_data,
+         cluster_row = T,
+         cluster_cols = F,
+         show_rownames = TRUE,
+         show_colnames = TRUE
+)
+dev.off()
+
+
+
+
+#########################
+###heatmap_deletion_ZFHX3
+
+gene_name<- "ZFHX3"
+gene_names<- sapply(gene_information_long_list, function(x) x[[1]])
+index<- which( gene_names %in% gene_name)
+gene_information_long_list[[index]]
+
+chromosome<- gene_information_long_list[[index]][[2]]
+gene_start<-gene_information_long_list[[index]][[4]]
+gene_end<- gene_information_long_list[[index]][[5]]
+distance = 2.5e+6
+
+
+heatmap_deletion_ZFHX3<- co.deletion_co.amplification_matrix(threshold_selected_cnv_list_plus_all_loc[[33]], column_start = 11, threshold = -2, start = TRUE, Chromosome = chromosome, selection_criteria = c(gene_start - distance, gene_end + distance), 
+                                                              deletion = TRUE, normalisation = "tumours.with.event")
+
+
+
+plot_data<- heatmap_deletion_ZFHX3
+
+tiff(paste(gene_name, "_deletion_unclustered.tiff", sep =""), width = 10, height = 8, units = 'in', res = 200)
+pheatmap(plot_data,
+         cluster_row = F,
+         cluster_cols = F,
+         show_rownames = TRUE,
+         show_colnames = TRUE
+)
+dev.off()
+
+tiff(paste(gene_name, "_deletion_Clustered.tiff", sep =""), width = 10, height = 8, units = 'in', res = 200)
+pheatmap(plot_data,
+         cluster_row = T,
+         cluster_cols = F,
+         show_rownames = TRUE,
+         show_colnames = TRUE
+)
+dev.off()
+
+
+
+
+
+
+
 
 
 #############################

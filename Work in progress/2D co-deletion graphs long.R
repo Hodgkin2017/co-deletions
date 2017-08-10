@@ -14,15 +14,21 @@
 #Make it have two outputs a list of just target gene co-deletions and a list of all v's all target gene co-deletions
 
 ##Get Tumours suppressors that have significant co-deletions in their loci.
-length(unique(fishers_co_deletion_per_gene_long_table_significanct_p0.05_more_than_20$target_gene))
-unique(fishers_co_deletion_per_gene_long_table_significanct_p0.05_more_than_20$target_gene)
-target_gene_names<- sapply(gene_information_long_list, function(x) x[[1]])
-target_gene_names
-target_gene_index<- which(target_gene_names %in% unique(fishers_co_deletion_per_gene_long_table_significanct_p0.05_more_than_20$target_gene))
-length(target_gene_index)
-target_gene_index<- target_gene_index[c(1:30,32:34, 36:49)]
-target_gene_index
-length(target_gene_index)
+# length(unique(fishers_co_deletion_per_gene_long_table_significanct_p0.05_more_than_20$target_gene))
+# unique(fishers_co_deletion_per_gene_long_table_significanct_p0.05_more_than_20$target_gene)
+# target_gene_names<- sapply(gene_information_long_list, function(x) x[[1]])
+# target_gene_names
+# target_gene_index<- which(target_gene_names %in% unique(fishers_co_deletion_per_gene_long_table_significanct_p0.05_more_than_20$target_gene))
+# length(target_gene_index)
+# target_gene_index<- target_gene_index[c(1:30,32:34, 36:49)]
+# target_gene_index
+# length(target_gene_index)
+
+grep("ZFHX3" ,sapply(gene_information_long_list, function(x) x[[1]]))
+gene_information_list_significant2<-gene_information_long_list[c(142, 157, 60, 166, 76, 168)]
+cnv.table<- threshold_selected_cnv_list_plus_all_loc$ALL
+cnv.table<- threshold_selected_cnv_list_plus_all_loc$BRCA
+
 
 # test<- sapply(gene_information_long_list[target_gene_index], function(x) x[[1]])
 # test2<- unique(fishers_co_deletion_per_gene_long_table_significanct_p0.05_more_than_20$target_gene)
@@ -38,14 +44,14 @@ length(target_gene_index)
 
 
 
-gene_information_long_significant_list<- gene_information_long_list[target_gene_index]
-length(gene_information_long_significant_list)
-
-#cnv.table<-threshold_short_cnv_list_loc[[1]]
-cnv.table<-threshold_selected_cnv_list_plus_all_loc$ALL
+# gene_information_long_significant_list<- gene_information_long_list[target_gene_index]
+# length(gene_information_long_significant_list)
+# 
+# #cnv.table<-threshold_short_cnv_list_loc[[1]]
+# cnv.table<-threshold_selected_cnv_list_plus_all_loc$ALL
 
 #co_deletions_distance_from_target_gene_plot_table3<- distance_from_target_gene_co_deletion_co_amplification_function(cnv.table = cnv.table, gene_information_list = gene_information_list, distance = 2.5e+06, deletion = TRUE, threshold = -2, compare_all_genes = FALSE, normalisation = "tumours.with.event")
-co_deletions_distance_from_target_gene_plot_table<- distance_from_target_gene_co_deletion_co_amplification_function(cnv.table = cnv.table, gene_information_list = gene_information_long_significant_list, distance = 2.5e+06, deletion = TRUE, threshold = -2, compare_all_genes = FALSE, normalisation = "tumours.with.event")
+co_deletions_distance_from_target_gene_plot_table<- distance_from_target_gene_co_deletion_co_amplification_function(cnv.table = cnv.table, gene_information_list = gene_information_list_significant2, distance = 2.5e+06, deletion = TRUE, threshold = -2, compare_all_genes = FALSE, normalisation = "tumours.with.event")
 
 # cnv.table<-threshold_selected_cnv_list_plus_all_loc$ACC
 # gene_information_list<- gene_information_long_significant_list
@@ -198,7 +204,7 @@ mean_co_deletion_co_amplification_values_around_gene<- function(co_deletion_tabl
 
 ##Create list with one dataframe per target gene of co-deletions
 distance<- 2.5e+06
-co.deletion.per.target.gene<- lapply(gene_information_list, function(x) co.deletion_co.amplification_matrix(cnv.table, column_start = 11, threshold = -2, start = TRUE, Chromosome = x[[2]], selection_criteria = c(x[[4]] - distance, x[[5]] + distance), deletion = TRUE, normalisation = "tumours.with.event"))
+co.deletion.per.target.gene<- lapply(gene_information_list_significant2, function(x) co.deletion_co.amplification_matrix(cnv.table, column_start = 11, threshold = -2, start = TRUE, Chromosome = x[[2]], selection_criteria = c(x[[4]] - distance, x[[5]] + distance), deletion = TRUE, normalisation = "tumours.with.event"))
 length(co.deletion.per.target.gene)
 co.deletion.per.target.gene[[2]]
 
@@ -251,28 +257,28 @@ co_deletions_distance_from_target_gene_plot_table<- cbind(co_deletions_distance_
 #   theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5))
 
 ##Plot neighbouring/local co-deletions one gene away
-ggplot(co_deletions_distance_from_target_gene_plot_table, aes(x=Comparison_gene, group = Target_gene)) + 
-  geom_point(aes(y = as.numeric(proportion_co_del_amp), colour = "Co-deletion with target gene"), size = 0.5, shape = 1) +
-  geom_line(aes(y = as.numeric(proportion_co_del_amp), colour = "Co-deletion with target gene")) + 
-  geom_point(aes(y = as.numeric(co_deletion_around_target_gene), colour = "Mean co-deletion for genes 1 gene away"), size = 0.5, shape = 1) +
-  geom_line(aes(y = as.numeric(co_deletion_around_target_gene), colour = "Mean co-deletion for genes 1 gene away")) +
-  #facet_wrap(~Target_gene, nrow = 1, scales = "free_x") + 
-  facet_wrap(~Target_gene, scales = "free_x") + 
-  #theme(legend.position="none") +
-  theme(legend.position="bottom") +
-  theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5))
-
-##Save plot
-ggsave("BRCA_co-deletion_distance_1geneaway_lineplot.tiff",width = 16, height = 12, dpi = 100)
+# ggplot(co_deletions_distance_from_target_gene_plot_table, aes(x=Comparison_gene, group = Target_gene)) + 
+#   geom_point(aes(y = as.numeric(proportion_co_del_amp), colour = "Co-deletion with target gene"), size = 0.5, shape = 1) +
+#   geom_line(aes(y = as.numeric(proportion_co_del_amp), colour = "Co-deletion with target gene")) + 
+#   geom_point(aes(y = as.numeric(co_deletion_around_target_gene), colour = "Mean co-deletion for genes 1 gene away"), size = 0.5, shape = 1) +
+#   geom_line(aes(y = as.numeric(co_deletion_around_target_gene), colour = "Mean co-deletion for genes 1 gene away")) +
+#   #facet_wrap(~Target_gene, nrow = 1, scales = "free_x") + 
+#   facet_wrap(~Target_gene, scales = "free_x") + 
+#   #theme(legend.position="none") +
+#   theme(legend.position="bottom") +
+#   theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5))
+# 
+# ##Save plot
+# ggsave("BRCA_co-deletion_distance_1geneaway_lineplot.tiff",width = 16, height = 12, dpi = 100)
 
 ##Plot neighbouring/local co-deletions two genes away
-ggplot(co_deletions_distance_from_target_gene_plot_table, aes(x=Comparison_gene, group = Target_gene)) + 
+ggplot(co_deletions_distance_from_target_gene_plot_table, aes(x=factor(Comparison_gene, levels = co_deletions_distance_from_target_gene_plot_table$Comparison_gene), group = Target_gene)) + 
   geom_point(aes(y = as.numeric(proportion_co_del_amp), colour = "Co-deletion with target gene"), size = 0.5, shape = 1) +
   geom_line(aes(y = as.numeric(proportion_co_del_amp), colour = "Co-deletion with target gene")) + 
   geom_point(aes(y = as.numeric(co_deletion_around_target_gene2), colour = "Mean co-deletion for genes 2 gene away"), size = 0.5, shape = 1) +
   geom_line(aes(y = as.numeric(co_deletion_around_target_gene2), colour = "Mean co-deletion for genes 2 gene away")) +
   #facet_wrap(~Target_gene, nrow = 1, scales = "free_x") + 
-  facet_wrap(~Target_gene, scales = "free_x",  ncol = 3) + 
+  facet_wrap(~Target_gene, scales = "free_x",  ncol = 2) + 
   #theme(legend.position="none") +
   theme(legend.position="bottom") +
   xlab("Gene") +
@@ -282,22 +288,22 @@ ggplot(co_deletions_distance_from_target_gene_plot_table, aes(x=Comparison_gene,
 
 
 ##Save plot
-ggsave("ALL_co-deletion_distance_2genesaway_lineplot.tiff",width = 18, height = 25, dpi = 300)
+ggsave("ALL_co-deletion_distance_2genesaway_lineplot2.tiff",width = 14, height = 10, dpi = 300)
 
 
 ##Plot neighbouring/local co-deletions one and two genes away
-ggplot(co_deletions_distance_from_target_gene_plot_table, aes(x=Comparison_gene, group = Target_gene)) + 
-  geom_point(aes(y = as.numeric(proportion_co_del_amp), colour = "Co-deletion with target gene"), size = 0.5, shape = 1) +
-  geom_line(aes(y = as.numeric(proportion_co_del_amp), colour = "Co-deletion with target gene")) +
-  geom_point(aes(y = as.numeric(co_deletion_around_target_gene), colour = "Mean co-deletion for genes 1 gene away"), size = 0.5, shape = 1) +
-  geom_line(aes(y = as.numeric(co_deletion_around_target_gene), colour = "Mean co-deletion for genes 1 gene away")) +
-  geom_point(aes(y = as.numeric(co_deletion_around_target_gene2), colour = "Mean co-deletion for genes 2 gene away"), size = 0.5, shape = 1) +
-  geom_line(aes(y = as.numeric(co_deletion_around_target_gene2), colour = "Mean co-deletion for genes 2 gene away")) +
-  #facet_wrap(~Target_gene, nrow = 1, scales = "free_x") + 
-  facet_wrap(~Target_gene, scales = "free_x") + 
-  #theme(legend.position="none") +
-  theme(legend.position="bottom") +
-  theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5))
-
-##Save plot
-ggsave("BRCA_co-deletion_distance_1and2genesaway_lineplot.tiff",width = 16, height = 12, dpi = 100)
+# ggplot(co_deletions_distance_from_target_gene_plot_table, aes(x=Comparison_gene, group = Target_gene)) + 
+#   geom_point(aes(y = as.numeric(proportion_co_del_amp), colour = "Co-deletion with target gene"), size = 0.5, shape = 1) +
+#   geom_line(aes(y = as.numeric(proportion_co_del_amp), colour = "Co-deletion with target gene")) +
+#   geom_point(aes(y = as.numeric(co_deletion_around_target_gene), colour = "Mean co-deletion for genes 1 gene away"), size = 0.5, shape = 1) +
+#   geom_line(aes(y = as.numeric(co_deletion_around_target_gene), colour = "Mean co-deletion for genes 1 gene away")) +
+#   geom_point(aes(y = as.numeric(co_deletion_around_target_gene2), colour = "Mean co-deletion for genes 2 gene away"), size = 0.5, shape = 1) +
+#   geom_line(aes(y = as.numeric(co_deletion_around_target_gene2), colour = "Mean co-deletion for genes 2 gene away")) +
+#   #facet_wrap(~Target_gene, nrow = 1, scales = "free_x") + 
+#   facet_wrap(~Target_gene, scales = "free_x") + 
+#   #theme(legend.position="none") +
+#   theme(legend.position="bottom") +
+#   theme(axis.text.x=element_text(angle=90,hjust=1, vjust = 0.5))
+# 
+# ##Save plot
+# ggsave("BRCA_co-deletion_distance_1and2genesaway_lineplot.tiff",width = 16, height = 12, dpi = 100)

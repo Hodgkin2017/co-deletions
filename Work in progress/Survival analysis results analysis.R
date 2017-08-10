@@ -423,7 +423,7 @@ survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20 %>%
 
 ##Sort by BH p-value and cancer type?
 
-write.csv(survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20, file = "survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20.csv", quote = FALSE)
+#write.csv(survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20, file = "survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20.csv", quote = FALSE)
 
 ##########
 ### Export data tables:
@@ -444,7 +444,7 @@ survival_stats_disefreeSurv_cat1_2_ALL<- survival_stats_DiseFreeSurv_cancer_list
 
 survival_stats_disefreeSurv_cat1_2_ALL
 
-write.csv(survival_stats_disefreeSurv_cat1_2_ALL, file = "survival_stats_disefreeSurv_cat1_2_ALL.csv", quote = FALSE)
+#write.csv(survival_stats_disefreeSurv_cat1_2_ALL, file = "survival_stats_disefreeSurv_cat1_2_ALL.csv", quote = FALSE)
 
 
 ###################
@@ -485,7 +485,7 @@ survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20 %>%
 
 ##Sort by BH p-value and cancer type?
 
-write.csv(survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20, file = "survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20_p=0_1.csv", quote = FALSE)
+#write.csv(survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20, file = "survival_stats_DiseFreeSurv_cancer_list_cat1_and_2_table_more_than_20_p=0_1.csv", quote = FALSE)
 
 ##########
 ### Export data tables:
@@ -506,7 +506,7 @@ survival_stats_disefreeSurv_cat1_2_ALL_0_1<- survival_stats_DiseFreeSurv_cancer_
 
 survival_stats_disefreeSurv_cat1_2_ALL
 
-write.csv(survival_stats_disefreeSurv_cat1_2_ALL_0_1, file = "survival_stats_disefreeSurv_cat1_2_ALL_0_1.csv", quote = FALSE)
+#write.csv(survival_stats_disefreeSurv_cat1_2_ALL_0_1, file = "survival_stats_disefreeSurv_cat1_2_ALL_0_1.csv", quote = FALSE)
 
 
 
@@ -530,6 +530,10 @@ bar_plot
 colnames(bar_plot)<- c("target_gene", "values")
 
 sum(as.numeric(bar_plot$values))
+
+bar_plot<- data.frame(bar_plot[,1], c(1,25,3,1))
+bar_plot
+colnames(bar_plot)<- c("target_gene", "values")
 
 p <-ggplot(bar_plot, aes(x = factor(target_gene), y = as.numeric(values)))
 p +geom_bar(stat = "identity") +
@@ -685,10 +689,10 @@ start = TRUE
 remove_NA = TRUE
 Cytoband = FALSE
 print_to_screen = FALSE 
-plot_graph = FALSE
+plot_graph = TRUE
 ylabel = "Overall survival"
 path = "./"
-path = ("../../Output/Survival analysis/survival_curves")
+#path = ("../../Output/Survival analysis/survival_curves")
 
 
 
